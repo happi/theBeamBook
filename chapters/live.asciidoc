@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>  <!-- -*- markdown -*- -->
+<!DOCTYPE chapter SYSTEM "local/xml/markup.dtd">
+
+<markdown>
+# Release Handling {#ch.live}
+
+In this chapter we will look at how to run a live system in a
+production environment and how to release your code for that system.
+
+In order to have reliable 24/7 server we need to beable to release new
+features and bugfixes with as little disruption as possible to the
+running system. In this chapter we will learn about the tools provided
+by the runtime to handle releases.
+
+The runtime comes with a very powerful set of primitives, tools and
+libraries for releasing and upgrading. In this chapter we will go over
+most of these primitives and then learn how to use some automated
+tools for building and deploying releases.
+
+We will first look at how to start the Erlang runtime system in a live
+environment. Then we will look at the building blocks for release
+handling, before moving on to how to do releases in Elixir.
+
+If you mostly use Elixir you might want to skip the information on
+the underlying Erlang implementation and jump to the section
+on Exrm (see [xxx](#sec.exrm)). There will probably come a time
+when you need to peek under Exrm and the Elixir abstractions and
+then you will need to know about how the underlying Erlang
+system handle releases. Fell free to come back then and read
+the following sections.
+
+## Starting Your System (without a shell)
+
+When running a live server there are a number of basic settings that
+you need to get right. You do not want to start the system with a shell
+attached, since the system then would go down when you close the shell.
+Instead you want to start in detached mode and use one of the techniques
+we learned in [xxx](#ch.interacting) to connect a shell to the system.
+This is done by giving the flag `-detached` to the `erl` command.
+
+In almost all circumstances you will also want to give a name to your
+system so that it becomes a live distributed system so that you can
+connect to other nodes and attach a remote shell to the node. As we saw
+in the previous chapter this is done with either the flag `-name` or
+the flag `-sname`.
+
+In order to start your own application you also need to give at least
+the module name of your application with the flag `-s MODULE`.
+The module `init` will then start your application. We will look a
+little bit more at what init does soon.
+
+Imagine we have a small server like the one in
+<filename>example_server.erl</filename>
+
+<embed file="code/example_server.erl"/>
+
+Then we can start our server node as:
+
+~~~
+> erl -detached -sname server01 -s example_server
+~~~
+
+Nice! Now we have a server running in the background. In a real world
+example we would probably have started this form an secure shell on
+a remote machine and now we can log out of the ssh session and keep
+our Erlang application running in the background.
+
+One problem with this way of starting the node is that the output
+to `stdout` now is just redirected to `/dev/null`. The tick printouts
+in oue example is nowhere to be seen. This is the reason we want
+to use `run_erl` to get the output redirected to a log file.
+We want two directories for output and logs that we create under `/tmp/`
+for now.
+
+~~~
+> mkdir /tmp/erl_pipe
+> mkdir /tmp/erl_log
+> run_erl -daemon /tmp/erl_pipe/ /tmp/erl_log/ \
+          "exec erl -sname server01 -s example_server"
+~~~
+
+In a live server environment you might want to consider creating a
+user which runs your server and then also create a directory for your
+application under `/var/log/` where your server can write its logs.
+
+Note that when redirecting the output from the runtime with run_erl to
+a pipe will cause a call to `fsync` on each line of output. This is
+often what you want, since there is not supposed to be much output to
+standard out and standard error from the system and any such output
+should not be lost on a crash. If your application is very chatty and
+writes to these pipes all the time this might be costly, consider
+rewriting your app so it writes to a proper log instead.
+
+Now you can log in to your remote machine and start your system and
+then log out, go and take a break and a coffee, and your server will
+keep on running serving your customers, until it crashes.
+
+You do not want to skip your coffee break just because your server
+crashes or hangs, fortunately the heart beat monitor Heart has you
+covered.
+
+## Heart - How to Restart in a Heartbeat
+
+In Erlang you have supervisor that can monitor your processes, and
+outside the runtime you have _Heart_ which is an external process that
+can monitor your node.
+
+In most live environments you do want to use Heart, but there are some
+circumstances where Heart can cause problems. If your node takes a
+long time to restart, for example because it has to repair and load
+large Mnesia tables, and if the node sometime get so overloaded that
+the Heart ping goes unanswered. In this case the system might be just
+temporarily unresponsive but then Heart will kill the node and it will
+then be offline for the complete restart.
+
+In most cases though, you do want to use Heart, which will act as
+an supervisor and restart the node if it hangs. By setting the
+environment variable HEART_COMMAND you can control how the
+system is restarted. You might want to use a separate function
+to restart the system from the one you use when you start the system.
+
+We rewrite our server to save its state to disk and implement a
+restart function which reads the state from disk.
+
+<embed file="code/example_server2.erl"/>
+
+Now we need to set up the environment variable `HEART_COMMAND` which
+Heart use to restart the node if it hangs.
+
+We want to use our new restart function when restarting:
+
+~~~
+export HEART_COMMAND='run_erl -daemon /tmp/erl_pipe/ /tmp/erl_log/ \
+             "exec erl -heart -sname server01 -s example_server2 restart"'
+~~~
+
+Now we can start our server:
+
+~~~
+run_erl -daemon /tmp/erl_pipe/ /tmp/erl_log/ \
+        "exec erl -heart -sname server01 -s example_server2"
+
+~~~
+
+We can now see that the counter is written to our save file, and
+if we kill the node it will be restarted and continue to write to the node.
+
+
+~~~
+> cat /tmp/example_server_counter.eterm
+1.
+> cat /tmp/example_server_counter.eterm
+2.
+> cat /tmp/example_server_counter.eterm
+4.
+> killall beam.smp
+> cat /tmp/example_server_counter.eterm
+20.
+
+~~~
+
+Taking a look at the log file will show the
+restart.
+
+~~~
+
+> cat /tmp/erl_log/erlang.log.1
+=====
+===== LOGGING STARTED Mon Feb 13 12:32:51 CET 2017
+=====
+heart_beat_kill_pid = 30009
+Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:10:10]
+              [async-threads:10] [hipe] [kernel-poll:false]
+
+ERTS is starting in /home/happi/eserlang/Book/code
+
+Eshell V8.1  (abort with ^G)
+(server01@GDC08)1> Tick 0
+Tick 1
+Tick 2
+Tick 3
+Tick 4
+Tick 5
+Tick 6
+Tick 7
+Tick 8
+Tick 9
+Tick 10
+Tick 11
+Tick 12
+Tick 13
+Tick 14
+Tick 15
+Tick 16
+heart: Mon Feb 13 12:33:09 2017: Erlang has closed.
+heart: Mon Feb 13 12:33:09 2017: Executed "run_erl -daemon /tmp/erl_pipe/
+                                 /tmp/erl_log/ "exec erl -heart -sname server01
+                                 -s example_server2 restart"" -> 0. Terminating.
+
+=====
+===== LOGGING STARTED Mon Feb 13 12:33:09 CET 2017
+=====
+heart_beat_kill_pid = 30084
+Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:10:10]
+              [async-threads:10] [hipe] [kernel-poll:false]
+
+ERTS is starting in /home/happi/eserlang/Book/code
+
+Eshell V8.1  (abort with ^G)
+(server01@GDC08)1> Tick 17
+Tick 18
+Tick 19
+Tick 20
+Tick 21
+Tick 22
+Tick 23
+
+~~~
+
+To stop a system monitored by heart you must either shut down the system
+in a controlled way using for example `init:stop` or you will have to kill
+the heart process first for example with `killall heart`.
+
+Now we have a way to start our application and have it automatically
+restarted by Heart if it crashes, but what happens if the whole
+machine restarts. We do not want to stop our nice coffee break just to
+log in and restart the Erlang node. We want our application to start
+when the system start, also the whole command for starting is becoming
+a bit long. We want to wrap this into a script and add it as a service
+on the OS level. We will look at how to do this in the next chapter
+[xxx](#ch.deploy).
+
+
+## Making a Release
+
+Now that we can start and stop our node and run our server we are
+almost ready to make a release for our server. Before we do that we
+have to turn our server into a proper Erlang application though, since
+all release tools work on applications.
+
+We will not go into the details of what an Erlang application is and
+how to write your code as an application. Let us just assume that you
+or at least the developer who wrote the server in the first place,
+knew how to make an Erlang application and we have the following code.
+(We could let Rebar3 generate these files for us: `rebar3 new app
+example_server`. Then we just copy `example_server.erl` into the `src`
+directory.)
+
+<embed file="code/example_server/src/example_server_app.erl"/>
+<embed file="code/example_server/src/example_server_sup.erl"/>
+<embed file="code/example_server/src/example_server.app.src"/>
+<embed file="code/example_server/src/example_server.erl"/>
+
+Now that we have an application that follows the OTP application
+format we can create a release for this application.
+
+First we create a release file:
+
+<embed file="code/example_server/example_server.rel"/>
+
+The release file lists which version of the Erlang runtime we want to
+use and the applications and the versions we need.  For a full
+documentation of the release file see
+[erlang.org/doc/man/rel.html.](http://erlang.org/doc/man/rel.html) You
+can find the version numbers of the applications by starting Erlang
+and calling the function `application:which_applications().`.  The
+application need to be started in order for this function to list the
+application so if you are starting a vanilla system without for
+example sasl (System Architecture Support Libraries) and you want to
+include that application you need to first start it
+`application:start(sasl).` Then you can list the version of the
+application.
+
+When the runtime starts it calls `boot(BootArgs)` in the preloaded
+module `init`. The argument `BootArgs` contains the command line
+arguments used when starting the runtime. If theses arguments contains
+`-boot Name` init will execute the boot commands in the binary file
+'Name.boot'. This file is generated from the human readable [script
+file](http://erlang.org/doc/man/script.html) `Name.script`.  The boot
+file contains the commands that loads and starts all applications that
+your system needs. Even if the boot script is human readable it is not
+something you want to write by hand, instead we let `systools`
+generate the boot script from the release file:
+
+
+~~~
+> erl
+Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:10:10]
+              [async-threads:10] [hipe] [kernel-poll:false]
+Eshell V8.1  (abort with ^G)
+1> systools:make_script("example_server", [local]).
+ok
+~~~
+
+Now you should have two new files in your code directory,
+`example_server.script` and `example_server.boot`.
+With a boot script in place we do not need the flag `-s Module`
+to tell the runtime where to start execution, instead we tell
+the runtime which boot script to run. The boot script will then
+start all the needed applications in the right order.
+Now we can start Erlang with `erl -sname server01 -boot example_server`
+
+In our tiny example with the `example_server` it was quite straight forward to
+write the release file by hand, but as your project grows the dependencies
+will also grow quickly. Soon it will be very tedious to keep the release file
+up to date. Fortunately there are a number of tools to help us with this.
+
+### Erlang Release Tools
+
+There is a release tool that comes bundled with Erlang called
+[`reltool`](http://erlang.org/doc/apps/reltool/users_guide.html) and
+there is a good tutorial on how to use `reltool` in ["Learn you some
+Erlang for great
+good".](http://learnyousomeerlang.com/release-is-the-word) One nice
+thing with `reltool` is that it contains a graphical user interface
+where you can see dependencies between modules.  Still, `reltool` is
+quite complex and far from fully automated.  Instead most modern tools
+and installations uses [`relx`.](https://github.com/erlware/relx)
+
+Relx is also the tool used by modern Erlang build systems such as
+`erlang.mk` and `Rebar3`. It is quite straight forward to generate a
+release from Reabar3 if you have set up your build process with Rebar3
+from the beginning. (With [`rebar3 new app example
+server`](https://www.rebar3.org/docs/basic-usage)) All you need to do
+is add the name of your release and the application in your release to
+the `rebar.config` file. (see the Rebar3
+[documentation](https://www.rebar3.org/docs/releases)) A minimal
+rebar.config file could look like this:
+
+~~~
+
+{erl_opts, [debug_info]}.
+{deps, []}.
+
+{relx, [{release, {server01, "1.0.0"},
+        [example_server]}
+       ]}.
+~~~
+
+Running `rebar3 tar` would create a tarball that can be
+copied to the target machine. This tarball also include
+start scripts for starting and upgrading your server.
+
+If you unpack the tarball you will get a bin directory
+and in that directory you have an executable shell script
+named as your release (`server01`). Calling this script
+as it is will start the runtime and your application with
+an attached shell. As we noted before we want to start
+the node in detached mode. By adding the configuration
+`{extended_start_script, true}` to the relx config in
+`rebar.config` you will get a start script that takes
+an argument to let you start and stop the node.
+
+~~~
+{erl_opts, [debug_info]}.
+{deps, []}.
+
+{relx, [ {release, {server01, "1.0.0"},
+          [example_server]}
+         , {extended_start_script, true}
+       ]}.
+~~~
+
+Now we can start the server in the background as:
+
+~~~~
+> bin/server01 start
+~~~~
+
+You can also stop the node and attach a shell to the node with
+`bin/server01 stop` and `bin/server01 attach` respectively (but not in
+that order of course).
+
+[aside note The relx start scripts are somewhat fragile]
+<p>
+  If you followed the example earlier in this book and added
+  a printout in your `.erlang` file you will probably have
+  to remove that printout in order to get the start scripts
+  to work flawlessly.
+</p>
+[/aside]
+
+If you want to use Heart to monitor your node you need to supply the
+command line parameters for the runtime in a file called `vm.args`.
+When you built the release Rebar3 created a default `vm.args` in
+`_build/default/rel/server01/releases/1.0.0/vm.args`. The way easiest
+way to supply your own version is to copy that file to
+`config/vm.args` and edit it. For example by adding the line `-heart`
+somewhere in the file. It should then look something like:
+
+<embed file="code/example_server/config/vm.args"/>
+
+Then you tell the build process in the relx
+configuration to use this file by adding `{vm_args, "config/vm.args"}`
+to rebar.config.
+
+Now rebar.config looks like:
+
+~~~
+{erl_opts, [debug_info]}.
+{deps, []}.
+
+{relx, [ {release, {server01, "1.0.0"},
+          [example_server]}
+          , {extended_start_script, true}
+          , {vm_args, "config/vm.args"}
+       ]}.
+~~~
+
+We will see that many of the performance tuning parameters that can
+change the behavior of the runtime are passed to the virtual machine
+as command line parameters. Putting these parameters in the `vm.args`
+file will not only keep everything nicely in one (hopefully) source
+controlled file, but it will also give you the opportunity to document
+why you are setting this parameter.
+
+This whole exercise might feel like quite a lot of work just to get a
+command to start your server. The thing is that we have really just
+scratched a little bit at the surface of this complexity and tried to
+take a very straight path through all the configuration files and
+settings. The reason for all this complexity is to make it possible to
+run Erlang in many different environments and still be able to do safe
+and controlled upgrades. It is actually possible to run Erlang on an
+tiny embedded device without a hard disk and do an upgrade over the
+network, as well as on a cluster of Windows machines.
+
+If you do not want to deal with all this complexity right now
+there is an even easier way to do releases, by using the release
+tool for Elixir, the Elixir release manager - Exrm.
+
+### The Elixir Release Tool - Exrm {#sec.exrm}
+
+The Elixir Release Manager (Exrm) is built on top of relx
+so if you didn't skip all of the last chapter you should know
+a little bit about what it will produce. The nice thing with
+Exrm is that it uses your mix configuration to find out
+what your release should contain.
+
+As long as you have created your Elixir program using
+mix there is not much you need to do in order to create
+a release with Exrm. You need to add Exrm as a dependency in
+your `mix.exs` file.
+
+Imagine we start by creating an application with a supervisor
+which we let mix generate:
+
+~~~
+mix new --sup server02
+~~~
+
+We rewrite the server02 module to be a simple counter
+
+<embed file="code/elixir_release_example/server02/lib/server02.ex"/>
+
+We also rewrite `application.ex` so it starts the new server:
+
+<embed file="code/elixir_release_example/server02/lib/server02/application.ex"/>
+
+Now all we need to do is to add a dependency on Exrm (that is `{:exrm, []}`) in our `mix.exs` file:
+
+<embed file="code/elixir_release_example/server02/mix.exs"/>
+
+Now we can build the release tool and the release:
+
+~~~
+> mix do deps.get, deps.compile
+...
+> mix release
+~~~
+
+Now you should have a tarball with the release in
+`rel/server02/releases/0.1.0/server02.tar.gz`.
+
+That's it, adding one line "`{:exrm, []}`" to your `mix.exs` is all
+that is needed to make an Elixir release.
+
+The main goal with all this release handling has been to make it
+easy to upgrade our running server without disturbing the service,
+in the next chapter we will look at how to achieve that.
+
+## Dig In
+
+In this chapter we learned how to start the runtime system without
+a shell and how to tell the runtime what code to run when it starts.
+You can either do this by giving the name of a module to start
+as an argument on the command line or you can provide a boot script
+which can start several applications in the correct order.
+
+We also learned about how to monitor a node with Heart and how
+to specify how Heart restarts the system. Then we learned about
+how to bundle the applications that we need into a release and how
+to create a release more or less automatically.
+
+We learned how the runtime uses boot scripts to load applications and
+how to create them with `systools`. Then we looked at `relx` which automates
+much of the tedious work you have to do with `systools`. Finally we saw that
+the Elixir release manager uses `relx` and `mix` to automate even more
+of the release configuration process.
+
+Your mission, should you choose to accept it, is now to try to
+activate the heartbeat monitor Heart for the Elixir release created
+in the last example.
+
+A hint: there should be a file `vm.args` somewhere which defines the
+arguments given to the runtime at start up. If you can find out how it
+is generated by Exrm you should be able to add the flag `-heart` to it
+and then Heart should be started when you start the system with
+`server02 start`.
+
+
+</markdown>
