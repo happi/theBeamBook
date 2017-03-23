@@ -10,3 +10,6 @@ rel/example_project
 .rebar
 *~
 git-log.xml
+book-revhistory.xml
+beam-book-from-ab.xml
+beam-book.pdf
