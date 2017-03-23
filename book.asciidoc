@@ -1,10 +1,10 @@
 = The Erlang Runtime System
 
-// include::preface.asciidoc[]
+include::preface.asciidoc[]
 
 // Part I
 
-// include::introduction.asciidoc[]
+include::introduction.asciidoc[]
 
 // include::compiler.asciidoc[]
 
@@ -42,18 +42,11 @@
 [[P-Running]]
 = Running ERTS
 
-// include::building.asciidoc[] - moved to ops
-// include::shell.asciidoc[]  - moved to ops
-
 // include::ops.asciidoc[]
-
-// include::crash_dumps.asciidoc[]  - moved to ops
-// include::debugger.asciidoc[]   - moved to ops
-// include::tracing.asciidoc[] - mode to ops
 
 // include::tweak.asciidoc[]
 
-// Appendix
+// // Appendix
 
 // include::index.asciidoc[]
 

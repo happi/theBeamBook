@@ -1,8 +1,8 @@
 
 ABFLAGS = --backend=docbook --doctype=book --attribute=revisionhistory
-adocs = book.asciidoc 
-                   #     introduction.asciidoc \
-                   #     preface.asciidoc \
+adocs = book.asciidoc \
+                        preface.asciidoc \
+                        introduction.asciidoc
                    #     compiler.asciidoc \
                    #     beam.asciidoc \
                    #     beam_modules.asciidoc \
@@ -12,6 +12,7 @@ adocs = book.asciidoc
                    #     erts-book.asciidoc  \
                    #     ap-beam_instructions.asciidoc \
 	           # opcodes_doc.asciidoc
+
 
 all: beam-book.pdf
 

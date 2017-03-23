@@ -1,0 +1,411 @@
+[[P-ERTS]]
+= Understanding ERTS
+
+[[introduction]]
+
+== Introducing the Erlang Runtime System
+
+The Erlang RunTime System (ERTS) ((("Erlang RunTime System",
+see="ERTS")))(((ERTS))) is a complex system with many interdependent
+components. It is written in a very portable way so that it can run on
+anything from a gum stick computer to the largest multicore system
+with terabytes of memory. In order to be able to optimize the
+performance of such a system for your application, you need to not
+only know your application, but you also need to have a thorough
+understanding of ERTS itself.
+
+=== ERTS and the Erlang Runtime System
+
+// There is a difference between any Erlang Runtime System ((("Erlang
+// Runtime System"))) and a specific implementation of an Erlang Runtime
+// System. "Erlang/OTP" by Ericsson is the de facto standard
+// implementation of Erlang and the Erlang Runtime System. In this book I
+// will refer to this implementation as _ERTS_ or spelled out _Erlang
+// RunTime System_ with a capital T. (See xref:ERTS[] for a definition of
+// OTP.)
+
+// There is no official definition of what an Erlang Runtime System is,
+// or what an Erlang Virtual Machine is. You could sort of imagine what
+// such an ideal Platonic system would look like by taking ERTS and
+// removing all the implementation specific details. This is
+// unfortunately a circular definition, since you need to know the
+// general definition to be able to identify an implementation specific
+// detail. In the Erlang world we are usually to pragmatic to worry about
+// this.
+
+// I will try to use the term _Erlang Runtime System_ to refer to the
+// general idea of any Erlang Runtime System as opposed to the specific
+// implementation by Ericsson which I'll call the Erlang RunTime System
+// or usually just ERTS.
+
+// *Note* This book is mostly a book about ERTS in particular and only to
+// a small extent about any general Erlang Runtime System. If you assume
+// that I talk about the Ericsson implementation unless I clearly state
+// that I am talking about a general principle you will probably be
+// right.
+
+// === How to read this book
+
+// In xref:P-Running[] of this book I will show you how to tune the
+// runtime system for your application and how to profile and debug
+// your application and the runtime system. In order to really know
+// how to tune the system you also need to know the system. In
+// xref:P-ERTS[] of this book you will get a deep understanding of
+// how the runtime system works.
+
+// In the following chapters of xref:P-ERTS[] I will try to explain each
+// component of the system by itself, in one separate chapter for each of
+// the major component.  You should be able to read any one of these
+// chapters without having a full understanding of how the other
+// components are implemented, but you will need a basic understanding of
+// what each component is. The rest of this introductory chpater should
+// give you enough basic understanding and vocabulary to be able to jump
+// between the rest of the chapters in part one in any order you like.
+
+// However, if you have the time I strongly recommend reading the book in
+// order the first time. Words that are specific to Erlang and ERTS or
+// used in a specific way in this book are usually explained at their
+// first occurrence. Then, when you know the vocabulary, you can come
+// back and use Part I as a reference whenever you have a problem with a
+// particular component.
+
+// [[ERTS]]
+// === ERTS
+
+// In this section I will give a basic overview of the main components of
+// ERTS (((ERTS))) and some vocabulary needed to understand the more
+// detailed descriptions of each component in the following chapters.
+
+// ==== The Erlang Node (ERTS)
+
+// An Erlang node (((node))) is a running instance of ERTS (((ERTS))) (or
+// possibly another implementation of Erlang (see
+// xref:Other_Erlang_Implementations[])).
+// In OO terminology one could say that an Erlang node is an object
+// of the Erlang Runtime System class.
+
+// All execution of Erlang code is done within a node. An erlang node
+// corresponds to an OS process and you can have several Erlang nodes
+// running on one machine.
+
+// Your Erlang program (or application) will run in one or more Erlang
+// nodes, and the performance of your program will depend not only on
+// your application code but also on all the layers below your code
+// in the _Erlang solution stack_. In particular if you are running
+// your code on top of ERTS you will need to know the components of
+// the _ERTS Stack_.
+
+// In xref:the_erts_stack[] you can see the ERTS Stack illustrated with
+// two Erlang nodes running on one machine.
+
+// In the bottom of the stack there is the hardware you are running
+// on. The easiest way to improve the performance of your app is probably
+// to run it on better hardware.  If economical or physical constraints
+// wont let you upgrade your hardware you can start exploring higher
+// levels of the stack. The two most important choices for your hardware
+// is whether it is multicore and whether it is 32-bit or 64-bit. You
+// need different builds of ERTS depending on whether you want to use
+// multicore or not and whether you want to use 32-bit or 64-bit.  (See
+// xref:CH-BuildingERTS[] for information on how to build different
+// versions of ERTS.)  This book will not go into any details about
+// hardware but I will talk a bit about multicore and NUMA architectures
+// in xref:CH-Scheduling[] and xref:CH-Memory[].
+
+// The second layer in the stack is the OS level. ERTS runs on most
+// versions of Windows and most POSIX "compliant" OS:es, including Linux,
+// VxWorks, Solaris, and Mac OS X. Today most of the development of ERTS
+// is done on Linux and OS X, and you can expect the best performance on
+// these platforms. However, Ericsson have been using Solaris internally
+// in many projects and ERTS have been tuned for Solaris for many years.
+// Depending on your use case you might actually get best performance on
+// a Solaris system. The OS choice is usually not based on performance
+// requirements, but is restricted by other demands. If you are building
+// an embedded application you might be restricted to Rasbian or VxWork,
+// and if you fore some reason are building an end user or client
+// application you might have to use Windows. The Windows port of ERTS
+// has so far not had the highest priority and might not be the best
+// choice from a performance or maintenance perspective. If you want to
+// use a 64-bit ERTS you of course need to have both a 64-bit machine and
+// a 64-bit OS. I will not cover many OS specific questions in this book.
+
+// The third layer in the stack is the Erlang Runtime System. In our case
+// this will be ERTS. This and the next layer, the Erlang Virtual Machine
+// (BEAM), is what this book is all about. In the rest of xref:P-ERTS[]
+// you will see how these layers work and are implemented, and in
+// xref:P-Running[] you will see how you can tune ERTS to give your
+// application optimal performance.
+
+// The fifth layer, OTP(((OTP))), supplies the Erlang standard
+// libraries. OTP originally stood for "Open Telecom Platform" and was a
+// number of Erlang libraries supplying building blocks (such as
+// +supervisor+, +gen_server+ and +gen_ftp+) for building robust
+// applications (such as telephony exchanges).  Early on, the libraries
+// and the meaning of OTP got intermingled with all the other standard
+// libraries shipped with ERTS. Nowadays most people use OTP together
+// with Erlang in "Erlang/OTP" as the name for ERTS and all Erlang
+// libraries shipped by Ericsson. Knowing these standard libraries
+// and how and when to uses them can greatly improve the performance
+// of your application. This book will not go into any details about
+// the standard libraries and OTP, there are other books that
+// cover these aspects.
+
+
+// Finally, the sixth layer (APP) is your application which can use all
+// the functionality provided by the underlying layers. Apart from
+// upgrading your hardware this is probably the place where you most
+// easily can improve your application's performance. In
+// xref:CH-Tracing[] I will give some hints and show some tools that can
+// help you profile and optimize your application. In xref:CH-Crash[] and
+// xref:CH-Debugger[] I'll give you some hints on hove to find the cause
+// of crashing applications and how to find bugs in your application.
+
+
+
+// ++++
+// <figure id="the_erts_stack">
+// <pre data-type="programlisting">  Node1     Node2
+
+//  +------+  +------+
+//  | APP  |  | APP  |
+//  +------+  +------+
+//  | OTP  |  | OTP  |
+//  +------+  +------+
+//  | BEAM |  | BEAM |
+//  +------+  +------+
+//  | ERTS |  | ERTS |
+//  +------+  +------+
+//  +----------------+
+//  |       OS       |
+//  +----------------+
+//  |    HW or VM    |
+//  +----------------+</pre>
+// <figcaption>The ERTS Stack</figcaption>
+// </figure>
+// ++++
+
+
+
+// For information on how to build and run an Erlang node
+// see xref:CH-BuildingERTS[], and read the rest of the book to
+// learn all about the components of an Erlang node.
+ 
+// ==== The Erlang Compiler
+
+// The Erlang Compiler is responsible for compiling Erlang source code,
+// from .erl files into virtual machine code for BEAM (the virtual
+// machine). The compiler itself is written in Erlang and compiled by
+// itself to BEAM code and usually available in a running Erlang node.
+// To bootstrap the runtime system there are a number of precompiled
+// BEAM files, including the compiler, in the bootstrap directory.
+
+// For more information about the compiler see xref:CH-Compiler[].
+
+
+// ==== The Erlang Virtual Machine: BEAM
+
+// BEAM(((BEAM))) is the Erlang virtual machine used for executing Erlang code,
+// just like the JVM is used for executing Java code. BEAM runs in an
+// Erlang Node.
+
+// ****
+// *BEAM:* The name BEAM originally stood for Bogdan's Erlang Abstract
+//  Machine, but now a days most people refer to it as Bj&ouml;rn's
+// Erlang Abstract machine, after the current maintainer. 
+ 
+// ****
+
+// Just as ERTS is an implementation of a more general concept of a Erlang
+// Runtime System so is BEAM an implementation of a more general Erlang Virtual
+// Machine (EVM)(((Erlang Virtual Machine)))(((EVM, see="Erlang Virtual Machine"))).
+// There is no definition of what constitutes an EVM but BEAM actually has two
+// levels of instructions _Generic Instructions_ and _Specific Instructions_.
+// The generic instruction set could be seen as a blueprint for an EVM.
+
+// For a full description of BEAM see xref:CH-BEAM[], xref:CH-beam_modules[]
+// and xref:CH-Instructions[].
+
+// ==== Processes
+
+// An Erlang process basically works like an OS process. Each process has
+// its own memory (a mailbox, a heap and a stack) and a process control
+// block (PCB) with information about the process.
+
+// All Erlang code execution is done within the context of a process. One
+// Erlang node can have many processes, which can communicate through
+// message passing and signals. Erlang processes can also communicate with
+// processes on other Erlang nodes as long as the nodes are connected.
+
+// To learn more about processes and the PCB see xref:CH-Processes[].
+
+
+// ==== Scheduling
+
+// The Scheduler is responsible for choosing the Erlang process to execute.
+// Basically the scheduler keeps two queues, a _ready queue_ of processes
+// ready to run, and a _waiting queue_ of processes waiting to receive a
+// message. When a process in the waiting queue receives a message or get
+// a time out it is moved to the ready queue.
+
+// The scheduler picks the first process from the ready queue and hands it
+// to BEAM for execution of one _time slice_. BEAM preempts the running
+// process when the time slice is used up and adds the processes to the
+// end of the ready queue. If the process is blocked in a receive before
+// the time slice is used up, it gets added to the waiting queue instead.
+
+// Erlang is concurrent by nature, that is, each process is conceptually
+// running at the same time as all other processes, but in reality there
+// is just one process running in the VM. On a multicore machine Erlang
+// actually runs more than one scheduler, usually one per physical core,
+// each having their own queues. This way Erlang achieves true
+// parallelism.  To utilize more than one core ERTS has to be built (see
+// xref:CH-BuildingERTS[]) in _SMP_(((SMP))) mode. SMP stands for
+// _Symetric MultiProcessing_, that is, the ability to execute a
+// processes on any one of multiple CPUs.
+
+// In reality the picture is more complicated with priorities among
+// processes and the waiting queue is implemented through a timing wheel.
+// All this and more is described in detail in xref:CH-Scheduling[].
+
+// ==== The Erlang Tag Scheme
+
+// Erlang is a dynamically typed language, and the runtime system need a
+// way to keep track of the type of each data object. This is done with a
+// tagging scheme. Each data object or pointer to a data object also has
+// a tag with information about the data type of the object.
+
+// Basically some bits of a pointer are reserved for the tag, and the
+// emulator can then determine the type of the object by looking at the
+// bit pattern of the tag.
+
+// These tags are used for pattern matching and for type test and for
+// primitive operations as well as by the garbage collector.
+
+// The complete tagging scheme is described in xref:CH-TypeSystem[].
+
+// ==== Memory Handling
+
+// Erlang uses automatic memory management and the programmer does not
+// have to worry about memory allocation and deallocation. Each process
+// has a heap and a stack which both can grow, and shrink, as needed.
+
+// When a process runs out of heap space, the VM will first try to
+// reclaim free heap space through garbage collection. The garbage collector
+// will then go through the process stack and heap and copy live data
+// to a new heap while throwing away all the data that is dead. If there
+// still isn't enough heap space, a new larger heap will be allocated and
+// the live data is moved there.
+
+// The details of the current generational copying garbage collector, including
+// the handling of reference counted binaries can be found in xref:CH-Memory[].
+
+// In a system which uses HiPE compiled native code, each process actually has
+// two stacks, a BEAM stack and a native stack, the details can be found in
+// xref:CH-Native[].
+
+// ==== The Interpreter and the Command Line Interface
+
+// When you start an Erlang node with +erl+ you get a command prompt.
+// This is the _Erlang read eval print loop_ (REPL) or the _command line
+// interface_ (CLI) or simply the _Erlang shell_.
+
+// You can actually type in Erlang code and execute it directly from the
+// shell. In this case the code is not compiled to BEAM code and executed by
+// the BEAM, instead the code is parsed and interpreted by the Erlang
+// interpreter. In general the interpreted code behaves exactly as compiled
+// code, but there a few subtle differences, these differences and all other
+// aspects of the shell are explained in xref:CH-Shell[].
+
+// [[Other_Erlang_Implementations]]
+// === Other Erlang Implementations
+
+// This book is mainly concerned with the "standard" Erlang
+// implementation by Ericsson/OTP called ERTS, but there are a few other
+// implementations available and in this section I will discuss some of
+// them briefly.
+
+// Throught the book I will sometimes mention differences between other
+// implementations and ERTS, but there is no guarantee that I will
+// mention all differences.
+
+// ==== Erlang on Xen
+
+// Erlang on Xen (link:http://erlangonxen.org) is an Erlang implementation
+// running directly on server hardware with no OS layer in between, only
+// a thin Xen client.
+
+// Ling, the virtual machine of Erlang on Xen is almost 100% binary compatible
+// with BEAM. In xref:the_eox_stack you can see how the Erlang on Xen implementation
+// of the Erlang Solution Stack differs from the ERTS Stack. The thing to note here
+// is that there is no operating system in the Erlang on Xen stack.
+
+// Since Ling implements the generic instruction set of BEAM, it can reuse
+// the BEAM compiler from the OTP layer to compile Erlang to Ling.
+
+// ++++
+// <figure id="the_eox_stack">
+// <pre data-type="programlisting">  Node1     Node2       Node2     Node3
+
+//  +------+  +------+   +------+  +------+
+//  | APP  |  | APP  |   | APP  |  | APP  |
+//  +------+  +------+   +------+  +------+
+//  | OTP  |  | OTP  |   | OTP  |  | OTP  |
+//  +------+  +------+   +------+  +------+
+//  | Ling |  | Ling |   | BEAM |  | BEAM |
+//  +------+  +------+   +------+  +------+
+//  | EoX  |  | EoX  |   | ERTS |  | ERTS |
+//  +------+  +------+   +------+  +------+
+//  +----------------+   +----------------+
+//  |      XEN       |   |       OS       |
+//  +----------------+   +----------------+
+//  |      HW        |   |    HW or VM    |
+//  +----------------+   +----------------+</pre>
+// <figcaption>ErlangOnXen vs the ERTS Stack</figcaption>
+// </figure>
+// ++++
+
+// ==== Erjang
+
+// Erjang (link:http://erjang.org) is an Erlang implementation which runs
+// on the JVM. It loads +.beam+ files and recompile the code to Java +.class+
+// files. Erjang is almost 100% binary compatible with (generic) BEAM.
+
+// In xref:the_erjang_stack you can see how the Erjang implementation
+// of the Erlang Solution Stack differs from the ERTS Stack. The thing
+// to note here is that JVM has replaced BEAM as the virtual machine
+// and that Erjang provides the services of ERTS by implementing them
+// in Java on top of the VM.
+
+// ++++
+// <figure id="the_erjang_stack">
+// <pre data-type="programlisting">  Node1     Node2       Node3     Node4
+
+//  +------+  +------+   +------+  +------+
+//  | APP  |  | APP  |   | APP  |  | APP  |
+//  +------+  +------+   +------+  +------+
+//  | OTP  |  | OTP  |   | OTP  |  | OTP  |
+//  +------+  +------+   +------+  +------+
+//  |Erjang|  |Erjang|   | BEAM |  | BEAM |
+//  +------+  +------+   +------+  +------+
+//  | JVM  |  | JVM  |   | ERTS |  | ERTS |
+//  +------+  +------+   +------+  +------+
+//  +----------------+   +----------------+
+//  |      OS        |   |       OS       |
+//  +----------------+   +----------------+
+//  |  HW or VM      |   |    HW or VM    |
+//  +----------------+   +----------------+</pre>
+// <figcaption>Erjang vs the ERTS Stack</figcaption>
+// </figure>
+// ++++
+
+
+
+// Now that you have a basic understanding of all the major pieces of
+// ERTS, and the necessary vocabulary you can dive into the details of
+// each component. If you are eager to understand a certain component,
+// you can jump directly to that chapter. Or if you are really eager to
+// find a solution to a specific problem you could jump to the right
+// chapter in xref:P-Running[], and try the different methods to tune,
+// tweak, or debug your system. Although, I strongly suggest that you
+// read through the chapters in xref:P-ERTS[] in order first in order
+// to get a deep understanding of how ERTS really works.
+
