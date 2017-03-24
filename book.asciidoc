@@ -6,9 +6,9 @@ include::preface.asciidoc[]
 
 include::introduction.asciidoc[]
 
-// include::compiler.asciidoc[]
+include::compiler.asciidoc[]
 
-// include::processes.asciidoc[]
+include::processes.asciidoc[]
 
 // include::type_system.asciidoc[]
 

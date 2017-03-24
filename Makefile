@@ -2,11 +2,11 @@
 ABFLAGS = --backend=docbook --doctype=book --attribute=revisionhistory
 adocs = book.asciidoc \
                         preface.asciidoc \
-                        introduction.asciidoc
-                   #     compiler.asciidoc \
+                        introduction.asciidoc \
+                        compiler.asciidoc \
+		     	processes.asciidoc 
                    #     beam.asciidoc \
                    #     beam_modules.asciidoc \
-                   #     processes.asciidoc \
                    #     type_system.asciidoc \
                    #     memory.asciidoc \
                    #     erts-book.asciidoc  \
@@ -16,7 +16,7 @@ adocs = book.asciidoc \
 
 all: beam-book.pdf
 
-book-revhistory.xml: .git
+book-revhistory.xml: .git hg2revhistory.xsl
 	./gitlog.sh git-log.xml $@ 
 
 beam-book-from-ab.xml:  $(adocs)\
