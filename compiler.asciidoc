@@ -696,7 +696,7 @@ enabled runtime system, then the compiler will generate native code
 for your module and store the native code along with the beam code
 in the +.beam.+ file.
 
-== Other Compiler Tools
+=== Other Compiler Tools
 
 There are a number of tools available to help you work with code
 generation and code manipulation. These tools are written in Erlang
@@ -708,7 +708,7 @@ In this section we will cover three of the most useful code tools:
 the lexer -- Leex, the parser generator -- Yecc, and a general set
 of functions to manipulate abstract forms -- Syntax Tools.
 
-=== Leex
+==== Leex
 
 Leex is the Erlang lexer generator.
 The lexer generator takes a description of a DFA from a definitions
@@ -734,7 +734,7 @@ recognizes JSON tokens. By looking at the JSON definition
 http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf
 we can see that there are only a handful of tokens that we need to handle.
 
-include::code/compiler_chapter/src/json_tokens.xrl
+include::code/compiler_chapter/src/json_tokens.xrl[]
 
 By using the Leex compiler we can compile this DFA to Erlang code,
 and by giving the option dfa_graph we also produce a dot-file
@@ -754,7 +754,7 @@ You can view the DFA graph using for example dotty.
 > dotty json_tokens.dot
 ----
 
-image::code/compiler_chapter/json_tokens.png
+image::code/compiler_chapter/json_tokens.png[]
 
 We can try our tokenizer on an example json file (test.json).
 
@@ -785,7 +785,7 @@ Armed with a tokenizer for Json we can now write a json parser
 using the parser generator Yecc.
 
 
-=== Yecc
+==== Yecc
 
 Yecc is a parser generator for Erlang. The name comes from Yacc
 (Yet another compiler compiler) the canonical parser generator for C.
@@ -793,7 +793,7 @@ Yecc is a parser generator for Erlang. The name comes from Yacc
 Now that we have a lexer for JSON terms we can write a parser using
 yecc.
 
-include::code/compiler_chapter/src/yecc_json_parser.yrl
+include::code/compiler_chapter/src/yecc_json_parser.yrl[]
 
 Then we can use yecc to generate an Erlang program that implements
 the parser, and call the parse/1 function provided with the tokens
