@@ -4,7 +4,7 @@ Preface
 
 
 
-This book is unfortunately not about how to write correct and
+This book is not about how to write correct and
 beautiful code, I am assuming that you already know how to do
 that. This book isn’t really about profiling and performance tuning
 either. Although, there is a chapter in this book on tracing and
@@ -31,7 +31,7 @@ If you want to debug the VM If you want to extend the VM If you want
 to do performance tweaking--jump to the last chapter … but to really
 understand that chapter you need to read the book.
 
-## How to read this book
+=== How to read this book
 
 The Erlang RunTime System (ERTS) is a complex system with many
 interdependent components. It is written in a very portable way so

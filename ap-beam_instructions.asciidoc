@@ -1,0 +1,742 @@
+[[AP-Instructions]]
+== Appendix A: BEAM Instructions
+
+Here we will go through most of the instructions in the BEAM
+generic instruction set in detail. In the next section we list
+all instructions with a brief explanation generated from the
+documentaion in the code (see +lib/compiler/src/genop.tab+).
+
+=== Functions and Labels
+
+==== label Lbl
+
+Instruction number 1 in the generic instruction set is not really an
+instruction at all. It is just a module local label giving a name, or
+actually a number to the current position in the code.
+
+Each label potentially marks the beginning of a basic block since
+it is a potential destination of a jump.
+
+==== func_info Module Function Arity
+
+The code for each function starts with a func_info instruction.
+This instruction is used for generating a function clause error,
+and the execution of the code in the function actually starts
+at the label following the func_info instruction.
+
+Imagine a function with a guard:
+
+[source,erlang]
+------------------------------------------
+id(I) when is_integer(I) -> I.
+------------------------------------------
+
+The Beam code for this function might look like:
+
+[source,erlang]
+------------------------------------------
+
+{function, id, 1, 4}.
+  {label,3}.
+    {func_info,{atom,test1},{atom,id},1}.
+  {label,4}.
+    {test,is_integer,{f,3},[{x,0}]}.
+    return.
+
+------------------------------------------
+
+Here the meta information +{function, id, 1, 4}+ tells us that
+execution of the id/1 function will start at label 4. At label 4 we do
+an +is_integer+ on x0 and if we fail we jump to label 3 (f3) which
+points to the func_info instruction, which will generate a _function
+clause_ exception.  Otherwise we just fall through and return the
+argument (x0).
+
+=== Test instructions
+
+==== Type tests
+
+The type test instructions (+is_\* Lbl Argument+) checks whether the
+argument is of the given type and if not jumps to the label Lbl.
+The beam disassembler wraps all these instructions in a  +test+
+instruction. E.g.:
+
+[source,erlang]
+------------------------------------------
+    {test,is_integer,{f,3},[{x,0}]}.
+------------------------------------------
+
+The current type test instructions are is_integer, is_float,
+is_number, is_atom, is_pid, is_reference, is_port, is_nil, is_binary,
+is_list, is_nonempty_list, is_function, is_function2, is_boolean,
+is_bitstr, and is_tuple.
+
+And then there is also one type test instruction of Arity 3:
++test_arity Lbl Arg Arity+. This instruction tests that
+the arity of the argument (assumed to be a tuple) is of +Arity+.
+This instruction is usually preceded by an +is_tuple+
+instruction.
+
+==== Comparisons
+
+The comparison instructions (+is_\* Lbl Arg1 Arg2+) compares the
+two arguments according to the instructions and jumps to Lbl if the
+comparison fails.
+
+The comparison instructions are: : is_lt,  is_ge,  is_eq,  is_ne,
+is_eq_exact, and  is_ne_exact.
+
+Remember that all Erlang terms are ordered so these instructions can
+compare any two terms. You can for example test if the atom +self+
+is less than the pid  returned by +self()+. (It is.)
+
+Note that for numbers the comparison is done on the Erlang type
+_number_, see xref:CH-TypeSystem[].  That is, for a mixed float and
+integer comparison the number of lower precision is converted to the
+other type before comparison. For example on my system 1 and 0.1
+compares as equal, as well as 9999999999999999 and 1.0e16.
+Comparing floating point numbers is always risk and best avoided,
+the result may wary depending on the underlying hardware.
+
+If you want to make sure that the integer 1 and the floating point
+number 1.0 are compared different you can use is_eq_exact and
+is_ne_exact. This corresponds to the Erlang operators +=:=+ and
++=/=+.
+
+=== Function Calls
+
+In this chapter we will summarize what the different call instructions
+does. For a thorough description of how function calls work see
+xref:CH-Calls[].
+
+==== call Arity Label
+
+Does a call to the function of arity +Arity+ in the same
+module at label +Label+. First count down the reductions and
+if needed do a context switch.
+
+For all local calls the label is the second label of the
+function where the code starts. It is assumed that the preceding
+instruction at that label is +func_info+ in order to get the MFA if a
+context switch is needed.
+
+==== call_last Arity Label
+
+Do a tail recursive call the function of arity +Arity+ in the same
+module at label +Label+. First count down the reductions and if needed
+do a context switch.
+
+
+==== call_only Arity Label Deallocate
+
+Deallocate +Deallocate+ words of stack, then do a tail recursive call
+to the function of arity +Arity+ in the same module at label +Label+ First
+count down the reductions and if needed do a context switch.
+
+==== call_ext Arity Destination
+
+Does an external call to the function of arity +Arity+ given by
+ Destination. Destination is usually of the form +{extfunc, Module,
+ Function, Arity}+. First count down the reductions and if needed do a
+ context switch.
+
+==== call_ext_only Arity Destination
+
+Does a tail recursive external call to the function of arity +Arity+ given by
+ Destination. Destination is usually of the form +{extfunc, Module,
+ Function, Arity}+. First count down the reductions and if needed do a
+ context switch.
+
+
+==== call_ext_last Arity Destination Deallocate
+
+Deallocate +Deallocate+ words of stack, then do a tail recursive
+external call to the function of arity +Arity+ given by
+Destination. Destination is usually of the form +{extfunc, Module,
+Function, Arity}+. First count down the reductions and if needed do a
+context switch.
+
+
+==== +bif0 Bif Reg+, +bif1 Lbl Bif Arg Reg+, +bif2 Lbl Bif Arg1 Arg2 Reg+
+
+Call the bif +Bif+ with the given arguments, and store the result in
++Reg+.  If the bif fails jump to +Lbl+. No zero arity bif can fail an
+thus those calls doesn't take a fail label.
+
+// Bif called by these instructions may not allocate on the heap nor
+// trigger a garbage collection.
+
+==== +gc_bif1-3 Lbl Live Bif Arg1-3 Reg+
+
+Call the bif  +Bif+ with the given arguments,  and store the result in Reg.
+If the bif fails jump to Lbl.
+Store the arguments in x(Live),  x(Live+1) and x(live+2).
+
+==== +call_fun Arity+
+
+The instruction +call_fun+ assumes that the arguments are placed in
+the argument registers and that the fun (the pointer to the closure)
+is placed in the last argument register.
+
+That is, for a zero arity call, the closure is in x0. For a arity 1 call
+x0 contains the argument and x1 contains the closure.
+
+==== apply/1
+
+TODO
+
+==== apply_last/2
+
+TODO
+
+=== Stack (and Heap) Management
+
+The stack and the heap of an Erlang process on Beam share the same memory
+area see xref:CH-Processes[] and xref:CH-Memory[] for a full discussion.
+The stack grows toward lower addresses and the heap toward higher addresses.
+Beam will do a garbage collection if more space than what is available is
+needed on either the stack or the heap.
+
+**************************
+
+*A leaf function*:: A leaf function is a function which doesn't call
+                    any other function.
+
+*A non leaf function*:: A non leaf function is a function which may call
+                        another function.
+
+**************************
+
+
+These instructions are also used by non leaf functions for setting up
+and tearing down the stack frame for the current instruction. That is,
+on entry to the function the _continuation pointer_ (CP) is saved on
+the stack, and on exit it is read back from the stack.
+
+A function skeleton for a leaf function looks like this:
+
+----
+{function, Name, Arity, StartLabel}.
+  {label,L1}.
+    {func_info,{atom,Module},{atom,Name},Arity}.
+  {label,L2}.
+    ...
+    return.
+----
+
+
+A function skeleton for a non leaf function looks like this:
+
+----
+{function, Name, Arity, StartLabel}.
+  {label,L1}.
+    {func_info,{atom,Module},{atom,Name},Arity}.
+  {label,L2}.
+    {allocate,Need,Live}.
+
+    ...
+    call ...
+    ...
+
+    {deallocate,Need}.
+    return.
+----
+
+
+
+==== +allocate StackNeed Live+
+
+Save the continuation pointer (CP) and allocate space for +StackNeed+
+extra words on the stack. If a GC is needed during allocation save
++Live+ number of X registers. E.g. if +Live+ is 2 then registers X0
+and X1 are saved.
+
+When allocating on the stack, the stack pointer (E) is decreased.
+
+.Allocate 1 0
+====
+----
+       Before           After
+         | xxx |            | xxx |
+    E -> | xxx |            | xxx |
+         |     |            | ??? | caller save slot
+           ...         E -> | CP  |
+           ...                ...
+ HTOP -> |     |    HTOP -> |     |
+         | xxx |            | xxx |
+----
+====
+
+==== +allocate_heap StackNeed HeapNeed Live+
+
+Save the continuation pointer (CP) and allocate space for +StackNeed+
+extra words on the stack. Ensure that there also is space for HeapNeed
+words on the heap. If a GC is needed during allocation save +Live+
+number of X registers.
+
+Note that the heap pointer (HTOP) is not changed until the actual heap
+allocation takes place.
+
+==== +allocate_zero StackNeed Live+
+
+This instruction works the same way as allocate, but it also clears
+out the allocated stack slots with NIL.
+
+.allocate_zero 1 0
+====
+----
+       Before           After
+         | xxx |            | xxx |
+    E -> | xxx |            | xxx |
+         |     |            | NIL | caller save slot
+           ...         E -> | CP  |
+           ...                ...
+ HTOP -> |     |    HTOP -> |     |
+         | xxx |            | xxx |
+----
+====
+
+==== +allocate_heap_zero StackNeed HeapNeed Live+
+
+The allocate_heap_zero instruction works as the allocate_heap
+instruction, but it also clears out the allocated stack slots
+with NIL.
+
+==== +test_heap HeapNeed Live+
+
+The test_heap instruction ensures there is space for HeapNeed words on
+the heap. If a GC is needed save Live number of X registers.
+
+==== +init N+
+
+The init instruction clears N stack words. By writing NIL to them.
+
+==== +deallocate N+
+
+The deallocate instruction is the opposite of the allocate instruction,
+it restores the continuation pointer and deallocates N+1 stack words.
+
+==== +return+
+The return instructions jumps to the address in the continuation pointer (CP).
+
+==== +trim N Remaining+
+Removes N words of stack usage, while keeping the continuation pointer
+on the top of the stack. (The argument Remaining is to the best of my
+knowledge unused.)
+
+----
+Trim 2
+       Before           After
+         | ??? |            | ??? |
+         | xxx |       E -> | CP  |
+         | xxx |            | ... |
+    E -> | CP  |            | ... |
+         |     |            | ... |
+           ...                ...
+ HTOP -> |     |    HTOP -> |     |
+         | xxx |            | xxx |
+----
+
+
+=== Moving, extracting, modifying.
+==== move Source Destination
+
+Move the source Source (a litteral or a register) to the destination
+register Destination.
+
+==== get_list Source Head Tail
+
+Get the head and tail (or car and cdr) parts of a list (a cons cell) from
+Source and put them into the registers Head and Tail.
+
+==== get_tuple_element Source Element Destination
+
+Get element number Element from the tuple in Source and put it in the
+destination register Destination.
+
+==== set_tuple_element NewElement Tuple Position
+
+Update the element at postition Position of the tuple Tuple with the
+new element NewElement.
+
+=== Building terms.
+
+==== put_list/3
+TODO
+==== put_tuple/2
+TODO
+==== put/1
+
+====  make_fun2/1
+TODO
+
+=== Binary Syntax
+==== bs_put_integer/5
+TODO
+====  bs_put_binary/5
+TODO
+====  bs_put_float/5
+TODO
+====  bs_put_string/2
+TODO
+==== bs_init2/6
+TODO
+==== bs_add/5
+TODO
+==== bs_start_match2/5
+TODO
+==== bs_get_integer2/7
+TODO
+==== bs_get_float2/7
+TODO
+==== bs_get_binary2/7
+TODO
+==== bs_skip_bits2/5
+TODO
+==== bs_test_tail2/3
+TODO
+==== bs_save2/2
+TODO
+==== bs_restore2/2
+TODO
+==== bs_context_to_binary/1
+TODO
+==== bs_test_unit/3
+TODO
+==== bs_match_string/4
+TODO
+==== bs_init_writable/0
+TODO
+==== bs_append/8
+TODO
+==== bs_private_append/6
+TODO
+==== bs_init_bits/6
+TODO
+==== bs_get_utf8/5
+TODO
+==== bs_skip_utf8/4
+TODO
+==== bs_get_utf16/5
+TODO
+==== bs_skip_utf16/4
+TODO
+==== bs_get_utf32/5
+TODO
+==== bs_skip_utf32/4
+TODO
+==== bs_utf8_size/3
+TODO
+==== bs_put_utf8/3
+TODO
+==== bs_utf16_size/3
+TODO
+==== bs_put_utf16/3
+TODO
+==== bs_put_utf32/3
+TODO
+
+=== Floating Point Arithmetic
+==== fclearerror/0
+TODO
+==== fcheckerror/1
+TODO
+==== fmove/2
+TODO
+==== fconv/2
+TODO
+==== fadd/4
+TODO
+==== fsub/4
+TODO
+==== fmul/4
+TODO
+==== fdiv/4
+TODO
+==== fnegate/3
+TODO
+
+
+=== Pattern Matching
+
+==== select_val
+TODO
+==== select_arity_val
+TODO
+==== jump
+TODO
+=== Exception handling
+==== catch/2
+TODO
+==== catch_end/1
+TODO
+==== badmatch/1
+TODO
+==== if_end/0
+TODO
+==== case_end/1
+TODO
+
+=== Meta instructions
+==== on_load
+TODO
+==== line
+TODO
+
+
+include::opcodes_doc.asciidoc[]
+
+=== Specific Instructions
+
+Argument types 
+[options="header"]
+|==================================================
+|Type | Explanation
+|t|	A term, e.g. +[{foo,bar}]+
+|I|	An integer e.g. +42+
+|x|	A register, e.g. +5+
+|y|	A stack slot, e.g. +1+
+|c|	A constant (atom,nil,small int) // Pid?
+|a|	An atom, e.g. 'foo'
+|f|	A label, i.e. a code address
+|s|	Either a literal, a register or a stack slot
+|d|	Either a register or a stack slot
+|r|	A register R0
+|P|	A positive (unsigned) integer literal
+|j|	An optional code label
+|e|	A reference to an export table entry
+|l|	A floating-point register
+|==================================================
+
+List of all BEAM Instructions
+
+[options="header"]
+|===========
+|Instruction        | Arguments | Explanation 
+|allocate           | t t       | 
+|allocate_heap      |t I t      | 
+|deallocate         |I | 
+|init               |y | 
+|init2              |y y | 
+|init3              |y y y | 
+|i_trim             |I | 
+|test_heap          |I t | 
+|allocate_zero      |t t | 
+|allocate_heap_zero | t I t | 
+|i_select_val | r f I | 
+|i_select_val | x f I | 
+|i_select_val | y f I | 
+|i_select_val2 | r f c f c f | 
+|i_select_val2 | x f c f c f | 
+|i_select_val2 | y f c f c f | 
+|i_jump_on_val | rxy f I I | 
+|i_jump_on_val_zero | rxy f I | 
+|i_select_tuple_arity | r f I | 
+|i_select_tuple_arity | x f I | 
+|i_select_tuple_arity | y f I | 
+|i_select_tuple_arity2 | r f A f A f | 
+|i_select_tuple_arity2 | x f A f A f | 
+|i_select_tuple_arity2 | y f A f A f | 
+|i_func_info | I a a I | 
+|return             |          | 
+|get_list           | rxy rxy rxy | 
+|catch              | y f | 
+|catch_end          | y | 
+|try_end | y | 
+|try_case_end | s | 
+|set_tuple_element | s d P | 
+|i_get_tuple_element | rxy P rxy | 
+|is_number | f rxy | 
+|jump | f | 
+|case_end | rxy | 
+|badmatch | rxy | 
+|if_end             |              | 
+|raise | s s | 
+|badarg | j | 
+|system_limit | j | 
+|move_jump | f ncxy | 
+|move_x1 | c | 
+|move_x2 | c | 
+|move2 | x y x y | 
+|move2 | y x y x | 
+|move2 | x x x x | 
+|move | rxync rxy | 
+|recv_mark | f | 
+|i_recv_set | f | 
+|remove_message | | 
+|timeout | |
+|timeout_locked | | 
+|i_loop_rec | f r | 
+|loop_rec_end | f | 
+|wait | f | 
+|wait_locked | f | 
+|wait_unlocked | f | 
+|i_wait_timeout | f I | 
+|i_wait_timeout | f s | 
+|i_wait_timeout_locked | f I | 
+|i_wait_timeout_locked | f s | 
+|i_wait_error | |
+|i_wait_error_locked | | 
+|send |  |
+|i_is_eq_exact_immed | f rxy c | 
+|i_is_ne_exact_immed | f rxy c | 
+|i_is_eq_exact_literal | f rxy c | 
+|i_is_ne_exact_literal | f rxy c | 
+|i_is_eq_exact | f | 
+|i_is_ne_exact | f | 
+|i_is_lt | f | 
+|i_is_ge | f | 
+|i_is_eq | f | 
+|i_is_ne | f | 
+|i_put_tuple | rxy I | 
+|put_list | s s d | 
+|i_fetch | s s | 
+|move_return | xcn r | 
+|move_deallocate_return | xycn r Q | 
+|deallocate_return | Q | 
+|test_heap_1_put_list | I y | 
+|is_tuple_of_arity | f rxy A | 
+|is_tuple | f rxy | 
+|test_arity | f rxy A | 
+|extract_next_element | xy | 
+|extract_next_element2 | xy | 
+|extract_next_element3 | xy | 
+|is_integer_allocate | f rx I I | 
+|is_integer | f rxy | 
+|is_list | f rxy | 
+|is_nonempty_list_allocate | f rx I t | 
+|is_nonempty_list_test_heap | f r I t | 
+|is_nonempty_list | f rxy | 
+|is_atom | f rxy | 
+|is_float | f rxy | 
+|is_nil | f rxy | 
+|is_bitstring | f rxy | 
+|is_reference | f rxy | 
+|is_pid | f rxy | 
+|is_port | f rxy | 
+|is_boolean | f rxy | 
+|is_function2 | f s s | 
+|allocate_init | t I y | 
+|i_apply | | 
+|i_apply_last | P | 
+|i_apply_only |   | 
+|apply | I | 
+|apply_last | I P | 
+|i_apply_fun |  |
+|i_apply_fun_last | P | 
+|i_apply_fun_only |   | 
+|i_hibernate |  |
+|call_bif0 | e | 
+|call_bif1 | e | 
+|call_bif2 | e | 
+|call_bif3 | e | 
+|i_get | s d | 
+|self | rxy | 
+|node | rxy | 
+|i_fast_element | rxy j I d | 
+|i_element | rxy j s d | 
+|bif1 | f b s d | 
+|bif1_body | b s d | 
+|i_bif2 | f b d | 
+|i_bif2_body | b d | 
+|i_move_call | c r f | 
+|i_move_call_last | f P c r | 
+|i_move_call_only | f c r | 
+|move_call | xy r f | 
+|move_call_last | xy r f Q | 
+|move_call_only | x r f | 
+|i_call | f | 
+|i_call_last | f P | 
+|i_call_only | f | 
+|i_call_ext | e | 
+|i_call_ext_last | e P | 
+|i_call_ext_only | e | 
+|i_move_call_ext | c r e | 
+|i_move_call_ext_last | e P c r | 
+|i_move_call_ext_only | e c r | 
+|i_call_fun | I | 
+|i_call_fun_last | I P | 
+|i_make_fun | I t | 
+|is_function | f rxy | 
+|i_bs_start_match2 | rxy f I I d | 
+|i_bs_save2 | rx I | 
+|i_bs_restore2 | rx I | 
+|i_bs_match_string | rx f I I | 
+|i_bs_get_integer_small_imm | rx I f I d | 
+|i_bs_get_integer_imm | rx I I f I d | 
+|i_bs_get_integer | f I I d | 
+|i_bs_get_integer_8 | rx f d | 
+|i_bs_get_integer_16 | rx f d | 
+|i_bs_get_integer_32 | rx f I d | 
+|i_bs_get_binary_imm2 | f rx I I I d | 
+|i_bs_get_binary2 | f rx I s I d | 
+|i_bs_get_binary_all2 | f rx I I d | 
+|i_bs_get_binary_all_reuse | rx f I | 
+|i_bs_get_float2 | f rx I s I d | 
+|i_bs_skip_bits2_imm2 | f rx I | 
+|i_bs_skip_bits2 | f rx rxy I | 
+|i_bs_skip_bits_all2 | f rx I | 
+|bs_test_zero_tail2 | f rx | 
+|bs_test_tail_imm2 | f rx I | 
+|bs_test_unit | f rx I | 
+|bs_test_unit8 | f rx | 
+|bs_context_to_binary | rxy | 
+|i_bs_get_utf8 | rx f d | 
+|i_bs_get_utf16 | rx f I d | 
+|i_bs_validate_unicode_retract | j | 
+|i_bs_init_fail | rxy j I d | 
+|i_bs_init_fail_heap | I j I d | 
+|i_bs_init | I I d | 
+|i_bs_init_heap | I I I d | 
+|i_bs_init_heap_bin | I I d | 
+|i_bs_init_heap_bin_heap | I I I d | 
+|i_bs_init_bits_fail | rxy j I d | 
+|i_bs_init_bits_fail_heap | I j I d | 
+|i_bs_init_bits | I I d | 
+|i_bs_init_bits_heap | I I I d | 
+|i_bs_add | j I d | 
+|i_bs_init_writable | |
+|i_bs_append | j I I I d | 
+|i_bs_private_append | j I d | 
+|i_new_bs_put_integer | j s I s | 
+|i_new_bs_put_integer_imm | j I I s | 
+|i_bs_utf8_size | s d | 
+|i_bs_utf16_size | s d | 
+|i_bs_put_utf8 | j s | 
+|i_bs_put_utf16 | j I s | 
+|i_bs_validate_unicode | j s | 
+|i_new_bs_put_float | j s I s | 
+|i_new_bs_put_float_imm | j I I s | 
+|i_new_bs_put_binary | j s I s | 
+|i_new_bs_put_binary_imm | j I s | 
+|i_new_bs_put_binary_all | j s I | 
+|bs_put_string | I I | 
+|fmove | qdl ld | 
+|fconv | d l | 
+|i_fadd | l l l | 
+|i_fsub | l l l | 
+|i_fmul | l l l | 
+|i_fdiv | l l l | 
+|i_fnegate | l l l | 
+|i_fcheckerror | |
+|fclearerror |  |
+|i_increment | rxy I I d | 
+|i_plus | j I d | 
+|i_minus | j I d | 
+|i_times | j I d | 
+|i_m_div | j I d | 
+|i_int_div | j I d | 
+|i_rem | j I d | 
+|i_bsl | j I d | 
+|i_bsr | j I d | 
+|i_band | j I d | 
+|i_bor | j I d | 
+|i_bxor | j I d | 
+|i_int_bnot | j s I d | 
+|i_gc_bif1 | j I s I d | 
+|i_gc_bif2 | j I I d | 
+|i_gc_bif3 | j I s I d | 
+|int_code_end | |
+|label | L | 
+|line | I | 
+|============================= 

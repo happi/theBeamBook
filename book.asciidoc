@@ -10,23 +10,23 @@ include::compiler.asciidoc[]
 
 include::processes.asciidoc[]
 
-// include::type_system.asciidoc[]
+include::type_system.asciidoc[]
 
 // include::beam.asciidoc[]
 
 // include::beam_modules.asciidoc[]
 
-// include::beam_instructions.asciidoc[]
+include::beam_instructions.asciidoc[]
 
-// include::calls.asciidoc[]
+include::calls.asciidoc[]
 
 // include::beam_loader.asciidoc[]
 
-// include::beam_internal_instructions.asciidoc[]
+include::beam_internal_instructions.asciidoc[]
 
 // include::scheduling.asciidoc[]
 
-// include::memory.asciidoc[]
+include::memory.asciidoc[]
 
 // include::data_structures.asciidoc[]
 
@@ -46,12 +46,12 @@ include::processes.asciidoc[]
 
 // include::tweak.asciidoc[]
 
-// // Appendix
+[appendix]
 
 // include::index.asciidoc[]
 
 
-// include::ap-beam_instructions.asciidoc[]
+include::ap-beam_instructions.asciidoc[]
 
 // include::ap-code_listings.asciidoc[]
 

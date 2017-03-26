@@ -4,14 +4,16 @@ adocs = book.asciidoc \
                         preface.asciidoc \
                         introduction.asciidoc \
                         compiler.asciidoc \
-		     	processes.asciidoc 
+		     	processes.asciidoc \
+			calls.asciidoc \
+                        type_system.asciidoc \
+			beam_internal_instructions.asciidoc \
+                        memory.asciidoc \
+                        ap-beam_instructions.asciidoc \
+			opcodes_doc.asciidoc
                    #     beam.asciidoc \
                    #     beam_modules.asciidoc \
-                   #     type_system.asciidoc \
-                   #     memory.asciidoc \
                    #     erts-book.asciidoc  \
-                   #     ap-beam_instructions.asciidoc \
-	           # opcodes_doc.asciidoc
 
 
 all: beam-book.pdf
@@ -32,6 +34,13 @@ beam-book.pdf: beam-book-from-ab.xml book-revhistory.xml
 
 # index.html: *.asciidoc
 # 	asciidoc -o index.html -a icons -a toc2 book.asciidoc 
+
+code/book/ebin/generate_op_doc.beam: code/book/src/generate_op_doc.erl
+	erlc -o $@ $<
+
+opcodes_doc.asciidoc: genop.tab code/book/ebin/generate_op_doc.beam
+	erl -noshell -s generate_op_doc from_shell genop.tab opcodes_doc.asciidoc
+
 
 # generate_op_doc.beam: generate_op_doc.erl
 # 	erlc generate_op_doc.erl
