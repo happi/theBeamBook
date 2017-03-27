@@ -1,4 +1,4 @@
 
-[[CH-Internal-instructions]]
+[[CH-Internal_instructions]]
 == BEAM Internal Instructions
 

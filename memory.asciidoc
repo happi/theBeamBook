@@ -17,8 +17,7 @@ compile on.
 
 A program's memory layout looks something like this:
 
-++++
-<pre data-type="programlisting">
+----
  high
  addresses
         +--------------+
@@ -65,8 +64,8 @@ A program's memory layout looks something like this:
         +--------------+
  low
  addresses
-</pre>
-++++
+----
+
 
 Even though this picture might look daunting it is still a
 simplification. (For a full understanding of the memory subsystem read
@@ -313,8 +312,7 @@ of system flags below.
 Most allocators also have one "main multiblock carrier" which is never
 deallocated.
 
-++++
-<pre data-type="programlisting">
+----
  high
  addresses
            |FREE OS MEMORY |
@@ -345,8 +343,8 @@ multiblock |     Block 2   |       | MSmmbcs kb
                C-Heap
  low
  addresses
-</pre>
-++++
+
+----
 
 
 // Want most data un multiblock carriers mbc
@@ -554,8 +552,7 @@ the stack, the heap and the mailbox are managed.
 The default size of the stack and heap is 233 words. This default
 size can be changed globally when starting Erlang through the
 + +h + flag. You can also set the minimum heap size by when starting
-a process with +spawn_opt+ by setting +min_heap_size+. More
-on this in xref:CH-Tweak[].
+a process with +spawn_opt+ by setting +min_heap_size+.
 
 Erlang terms are tagged as we saw in xref:CH-TypeSystem[], and when
 they are stored on the heap they are either cons cells or boxed
@@ -572,12 +569,11 @@ to sub terms.
 
 For example if you have the string "hello" (which is the same as this
 list of integers: [104,101,108,108,111]) you would get a stack layout
-similar to xref:fig-list_layout[]
+similar to:
 
 
 [[fig-list_layout]]
-++++
-<pre data-type="programlisting">
+----
          ADR                               BINARY  VALUE  +  DESCRIPTION
  hend -&gt;     +-------- -------- -------- --------+
              |              ...                  |
@@ -598,8 +594,8 @@ similar to xref:fig-list_layout[]
           96 |00000000 00000000 00000110 11111111| (o) 111 bsl 4 + small int tag &lt;------------+
              |                ...                |
  heap -&gt;     +-----------------------------------+
-</pre>
-++++
+
+----
 
 If you then create a tuple with two instances of the list, all that is repeated is
 the tagged pointer to the list: 00000000000000000000000001000001. The code
@@ -609,11 +605,10 @@ L = [104, 101, 108, 108, 111],
 T = {L, L}.
 ----
 
-would result in a memory layout as in xref:fig-sharing[]. That is,
+would result in a memory layout as seen below. That is,
 a boxed header saying that this is a tuple of size 2 and then two
 pointers to the same list.
 
-[[fig-sharing]]
 ----
 ADR VALUE                            DESCRIPTION
 144 00000000000000000000000001000001 128+CONS
@@ -625,15 +620,14 @@ This is nice, since it is cheap to do and uses very little space. But if
 you send the tuple to another process or do any other type of IO, or any
 operations which results in something called a _deep copy_, then the
 data structure is expanded. So if we send out tuple +T+ to another process
-P2 (+P2 ! T+) then the heap of T2 will look like in xref:fig-sharing-expanded[].
+P2 (+P2 ! T+) then the heap of T2 will look like in:
 
-[[fig-sharing-expanded]]
 ----
  ..
 ----
 
 You can quickly bring down your Erlang node by expanding a highly shared term,
-see xref:listing-share[].
+see <<listing-share,share.erl>>.
 
 ----
 -module(share).
@@ -685,13 +679,11 @@ process P1 first calculates the flat size of M. Then it allocates a
 new message buffer of that size by doing a heap_alloc of a heap_frag in
 the local scheduler context.
 
-Given the code in xref:listing-send[] the state of the system could
-look like in xref:fig-pre_send[] just before the send in p1/1.
+Given the code in <<listing-send,send.erl>> the state of the system could
+look like this just before the send in p1/1:
 
 
-[[fig-pre_send]]
-++++
-<pre data-type="programlisting">P1
+----
 
     x0       |00000000 00000000 00000000 00100011| Pid 2
     x1       |00000000 00000000 00000000 01001010| 136 + boxed tag -----------+
@@ -721,8 +713,9 @@ look like in xref:fig-pre_send[] just before the send in p1/1.
  heap -&gt;     +-----------------------------------+
 
 
-P2</pre>
-++++
+P2
+
+----
 
 When P1 start sending the message M to P2. It (through the code in
 erl_message.c) first calculates the flat size of M (which in our example is
@@ -751,9 +744,8 @@ erl_heap_fragment:
 
 Then the message is copied into the heap fragment:
 
-
-++++
-<pre data-type="programlisting">erl_heap_fragment:
+----
+erl_heap_fragment:
     ErlHeapFragment* next;	  NULL
     ErlOffHeap off_heap:
       erl_off_heap_header* first; Boxed tag+&amp;mem+2*WS-+
@@ -783,7 +775,7 @@ Then the message is copied into the heap fragment:
                                   &amp;mem+21*WS+1 ----+
                                   (o*16)+15    &lt;---+
                                   NIL</pre>
-++++
+----
 
 In either case a a new mbox (+ErlMessage+) is allocated, a lock
  (+ERTS_PROC_LOCK_MSGQ+) is taken on the receiver and the message
@@ -857,10 +849,10 @@ processes have seen a binary in the GC sense of the word seen. Imagine
 for example that you have a load balancer that receives work items
 and dispatches them to workers.
 
-In xref:load_balancer[] there is an example of a loop which
-doesn't need to do GC. (See xref:listing-lb[] for a full example.)
+In <<load_balancer,this code>> there is an example of a loop which
+doesn't need to do GC. (See <<listing-lb,listing lb>> for a full example.)
 
-[[laod_balancer]]
+[[load_balancer]]
 ----
 loop(Workers, N) ->
   receive

@@ -14,7 +14,7 @@ include::type_system.asciidoc[]
 
 // include::beam.asciidoc[]
 
-// include::beam_modules.asciidoc[]
+include::beam_modules.asciidoc[]
 
 include::beam_instructions.asciidoc[]
 
@@ -53,7 +53,7 @@ include::memory.asciidoc[]
 
 include::ap-beam_instructions.asciidoc[]
 
-// include::ap-code_listings.asciidoc[]
+include::ap-code_listings.asciidoc[]
 
 
 

@@ -1,4 +1,4 @@
-[[ch.compiler]]
+[[CH-Compiler]]
 == The Compiler
 
 This book will not cover the programming language Erlang, but since
