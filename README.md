@@ -18,11 +18,13 @@ To read the book online just open the file [book.asciidoc](book.asciidoc).
 
 ## Building
 
-To build a pdf from source you will need make, asciidoc, pdflatex.
+To build a pdf from source you will need make, asciidoc, pdflatex, and dblatex.
 
-
- sudo apt-get install asciidoc
- make
+```shell
+sudo apt-get install asciidoc
+easy_install dblatex
+make
+```
  
  # TODO
  * Bring in missing chapters
