@@ -20,7 +20,7 @@ include::beam_instructions.asciidoc[]
 
 include::calls.asciidoc[]
 
-// include::beam_loader.asciidoc[]
+include::beam_loader.asciidoc[]
 
 include::beam_internal_instructions.asciidoc[]
 
@@ -28,28 +28,35 @@ include::scheduling.asciidoc[]
 
 include::memory.asciidoc[]
 
+== Advanced data structures (ETS, DETS, Mnesia)
 // include::data_structures.asciidoc[]
 
-// include::io.asciidoc[]
+include::io.asciidoc[]
 
+== Distribution
 // include::distribution.asciidoc[]
 
+== Interfacing C -- BIFs NIFs and Linked in Drivers
 // include::c.asciidoc[]
 
+== Native code
 // include::hipe.asciidoc[]
 
 // Part II
 [[P-Running]]
 = Running ERTS
 
+== Operation and Maintenance
+
 // include::ops.asciidoc[]
 
 // include::tweak.asciidoc[]
 
 [appendix]
-
+= Apendicies
 // include::index.asciidoc[]
 
+=== Building Erlang OTP
 
 include::ap-beam_instructions.asciidoc[]
 
