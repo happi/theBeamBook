@@ -172,7 +172,7 @@ the pid we get this information:
 ----
 
 We got a lot of information from this call and in the rest of this
-chapter we will learn in detail what most of these items means.  The
+chapter we will learn in detail what most of these items mean.  The
 first line tells us that the process has been given a name
 `code_server`. Next we can see which function the process is
 currently executing or suspended in (`current_function`)
