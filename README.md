@@ -4,6 +4,10 @@ Hi I opened this repo to the public today (April 7) to share it with some studen
 
 I hope to bring in more chapters and fill out the existing chapters in the weeks to come, but please feel free to comment and correct any errors you find. The plan is to make this into a collaborate effort so that we can get a complete documentation of the Erlang Runtime system as soon as possible.
 
+Anyway, it is finally out in the public, warts and all.
+
+Welcome to the site, please contribute.
+
 # About this book
 A description of the Erlang Runtime System ERTS and the virtual Machine BEAM.
 
@@ -25,12 +29,13 @@ sudo apt-get install asciidoc
 easy_install dblatex
 make
 ```
- 
+
  # TODO
  * Bring in missing chapters
  * Bring in missing text in the process and scheduler chapters
  * Fix the mess caused by mergin two different versions into the first chapters
  * Go over the new outline
+ * Fix the license
  * Fix links
  * Add images
  * Fix build system for ascii-art
@@ -38,4 +43,6 @@ make
  * Set up a build system that produces a new pdf on check-in
  * Links to OTP code on github
  * Add some kind of forum/wiki to discuss what needs to be done
+ * Fix the gdb examples to use the "new" gdb macros provided by OTP.
  * Index
+ * Get the Erlang Industrial User Group and/or OTP to publish it on their site
