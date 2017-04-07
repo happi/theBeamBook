@@ -1,6 +1,7 @@
 
 ABFLAGS = --backend=docbook --doctype=book --attribute=revisionhistory
 adocs = book.asciidoc \
+        beam.asciidoc \
         beam_instructions.asciidoc \
 	beam_internal_instructions.asciidoc \
 	beam_modules.asciidoc \
@@ -11,11 +12,20 @@ adocs = book.asciidoc \
 	opcodes_doc.asciidoc \
 	preface.asciidoc \
 	processes.asciidoc \
+	scheduling.asciidoc \
         type_system.asciidoc \
         ap-beam_instructions.asciidoc \
-        ap-code_listings.asciidoc
-        #     beam.asciidoc \
-        #     erts-book.asciidoc  \
+        ap-code_listings.asciidoc \
+	code/beam_modules_chapter/src/beamfile.erl \
+        code/compiler_chapter/json_tokens.png \
+        code/compiler_chapter/src/json_parser.erl \
+        code/compiler_chapter/src/json_test.erl \
+        code/compiler_chapter/src/json_tokens.xrl \
+        code/compiler_chapter/src/test.json \
+	code/compiler_chapter/src/world.erl \
+	code/memory_chapter/src/lb.erl \
+	code/memory_chapter/src/send.erl \
+	code/memory_chapter/src/share.erl
 
 
 all: beam-book.pdf

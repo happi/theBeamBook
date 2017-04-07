@@ -27,20 +27,20 @@ include::code/compiler_chapter/src/json_parser.erl[]
 include::code/compiler_chapter/src/json_test.erl[]
 ----
 
-// [source,erlang]
-// ----
-// include::stack_machine_compiler.erl[]
-// ----
+[source,erlang]
+----
+include::code/beam_chapter/src/stack_machine_compiler.erl[]
+----
 
-// [source,c]
-// ----
-// include::vsm.c[]
-// ----
+[source,c]
+----
+include::code/beam_chapter/src/vsm.c[]
+----
 
-// [source,c]
-// ----
-// include::token_threaded_vsm.c[]
-// ----
+[source,c]
+----
+include::code/beam_chapter/src/token_threaded_vsm.c[]
+----
 
 // [source,erlang]
 // ----

@@ -1,0 +1,669 @@
+[[CH-BEAM]]
+== The Erlang Virtual Machine: BEAM 
+
+BEAM (Bogumil's/Bj&ouml;rn's Abstract Machine) is the machine that executes
+the code in the Erlang Runtime System.  It is a garbage collecting,
+reduction counting, virtual, non-preemptive, directly threaded,
+register machine.  If that doesn't tell you much, don't worry, in the
+following sections we will go through what each of those words means
+in this context.
+
+The virtual machine, BEAM, is at the heart of the Erlang node.
+It is the BEAM that executes the Erlang code. That is, it is
+BEAM that executes your application code. Understanding how BEAM
+executes the code is vital to be able to profile and tune your
+code.
+
+The BEAM desig influences large parts of the rest of ERTS. The
+primitives for scheduling infuences the Scheduler
+(xref:CH-Scheduling[]), the representation of Erlang terms and the
+interaction with the memory infuences the Garbage Collector
+(xref:CH-Memory[]). By understanding the basic design of BEAM you
+will more easily understand the implementations of these other
+components.
+
+=== Working Memory: A stack machine, it is not
+
+As opposed to its predecessor Jam (Joe's Abstract Machine) which was a
+stack machine, the BEAM is a register machine loosely based on WAM
+(TODO: cite). In a stack machine each operand to an instruction is
+first pushed to the working stack, then the instruction pops its
+arguments and then it pushes the result on the stack.
+
+Stack machines are quite popular among virtual machine- and
+programming language implementers since they are quite easy to
+generate code for, and the code becomes very compact. The compiler
+does not need to do any register allocation, and most operations do
+not need any arguments (in the instruction stream).
+
+Compiling the expression "8 + 17 * 2." to a stack machine
+could yield code like:
+
+----
+push 8
+push 17
+push 2
+multiply
+add
+----
+
+This code can be generated directly from the parse tree of
+the expression. By using Erlang expression and the modules
++erl_scan+ and +erl_parse+ we can build the world's most simplistic
+compiler.
+
+[source,erlang]
+-------------------------------------------
+compile(String) ->
+    [ParseTree] = element(2,
+			  erl_parse:parse_exprs(
+			    element(2,
+				    erl_scan:string(String)))),
+    generate_code(ParseTree).
+
+generate_code({op, _Line, '+', Arg1, Arg2}) -> 
+    generate_code(Arg1) ++ generate_code(Arg2) ++ [add];
+generate_code({op, _Line, '*', Arg1, Arg2}) -> 
+    generate_code(Arg1) ++ generate_code(Arg2) ++ [multiply];
+generate_code({integer, _Line, I}) -> [push, I].
+-------------------------------------------
+
+And an even more simplistic virtual stack machine:
+
+[source,erlang]
+-------------------------------------------
+interpret(Code) -> interpret(Code, []).
+
+interpret([push, I |Rest], Stack)              -> interpret(Rest, [I|Stack]);
+interpret([add     |Rest], [Arg2, Arg1|Stack]) -> interpret(Rest, [Arg1+Arg2|Stack]);
+interpret([multiply|Rest], [Arg2, Arg1|Stack]) -> interpret(Rest, [Arg1*Arg2|Stack]);
+interpret([],              [Res|_])            -> Res.
+-------------------------------------------
+
+And a quick test run gives us the answer:
+
+[source,erlang]
+-------------------------------------------
+1> stack_machine:interpret(stack_machine:compile("8 + 17 * 2.")).
+42
+-------------------------------------------
+
+Great, you have built your first virtual machine! Handling
+subtraction, division and the rest of the Erlang language is left as
+an exercise for the reader.
+
+
+Anyway, the BEAM is *not* a stack machine, it is a _register machine_.
+In a register machine instruction operands are stored in registers
+instead of the stack, and the result of an operation usually end up
+in a specific register.
+
+Most register machines do still have a stack used for passing arguments
+to functions and saving return addresses. BEAM has both a stack and
+registers, but just as in WAM the stack slots are accessible through
+registers called Y-registers. BEAM also have a number of X-registers, 
+and a special register X0 (sometimes also called R0) which works as
+an accumulator where results are stored.
+
+The X registers are used as argument registers for function calls
+and register X0 is used for the return value.
+
+The X registers are stored in a C-array in the BEAM emulator and they
+are globally accessible from all functions. The X0 register is cashed
+in a local variable mapped to a physical machine register in the native
+machine on most architectures. 
+
+The Y registers are stored in the stack frame of the caller and only
+accessible by the calling functions. To save a value across a function
+call BEAM allocates a stack slot for it in the current stack frame and
+then moves the value to a Y register.
+
+[[x_and_y_regs_in_memory]]
+----
+  hend ->  +----+    -
+           |....| 
+  (fp) ->  | AN | 
+  (y0) ->  |    |
+  (y1) ->  |    |
+  stop ->  |    |
+           |    |
+           |    |
+  htop ->  |    |
+           |....|
+           |....|
+  heap ->  +----+
+
+           +----+
+   X1000   |    |
+    X999   |    |
+   ...      .... 
+      X2   |    |
+      X1   |    |
+     (X0)  |    |
+           +----+
+----
+
+Let us compile the following program with the _'S'_ flag:
+
+[source,erlang]
+------------------------------------------
+-module(add).
+-export([add/2]).
+
+add(A,B) ->  id(A) + id(B).
+
+id(I) -> I.
+------------------------------------------
+
+Then we get the following code for the add function:
+
+[source,erlang]
+------------------------------------------
+{function, add, 2, 2}.
+  {label,1}.
+    {func_info,{atom,add},{atom,add},2}.
+  {label,2}.
+    {allocate,1,2}.
+    {move,{x,1},{y,0}}.
+    {call,1,{f,4}}.
+    {move,{x,0},{x,1}}.
+    {move,{y,0},{x,0}}.
+    {move,{x,1},{y,0}}.
+    {call,1,{f,4}}.
+    {gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}.
+    {deallocate,1}.
+    return.
+------------------------------------------
+
+Here we can see that the code (starting at label 2) first allocates a
+stack slot, to get space to save the argument _B_ over the function
+call _id(A)_. The value is then saved by the instruction
+_{move,{x,1},{y,0}}_ (read as move x1 to y0 or in imperative style: y0
+:= x1).
+
+The id function (at label f4) is then called by 
+_{call,1,{f,4}}_. (We will come back to what the argument "1" stands for later.)
+Then the result of the call (now in X0)
+need to be saved on the stack (Y0), but the argument _B_
+is saved in Y0 so the BEAM does a bit of shuffling:
+
+Except for the x and y registers, there are a number of special
+purpose registers:
+
+.Special Purpose Registers
+* Htop - The top of the heap.
+* E - The top of the stack.
+* CP - Continuation Pointer, i.e. function return address
+* I - instruction pointer
+* fcalls - reduction counter
+
+These registers are cached versions of the corresponding
+fields in the PCB.
+
+
+------------------------------------------
+    {move,{x,0},{x,1}}. % x1 := x0 (id(A))
+    {move,{y,0},{x,0}}. % x0 := y0 (B)
+    {move,{x,1},{y,0}}. % y0 := x1 (id(A))
+------------------------------------------
+
+Now we have the second argument _B_ in x0 (the first 
+argument register) and we can call the _id_ function
+again _{call,1,{f,4}}_. 
+
+After the call x0 contains _id(B)_ and y0 contains _id(A)_,
+now we can do the addition: _{gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}_.
+(We will go into the details of bif calls and gc later.)
+
+=== Dispatch: Directly Threaded Code
+
+The instruction decoder in BEAM is implemented with a technique called
+_directly threaded_ code. In this context the word _threaded_ has
+nothing to do with OS threads, concurrency or parallelism. It is the
+execution path which is threaded through the virtual machine itself.
+
+If we take a look at our naive stack machine for arithmetic expressions
+we see that we use Erlang atoms and pattern matching to decode which
+instruction to execute. This is a very heavy machinery to just decode
+machine instructions. In a real machine we would code each instruction
+as a "machine word" integer. 
+
+We can rewrite our stack machine to be a _byte code_ machine
+implemented in C. First we rewrite the compiler so that it produces
+byte codes. This is pretty straight forward, just replace each
+instruction encoded as an atom with a byte representing the
+instruction. To be able to handle integers larger than 255 we encode
+integers with a size byte followed by the integer encoded in bytes.
+
+[source,erlang]
+-------------------------------------------
+compile(Expression, FileName) ->
+    [ParseTree] = element(2,
+			  erl_parse:parse_exprs(
+			    element(2,
+				    erl_scan:string(Expression)))),
+    file:write_file(FileName, generate_code(ParseTree) ++ [stop()]).
+
+generate_code({op, _Line, '+', Arg1, Arg2}) -> 
+    generate_code(Arg1) ++ generate_code(Arg2) ++ [add()];
+generate_code({op, _Line, '*', Arg1, Arg2}) -> 
+    generate_code(Arg1) ++ generate_code(Arg2) ++ [multiply()];
+generate_code({integer, _Line, I}) -> [push(), integer(I)].
+
+stop()     -> 0.
+add()      -> 1.
+multiply() -> 2.
+push()     -> 3.
+integer(I) ->    
+    L = binary_to_list(binary:encode_unsigned(I)),
+    [length(L) | L].
+-------------------------------------------
+
+Now lets write a simple virtual machine in C. The full code can
+be found in [appendix].
+
+[source, C]
+-------------------------------------------
+#define STOP 0
+#define ADD  1
+#define MUL  2
+#define PUSH 3
+
+#define pop()   (stack[--sp])
+#define push(X) (stack[sp++] = X)
+
+int run(char *code) {
+  int stack[1000];
+  int sp = 0, size = 0, val = 0;
+  char *ip = code;
+  
+  while (*ip != STOP) {
+    switch (*ip++) {
+    case ADD: push(pop() + pop()); break;
+    case MUL: push(pop() * pop()); break;
+    case PUSH:
+      size = *ip++; 
+      val = 0;
+      while (size--) { val = val * 256 + *ip++; }
+      push(val);
+      break;
+    }
+  }
+  return pop();
+}
+-------------------------------------------
+
+You see, a virtual machine written in C does not need to 
+be very complicated. This machine is just a loop checking
+the byte code at each instruction by looking at the value
+pointed to by the _instruction pointer _ (ip).
+
+For each byte code instruction it will switch on the instruction byte
+code and jump to the case which executes the instruction. This
+requires a decoding of the instruction and then a jump to the correct
+code. If we look at the assembly for vsm.c (+gcc -S vsm.c+) we see
+the inner loop of the decoder:
+
+
+-------------------------------------------
+L11:
+        movl    -16(%ebp), %eax
+        movzbl  (%eax), %eax
+        movsbl  %al, %eax
+        addl    $1, -16(%ebp)
+        cmpl    $2, %eax
+        je      L7
+        cmpl    $3, %eax
+        je      L8
+        cmpl    $1, %eax
+        jne     L5
+-------------------------------------------
+
+It has to compare the byte code with each instruction code and
+then do a conditional jump. In a real machine with many instructions
+this can become quite expensive. 
+
+A better solution would be to have a table with the address of
+the code then we could just use an index into the table 
+to load the address and jump without
+the need to do a compare. This technique is sometimes called
+_token threaded code_. Taking this a step further we can
+actually store the address of the function implementing the
+instruction in the code memory. This is called
+_subroutine threaded code_.
+
+// TODO make sure to use the right terminology for different threaded code types.
+
+This approach will make the decoding simpler at runtime, but it makes
+the whole VM more complicated by requiring a loader.  The loader
+replaces the byte code instructions with addresses to
+functions implementing the instructions.
+
+A loader might look like:
+
+[source, C]
+-------------------------------------------
+typedef void (*instructionp_t)(void);
+
+instructionp_t *read_file(char *name) {
+  FILE *file;
+  instructionp_t *code;
+  instructionp_t *cp;
+  long  size;
+  char ch;
+  unsigned int val;
+  
+  file = fopen(name, "r");
+ 
+  if(file == NULL) exit(1);
+ 
+  fseek(file, 0L, SEEK_END);
+  size = ftell(file);
+  code = calloc(size, sizeof(instructionp_t));	
+  if(code == NULL) exit(1);
+  cp = code;
+  
+  fseek(file, 0L, SEEK_SET);	
+  while ( ( ch = fgetc(file) ) != EOF ) 
+    {
+      switch (ch) {
+      case ADD: *cp++ = &add; break;
+      case MUL: *cp++ = &mul; break;
+      case PUSH:
+	*cp++ = &pushi; 
+	ch = fgetc(file); 
+	val = 0;
+	while (ch--) { val = val * 256 + fgetc(file); } 
+	*cp++ = (instructionp_t) val;
+	break;
+      }
+    }
+  *cp = &stop;
+
+  fclose(file);
+  return code;
+}
+-------------------------------------------
+
+As we can see, we do more work at load time here, including the
+decoding of integers larger than 255. (Yes, I know, the code
+is not safe for very large integers.)
+
+The decode and dispatch loop of the VM becomes quite simple though:
+
+[source, C]
+-------------------------------------------
+int run() {
+  sp = 0;
+  running = 1;
+
+  while (running) (*ip++)();
+
+  return pop();
+}
+-------------------------------------------
+
+Then we just need to implement the instructions:
+
+[source, C]
+-------------------------------------------
+void add()  { int x,y; x = pop(); y = pop(); push(x + y); }
+void mul()  { int x,y; x = pop(); y = pop(); push(x * y); }
+void pushi(){ int x;   x = (int)*ip++;       push(x); }
+void stop() { running = 0; }
+-------------------------------------------
+
+In BEAM this concept is taken one step further, and BEAM uses
+_directly threaded code_ (sometimes called only _thread code_).  In
+directly threaded code the call and return sequence is replaced by
+direct jumps to the implementation of the next instruction.  In order
+to implement this in C, BEAM uses the GCC extension "labels as
+values".
+
+We will look closer at the BEAM emulator later but we will take a
+quick look at how the add instruction is implemented. The code is
+somewhat hard to follow due to the heavy usage of macros.  The
+STORE_ARITH_RESULT macro actually hides the dispatch function which
+looks something like: _I += 4; Goto(*I);_.
+
+[source, C]
+-------------------------------------------
+#define OpCase(OpCode)    lb_##OpCode
+#define Goto(Rel) goto *(Rel)
+
+...
+
+ OpCase(i_plus_jId):
+ {
+     Eterm result;
+
+     if (is_both_small(tmp_arg1, tmp_arg2)) {
+	 Sint i = signed_val(tmp_arg1) + signed_val(tmp_arg2);
+	 ASSERT(MY_IS_SSMALL(i) == IS_SSMALL(i));
+	 if (MY_IS_SSMALL(i)) {
+	     result = make_small(i);
+	     STORE_ARITH_RESULT(result);
+	 }
+     
+     }
+     arith_func = ARITH_FUNC(mixed_plus);
+     goto do_big_arith2;
+ }
+-------------------------------------------
+
+To make it a little easier to understand how the BEAM dispatcher is
+implemented let us take a somewhat imagenary example. We will start
+with some real external BEAM code but then I will invent some internal
+BEAM instructions and implement them in C. 
+
+If we start with a simple add function in Erlang:
+
+[source, Erlang]
+-------------------------------------------
+add(A,B) -> id(A) + id(B).
+-------------------------------------------
+
+Compiled to BEAM code this will look like:
+
+[source, Erlang]
+-------------------------------------------
+{function, add, 2, 2}.
+  {label,1}.
+    {func_info,{atom,add},{atom,add},2}.
+  {label,2}.
+    {allocate,1,2}.
+    {move,{x,1},{y,0}}.
+    {call,1,{f,4}}.
+    {move,{x,0},{x,1}}.
+    {move,{y,0},{x,0}}.
+    {move,{x,1},{y,0}}.
+    {call,1,{f,4}}.
+    {gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}.
+    {deallocate,1}.
+    return.
+-------------------------------------------
+
+(See add.erl and add.S in xref:AP-listings[] for the full code.)
+
+Now if we zoom in on the the three instructions betwen the function calls
+in this code:
+
+[source, Erlang]
+-------------------------------------------
+    {move,{x,0},{x,1}}.
+    {move,{y,0},{x,0}}.
+    {move,{x,1},{y,0}}.
+-------------------------------------------
+
+This code first saves the return value of the function call (x0) in a
+new register (x1). Then it moves the caller saves register (y0) to
+the first argument register (x0). Finally it moves the saved value in
+x1 to the caller save register (y0) so that it will survive the next
+function call.
+
+Imagine that we would implement three instruction in BEAM called
++move_xx+, +move_yx+, and +move_xy+ (These instructions does not exist
+in the BEAM we just use them to illustrate this example):
+
+[source, C]
+-------------------------------------------
+#define OpCase(OpCode)    lb_##OpCode
+#define Goto(Rel) goto *((void *)Rel)
+#define Arg(N) (Eterm *) I[(N)+1]
+
+
+  OpCase(move_xx):
+  {
+     x(Arg(1)) = x(Arg(0));
+     I += 3;
+     Goto(*I);
+  }
+
+  OpCase(move_yx): {
+    x(Arg(1)) = y(Arg(0));
+    I += 3;
+    Goto(*I);
+  }
+
+
+  OpCase(move_xy): {
+    y(Arg(1)) = x(Arg(0));
+    I += 3;
+    Goto(*I);
+  }
+
+-------------------------------------------
+
+Note that the star in "+goto+ +&#42;+" does not mean dereference, the
+expression means jump to an address pointer, we should really write it
+as "+goto&#42;+".
+
+Now imagine that the compile C code for these instructions end up at
+memory addresses 0x3000, 0x3100, and 0x3200. When the BEAM code is
+loaded the three move instructions in the code will be replaced by the
+memory addresses of the implementation of the instructions.  Imagine
+that the code (+{move,{x,0},{x,1}}, {move,{y,0},{x,0}},
+{move,{x,1},{y,0}}+) is loaded at address 0x1000:
+
+
+-------------------------------------------
+                     /  0x1000: 0x3000 -> 0x3000: OpCase(move_xx): x(Arg(1)) = x(Arg(0))
+{move,{x,0},{x,1}}  {   0x1004: 0x0                                I += 3;
+                     \  0x1008: 0x1                                Goto(*I);
+                     /  0x100c: 0x3200
+{move,{y,0},{x,0}}  {   0x1010: 0x1
+                     \  0x1014: 0x1
+                     /  0x1018: 0x3100
+{move,{y,0},{x,0}}  {   0x101c: 0x1
+                     \  0x1020: 0x1
+-------------------------------------------
+
+The word at address 0x1000 points to the implementation of
+the move_xx instruction. If the register +I+ contains the instruction
+pointer, pointing to 0x1000 then the dispatch will be to fetch +&#42;I+
+(i.e. 0x3000) and jump to that address. ("+goto&#42;+ +&#42;I+")
+
+In xref:CH-Instructions[] we will look more closely at some real
+BEAM instructions and how they are implemented.
+
+=== Scheduling: Non-preemptive, Reduction counting 
+
+Most modern multi-threading operating systems use preemptive scheduling.
+This means that the operating system decides when to switch from one
+process to another, regardless of what the process is doing. This protects
+the other processes from a processes misbehaving by not yielding in time.
+
+In cooperative multitasking which uses a non-preemptive scheduler the
+running process decides when to yield. This has the advantage that the
+yielding process can do so in a known state.
+
+For example in a language such as Erlang with dynamic memory
+management and tagged values, an implementation may be designed such
+that a process only yields when there are no untagged values in
+working memory.
+
+Take the add instruction as an example, to add two Erlang integers,
+the emulator first has to untag the integers, then add them together
+and then tag the result as an integer. If a fully preemptive scheduler
+is used there would be no guarantee that the process isn't suspended
+while the integers are untagged. Or the process could be suspended
+while it is creating a tuple on the heap, leaving us with half a
+tuple. This would make it very hard to traverse a suspended process
+stack and heap.
+
+On the language level all processes are running concurrently and the
+programmer should not have to deal with explicit yields.  BEAM solves
+this by keeping track of how long a process has been running. This is
+done by counting _reductions_. The term originaly comes from the
+mathematical term beta-reduction used in lambda calculus.
+
+The definition of a reduction in BEAM not very specific, but we can
+see it as a small piece of work, which shouldn't take _too long_.
+Each function call is counted as a reduction, and BEAM does a test
+upon entry to each function if the process has used up all its
+reductions.
+
+Since there are no loops in Erlang, only tail-recursive function
+calls, it is very hard to write a program that does any significant
+amount of work without using up its reductions.
+
+[WARNING]
+====
+
+There are some bifs that can run for a long time only using 1
+reduction, like +term_to_binary+ and +binary_to_term+. Try to make
+sure that you only call these biffs with small terms or binaries, or
+you might lock up the scheduler for a very long time.
+
+Also, if you write your own Nifs, make sure they can yield and that
+they bump the reduction counter by an amount proportional to their
+run time.
+
+====
+
+We will go through the details of how the scheduler works in
+xref:CH-Scheduling[].
+
+=== Memory Management: Garbage Collecting
+
+Erlang supports garbage collection; as an Erlang progammer you do not
+need to do explicit memory management. On the BEAM level, though, the
+code is responsible for checking for stack and heap overrun, and for
+allocating enough space on the stack and the heap.
+
+The BEAM instruction +test_heap+ will ensure that there is as much
+space on the heap as requested. If needed the instruction will call
+the garbage collector to reclaim space on the heap. The garbage
+collector in turn will call the lower levels of the memory subsystem
+to allocate or free memory as needed. We will look at the details
+of memory management and garbage collection in xref:CH-Memory[].
+
+
+=== BEAM: it is virtually unreal
+
+The BEAM is a virtual machine, by that we mean that it is implemented
+in software instead of in hardware. There has been projects to
+implement the BEAM by FPGA, and there is nothing stopping anyone from
+implementing the BEAM in hardware. A better description might be to
+call the BEAM an Abstract machine, and see it as blueprint for a
+machine which can execute BEAM code. And, in fact, the "am" in BEAM
+stands for "Abstract Machine".
+
+In this book we will make no distinction between abstract machines,
+and virtual machines or their implementation. In a more formal setting
+an abstract machine is a theoretical model of a computer, and a
+virtual machine is either a software implementation of an abstract
+machine or a software emulator of a real physical machine.
+
+Unfortunately there exist no official specification of the BEAM, it is
+currently only defined by the implementation in Erlang/OTP.
+If you want to implement your own BEAM you would have to try to mimic
+the current implementation not knowing which parts are essential and
+which parts are accidental. You would have to mimic every observable
+behavior to be sure that you have a valid BEAM interpreter. 
+
+****
+
+*TODO:* Conclusion and handover to the chapters on instructions.
+
+****

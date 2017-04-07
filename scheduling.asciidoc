@@ -1,0 +1,559 @@
+[[CH-Scheduling]]
+== Scheduling (7p)
+
+// IO is only done if there are no port task left.
+// process priorities and priority inversion.
+// binding schedulers to cores,
+// binding processes to schedulers.
+// Impact of number of schedulers.
+//  Conclusion
+
+=== Introduction
+
+To fully understand where time in an Erlang system is spent you need
+to understand how the system decides which Erlang code to run
+and when to run it. These decicions are made by the Erlang scheduler.
+In this chapter we will look at how the scheduler works.
+
+==== Concurrency, Parallelism, and Preemptive Multitasking
+
+Erlang is a concurrent language. When we say that processes run
+concurrently we mean that for an outside observer it looks like two
+processes are executing at the same time. In a single core system this
+is achieved by preemptive multitasking. This means that one process
+will run for a while, and then the scheduler of the virtual machine
+will suspend it and let another process run.
+
+In a multicore or a distributed system we can achieve true
+parallelism, that is, two or more processes actually executing at the
+exact same time.  In an SMP enabled emulator the system uses several
+OS threads to indirectly execute Erlang processes by running one
+scheduler and emulator per thread.  In a system using the default
+settings for ERTS there will be one thread per enabled core (physical
+or hyper threaded).
+
+The preemptive multitasking on the Erlang level is achieved by
+cooperative multitasking on the C level. The Erlang language, the
+compiler and the virtual machine works together to ensure that the
+execution of an Erlang process will yield within a limited time and
+let the net process run.  The technique used to measure and limit the
+allowed execution time is called reduction counting, we will look at
+all the details of reduction counting soon.
+
+
+==== "Soft Real-Time"
+
+Erlang is  often described as  a soft  real-time system. I  think that
+this is slightly misleading. Erlang is  only a real-time system in the
+sense that  responses to  input should be  delivered without  a delay,
+that is, an Erlang  system is an on-line system as  opposed to a batch
+system.
+
+In a more strict Computer Science  definition of the world a real-time
+system  would  have to  be  able  to  guarantee  to respond  within  a
+specified time constraint,  that is there is a real  deadline for each
+task to complete within. In Erlang there are no such guarantees, a
+_timeout_ in Erlang is only guaranteed to not trigger before the given
+deadline.
+
+Real-time systems are classified as being either _hard_, _firm_, or
+_soft_.  In a _hard_ real-time system a missed deadline results in
+total system failure. These are the kind of systems you want to have
+controlling your car or a life-support system. On the other end of the
+spectrum are _soft_ real-time systems which will continue to function
+with degraded performance if deadlines are missed. A _firm_ real-time
+system, such as voice and video systems, fall somewhere in between; a
+video frame has to be handled in time to show it on the display, if
+the deadline is missed that frame is useless but the system can just
+skip the frame and still show a slightly stuttered video.
+
+Erlang was developed to be  able to build telephone switching systems.
+Such a system  have firm real-time parts for  handling voice encoding,
+decoding and  transmission, often implemented mostly  in hardware. The
+part of  the system responsible  for the actual switching  are usually
+soft  real-time or  not real-time  at all.  A missed  deadline in  the
+switching process means degraded performance,  a call will take longer
+time to place.
+
+When you hear people talking about soft real-time in Erlang, it usually
+means that the systems is an online system where responses to input
+are expected within milliseconds, but where no guarantees are given.
+
+==== Scheduling
+
+There is no known way to make a scheduler that works optimally for all
+possible situations. For some limited problems where all processes and
+all inputs are known beforehand you can precalculate an optimal
+scheduling; this is often done in small real time systems by a
+real-time scheduler.
+
+In a general system like Erlang where we want to be able to handle
+all sorts of programs and loads the scheduler will have to make some
+compromises. There will always be corner cases where a generic scheduler
+will behave badly. After reading this chapter I hope you will have a
+deeper understanding of how the Erlang scheduler works and especially
+when it might work badly. You should be able to design your system to
+avoid the corner cases and you should also be able to analyze a misbehaving
+system.
+
+=== Process Queues
+The main job of the scheduler is to keep track of work queues,
+that is, queues of processes and ports.
+
+There are two process states that the scheduler has to handle,
+_runable_, and _waiting_.
+Processes waiting to receive a message are in
+the waiting state. When a waiting process receives a message the send
+operations triggers a move of the receiving process into the runable
+state. If the receive statement have a timeout the scheduler has to
+trigger the state transition to runable when the timeout triggers.
+We will cover this mechanism later in this chapter.
+
+==== The Ready Queue
+Processes in the runable state are placed in a FIFO (first in first
+out) queue handled by the scheduler, called the _ready queue_. The
+queue is implemented by a first and a last pointer and by the next
+pointer in the PCB of each participating process.
+When a new process is added to the queue the
+_last_ pointer is followed and the process is added to the end of the
+queue in an O(1) operation.  When a new process is scheduled it is
+just popped from the head (the _first_ pointer) of the queue.
+
+[[the_ready_queue]]
+----
+ The Ready Queue
+
+ First: -->  P5       +---> P3       +-+-> P17
+             next: ---+     next: ---+ |  next: NULL
+                                       |
+ Last: --------------------------------+
+----
+
+In a SMP system, where you have several scheduler threads,
+there is one queue per scheduler.
+
+[[the_smp_ready_queues]]
+----
+ Scheduler 1       Scheduler 2      Scheduler 3      Scheduler 4
+
+ Ready: P5         Ready: P1        Ready: P7        Ready: P9
+        P3                P4               P12
+        P17                                P10
+
+----
+
+The reality is slightly more complicated since Erlang processes have
+priorities. Each scheduler actually have three queues. One queue for
+_max priority_ tasks, one for _high priority_ tasks and one queue
+containing both _normal_ and _low priority_ tasks.
+
+[[priority_ready_queues]]
+----
+ Scheduler 1       Scheduler 2      Scheduler 3      Scheduler 4
+
+ Max:    P5        Max:             Max:             Max:
+ High:             High:  P1        High:            High:
+ Normal: P3        Ready: P4        Ready: P7        Ready: P9
+         P17                               P12
+                                           P10
+----
+
+If there are any processes int the max queue the scheduler will
+pick these processes for execution. If there are no processes
+in the max queue but there are processes in the high priority
+queue the scheduler will pick those processes. Only if there
+are no processes in the max and the high priority queues will
+the scheduler pick the first process from the normal and low
+queue.
+
+When a normal processes is inserted into the queue it get a _schedule
+count_ of 1 and a low prio process get a schedule count of 8.
+When a process is picked from the front of the
+queue its schedule count is reduced by one, if the count reaches zero
+the process is scheduled, otherwise it is inserted at the end of the
+queue. This means that low priority processes will go through the
+queue seven times before they are scheduled.
+
+==== Waiting, Timeouts and the Timing Wheel
+
+A processs trying to do a receive on an empty mailbox or on
+a mailbox with no matching messages will yield and go into the
+waiting state.
+
+When a message is deliverd to an inbox the sending process will check
+wether the receiver is _sleeping_ in the waiting state, and in that
+case it will _wake_ the process, change its state to runable, and put
+it at the end of the appropriate ready queue.
+
+If the receive statement has a +timeout+ clause a timer will be
+created for the process which will trigger after the specified timeout
+time. The only guarantee the runtime system gives on a timeout is that
+it will not trigger before the set time, it might be some time after
+the intended time before the process is scheduled and get to execute.
+
+Timers are handled in the VM by a _timing wheel_. That is, an array of
+time slots which wraps around. The timing
+wheel is a global resource and there might be contention for the write
+lock to the timing wheel if you have many processes inserting timers
+into the wheel.
+
+The default size (+TIW_SIZE+) of the timing wheel is 65536 slots (or
+8192 slots if you have built the system for a small memory
+footprint). The current time is indicated by an index into the array
+(+tiw_pos+). When a timer is inserted into the wheel with a timeout of
+T the timer is inserted into the slot at +(tiw_pos+T)%TIW_SIZE+.
+
+[[the_timing_wheel]]
+----
+
+   0 1                                      65535
+  +-+-+- ... +-+-+-+-+-+-+-+-+-+-+-+ ... +-+-----+
+  | | |      | | | | | | |t| | | | |     | |     |
+  +-+-+- ... +-+-+-+-+-+-+-+-+-+-+-+ ... +-+-----+
+              ^           ^                       ^
+              |           |                       |
+           tiw_pos     tiw_pos+T               TIW_SIZE
+
+----
+
+The timer stored in the timing wheel is a pointer to an +ErlTimer+
+struct. See [erl_time.h](https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h). If several timers are
+inserted into the same slot they are linked together in a linked list
+by the +prev+ and +next+ fields. The +count+ field is set to 
++T/TIW_SIZE+ 
+
+
+[[ErlTimer]]
+[source,c]
+----
+
+
+/*
+** Timer entry:
+*/
+typedef struct erl_timer {
+    struct erl_timer* next;	/* next entry tiw slot or chain */
+    struct erl_timer* prev;	/* prev entry tiw slot or chain */
+    Uint slot;			/* slot in timer wheel */
+    Uint count;			/* number of loops remaining */
+    int    active;		/* 1=activated, 0=deactivated */
+    /* called when timeout */
+    void (*timeout)(void*);
+    /* called when cancel (may be NULL) */
+    void (*cancel)(void*);
+    void* arg;        /* argument to timeout/cancel procs */
+} ErlTimer;
+
+----
+
+
+=== Ports
+
+A port is an Erlang abstraction for a communication point with the
+world outside of the Erlang VM. Communications with sockets, pipes,
+and file IO are all done through ports on the Erlang side.
+
+A port, like a process, is created on the same scheduler as the
+creating process. Also like processes port uses reductions to decide
+when to yield, and they also get to run for 2000 reductions.  But
+since ports don't run Erlang code there are no Erlang function calls
+to count as reductions, instead each _port task_ is counted as a
+number of reductions. Currently a task uses a little more than 200
+reductions per task, and a number of reductions relative to one
+thousands of the size of transmitted data.
+
+A port task is one operation on a port, like opening, closing, sending
+a number of bytes or receiving data. In order to execute a port task
+the executing thread takes a lock on the port.
+
+Port tasks are scheduled and executed in each iteration in the
+scheduler loop (see below) before a new process is selected for
+execution.
+
+=== Reductions
+
+When a process is scheduled it will get a number of reductions defined
+by CONTEXT_REDS (defined in erl_vm.h, currently as 2000). After using
+up its reductions or when doing a receive without a matching message
+in the inbox, the process will be suspended and a new processes will
+be scheduled.
+
+If the VM has executed as many reductions as defined by
+INPUT_REDUCTIONS (currently 2*CONTEXT_REDS, also defined in
++erl_vm.h+) or if there is no process ready to run the scheduler will
+do system-level activities.  That is, basically, check for IO; we will
+cover the details soon.
+
+It is not completely defined what a reduction is, but at least each
+function call should be counted as a reduction. Things get a bit more
+complicated when talking about BIFs and NIFs. A process should not be
+able to run for "a long time" without using a reduction and yielding.
+A function written in C can usually not yield at any time, and the
+reason for writing it in C is usually to achieve performance. In such
+functions a reduction might take longer which can lead to imbalance in
+the scheduler.
+
+For example in Erlang versions prior to R16 the BIFs
++binary_to_term/1+ and +term_to_binary/1+ where non yielding and only
+counted as one reduction.  This meant that a process calling theses
+functions on large terms could starve other processes. This can even
+happen in a smp system because of the way processes are balanced
+between schedulers, which we will get to soon.
+
+While a process is running the emulator keeps the number of reductions
+left to execute in the (register mapped) variable FCALLS (see
++beam_emu.c+).
+
+// I have compiled a table of variable names used for reduction counting
+// as a reference for you if you want to dive into the source code. In
+// xref:redvars[] you can see the variables used globally and in the PCB
+// and in the emulator and the scheduler.
+
+// [[redvars]]
+// [cols="1,2a"]
+// |====
+// | Global
+
+// |
+
+// [cols="1,3"]
+// !====
+// ! Variable ! Use
+
+// ! +function_calls+ ! static (file global) variable in erl_process.c, number of function calls since last system-level activity
+
+// !====
+
+// | In PCB
+
+// |
+
+// [cols="1,3"]
+// !====
+// ! Variable                         ! Use
+// ! p->fcalls                        !
+// ! p->reds                          !
+// ! REDS_IN == (+p->def_arg_reg[5]+) ! reds while swapped out?
+
+// !====
+
+// | beam_emu.c
+
+// |
+
+// [cols="1,3"]
+// !====
+// ! Variable   ! Use
+// ! FCALLS     ! register mapped var for reductions
+// ! reds_used  ! used reductions during execution, calls in erl_process.c schedule
+// ! reds (c_p->fcalls) !
+// ! neg_o_reds ! ("negative old value of reds when call saving is active")
+// !====
+
+// | erl_process.c schedule/2
+
+// |
+
+// [cols="1,3"]
+// !====
+// ! Variable         ! Use
+// ! calls            ! argument to schedule
+// ! context_reds     !
+// ! fcalls           !
+// ! input_reductions !
+// ! actual_reds      !
+// ! reds             !
+// !====
+
+// |====
+
+
+=== The Scheduler Loop
+
+Conceptually you can look at the scheduler as the driver of program
+execution in the Erlang VM. In reality, that is, the way the C code
+is structured, it is the emulator (+process_main+ in beam_emu.c) that
+drives the execution and it calls the scheduler as a subroutine to find
+the next process to execute.
+
+Still, we will pretend that it is the other way around, since it makes
+a nice conceptual model for the scheduler loop. That is, we see it
+as the scheduler picking a process to execute and then handing over
+the execution to the emulator.
+
+Looking at it that way, the scheduler loop looks like this:
+
+. Update reduction counters.
+. Check timers
+. If needed check balance
+. If needed migrate processes and ports
+. Do auxiliary scheduler work
+. If needed check IO and update time
+. While needed pick a port task to execute
+. Pick a process to execute
+
+// TODO: Expand on these bullets
+
+=== Load Balancing
+
+The current strategy of the load balancer is to use as few schedulers
+as possible without overloading any CPU. The idea is that you will get
+better performance through better memory locality when processes share
+the same CPU.
+
+One thing to note though is that the load balancing done in the
+scheduler is between scheduler threads and not necessarily between
+CPUs or cores.  When you start the runtime system you can specify how
+schedulers should be allocated to cores. The default behaviour is that
+it is up to the OS to allocated scheduler threads to cores, but you
+can also choose to bind schedulers to cores.
+
+The load balancer assumes that there is one schedulers running on each
+core so that moving a process from a overloaded scheduler to an under
+utilized scheduler will give you more parallel processing power. If
+you have changed how schedulers are allocated to cores, or if you OS
+is overloaded or bad at assigning threads to cores, the load balancing
+might actually work against you.
+
+The load balancer uses two techniques to balance the load, _task
+stealing_ and _migration_. Task stealing is used every time a
+scheduler runs out of work, this technique will result in the work
+becoming more spread out between schedulers. Migration is more
+complicated and tries to compact the load to the right number of
+schedulers.
+
+==== Task Stealing
+If a scheduler run queue is empty when it should pick a new process
+to schedule the scheduler will try to steal work from another
+scheduler.
+
+First the scheduler takes a lock on itself to prevent other schedulers
+to try to steal work from the current scheduler. Then it checks if
+there are any inactive schedulers that it can steal a task from.  If
+there are no inactive schedulers with stealable tasks then it will
+look at active schedulers, starting with schedulers having a higher id
+than itself, trying to find a stealable task.
+
+The task stealing will look at one scheduler at a time and try to
+steal the highest priority task of that scheduler. Since this is done
+per scheduler there might actually be higher priority tasks that are
+stealable on another scheduler which will not be taken.
+
+The task stealing tries to move tasks towards schedulers with lower
+numbers by trying to steal from schedulers with higher numbers,
+but since the stealing also will wrap around and steal from schedulers
+with lower numbers the result is that processes are spread out on all
+active schedulers.
+
+Task stealing is quite fast and can be done on every iteration of
+the scheduler loop when a scheduler has run out of tasks.
+
+==== Migration
+
+To really utilize the schedulers optimally a more elaborate migration
+strategy is used. The current strategy is to compact the load to as
+few schedulers as possible, while at the same time spread it out so
+that no scheduler is overloaded.
+
+This is done by the function _check_balance_ in _erl_process.c_.
+
+The migration is done by first setting up a migration plan and then
+letting schedulers execute on that plan until a new plan is set up.
+Every 2000*2000 reductions a scheduler calculates a migration path per
+priority per scheduler by looking at the workload of all
+schedulers. The migration path can have three different types of
+values: 1) cleared 2) migrate to schedueler # 3) immigrate from
+scheduler #
+
+When a process becomes ready (for example by reciving a message or
+triggering a timeout) it will normally be scheduled on the last
+scheduler it ran on (S1). That is, if the migration path of that
+scheduler (S1), at that priority, is cleared. If the migration path of
+the scheduler is set to emigrate (to S2) the process will be handed over
+to that scheduler if both S1 and S2 have unbalanced run-queues. We will
+get back to what that means.
+
+When a scheduler (S1) is to pick a new process to execute it checks to
+see if it has an immigration path from (S2) set. If the two involved
+schedulers have unbalanced run-queues S1 will steal a process from S2.
+
+The migration path is calculated by comparing the maximum run-queues
+for each scheduler for a certain priority. Each scheduler will update
+a counter in each iteration of its scheduler loop keeping track of
+the maximal queue length. This information is then used to calculate
+an average (max) queue length (_AMQL_).
+
+----
+ Max
+ Run Q
+ Length
+    5         o
+              o
+           o  o
+Avg: 2.5 --------------
+           o  o     o
+    1      o  o     o
+
+scheduler S1 S2 S3 S4
+----
+
+Then the schedulers are sorted on their max queue lengths.
+
+----
+ Max
+ Run Q
+ Length
+    5               o
+                    o
+                 o  o
+Avg: 2.5 --------------
+              o  o  o
+    1         o  o  o
+
+scheduler S3 S4 S1 S2
+
+           ^        ^
+           |        |
+          tix      fix
+----
+
+Any scheduler with a longer run queue than average (S1, S2) will be
+marked for emigration and any scheduler with a shorter max run queue
+than average (S3, S4) will be targeted for immigration.
+
+This is done by looping over the ordered set of schedulers with two
+indices (immigrate from (+fix+)) and (emigrate to (+tix+)). In each
+iteration of the a loop the immigration path of S[tix] is set to S[fix]
+and the emigration path of S[fix] is set to S[tix]. Then tix is increased
+and fix decreased till they both pass the balance point. If one index
+reaches the balance point first it wraps.
+
+In the example:
+ * Iteration 1: S2.emigrate_to = S3 and S3.immigrate_from = S2
+ * Iteration 2: S1.emigrate_to = S4 and S4.immigrate_from = S1
+
+Then we are done.
+
+In reality things are a bit more complicated since schedulers can be
+taken off line. The migration planning is only done for online
+schedulers. Also, as mentioned before, this is done per priority
+level.
+
+When a process is to be inserted into a ready queue and there is a
+migration path set from S1 to S2 the scheduler first checks that the
+run queue of S1 is larger than AMQL and that the run queue of S2 is
+smaller than the average. This way the migration is only allowed if
+both queues are still unbalanced.
+
+There are two exception though where a migration is forced even
+when the queues are balanced or even imbalanced in the wrong way.
+In both these cases a special evacuation flag is set which overrides
+the balance test.
+
+The evacuation flag is set when a scheduler is taken off line to
+ensure that no new processes are scheduled on an off line scheduler.
+The flag is also set when the scheduler detects that no progress is
+made on some priority. That is, if there for example is a max priority
+process which always is ready to run so that no normal priority processes
+ever are scheduled. Then the evacuation flag will be set for the normal
+priority queue for that scheduler.

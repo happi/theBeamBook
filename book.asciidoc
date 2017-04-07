@@ -12,7 +12,7 @@ include::processes.asciidoc[]
 
 include::type_system.asciidoc[]
 
-// include::beam.asciidoc[]
+include::beam.asciidoc[]
 
 include::beam_modules.asciidoc[]
 
@@ -24,7 +24,7 @@ include::calls.asciidoc[]
 
 include::beam_internal_instructions.asciidoc[]
 
-// include::scheduling.asciidoc[]
+include::scheduling.asciidoc[]
 
 include::memory.asciidoc[]
 
