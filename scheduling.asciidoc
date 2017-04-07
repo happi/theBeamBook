@@ -1,21 +1,28 @@
 [[CH-Scheduling]]
-== Scheduling (7p)
-
-// IO is only done if there are no port task left.
-// process priorities and priority inversion.
-// binding schedulers to cores,
-// binding processes to schedulers.
-// Impact of number of schedulers.
-//  Conclusion
-
-=== Introduction
-
-To fully understand where time in an Erlang system is spent you need
+== Scheduling
+To fully understand where time in an ERTS system is spent you need
 to understand how the system decides which Erlang code to run
-and when to run it. These decicions are made by the Erlang scheduler.
-In this chapter we will look at how the scheduler works.
+and when to run it. These decisions are made by the Scheduler.
 
-==== Concurrency, Parallelism, and Preemptive Multitasking
+The scheduler is responsible for the real-time guarantees of the
+system.  In a strict Computer Science definition of the word
+real-time, a real-time system have to be able to guarantee a response
+within a specified time. That is, there are real deadlines
+and each task has to complete before its deadline. In Erlang there are
+no such guarantees, a _timeout_ in Erlang is only guaranteed to *not*
+trigger *before* the given deadline.
+
+
+In a general system like Erlang where we want to be able to handle all
+sorts of programs and loads, the scheduler will have to make some
+compromises. There will always be corner cases where a generic
+scheduler will behave badly. After reading this chapter
+you will have a deeper understanding of how
+the Erlang scheduler works and especially when it might not work
+optimally. You should be able to design your system to avoid the corner
+cases and you should also be able to analyze a misbehaving system.
+
+=== Concurrency, Parallelism, and Preemptive Multitasking
 
 Erlang is a concurrent language. When we say that processes run
 concurrently we mean that for an outside observer it looks like two
@@ -39,6 +46,7 @@ execution of an Erlang process will yield within a limited time and
 let the net process run.  The technique used to measure and limit the
 allowed execution time is called reduction counting, we will look at
 all the details of reduction counting soon.
+
 
 
 ==== "Soft Real-Time"
@@ -79,7 +87,7 @@ When you hear people talking about soft real-time in Erlang, it usually
 means that the systems is an online system where responses to input
 are expected within milliseconds, but where no guarantees are given.
 
-==== Scheduling
+=== Scheduling
 
 There is no known way to make a scheduler that works optimally for all
 possible situations. For some limited problems where all processes and
@@ -87,14 +95,78 @@ all inputs are known beforehand you can precalculate an optimal
 scheduling; this is often done in small real time systems by a
 real-time scheduler.
 
-In a general system like Erlang where we want to be able to handle
-all sorts of programs and loads the scheduler will have to make some
-compromises. There will always be corner cases where a generic scheduler
-will behave badly. After reading this chapter I hope you will have a
-deeper understanding of how the Erlang scheduler works and especially
-when it might work badly. You should be able to design your system to
-avoid the corner cases and you should also be able to analyze a misbehaving
-system.
+
+We can check that we have a system capable of parallel execution,
+by checking if SMP support is enabled:
+
+----
+iex(1)> :erlang.system_info :smp_support
+true
+----
+
+We can also check how many schedulers we have running in the
+system:
+
+----
+iex(2)> :erlang.system_info :schedulers_online
+4
+----
+We can see this information in the Observer as shown
+in the figure below.
+
+If we spawn more processes than we have have schedulers and
+let them do some busy work we can see that there are a number
+of processes _running_ in parallel and some processes that
+are _runnable_ but not currently running. We can see this
+with the function `erlang:process_info/2`.
+
+
+----
+
+1> Loop = fun (0, _) -> ok; (N, F) -> F(N-1, F) end,
+   BusyFun = fun() -> spawn(fun () -> Loop(1000000, Loop) end) end,
+   SpawnThem = fun(N) -> [ BusyFun() || _ <- lists:seq(1, N)] end,
+   GetStatus = fun() -> lists:sort([{erlang:process_info(P, [status]), P}
+                        || P <- erlang:processes()]) end,
+   RunThem = fun (N) -> SpawnThem(N), GetStatus() end,
+   RunThem(8).
+
+[{[{status,garbage_collecting}],<0.62.0>},
+ {[{status,garbage_collecting}],<0.66.0>},
+ {[{status,runnable}],<0.60.0>},
+ {[{status,runnable}],<0.61.0>},
+ {[{status,runnable}],<0.63.0>},
+ {[{status,runnable}],<0.65.0>},
+ {[{status,runnable}],<0.67.0>},
+ {[{status,running}],<0.58.0>},
+ {[{status,running}],<0.64.0>},
+ {[{status,waiting}],<0.0.0>},
+ {[{status,waiting}],<0.1.0>},
+
+...
+----
+
+We will look closer at the different statuses that a process
+can have later in this chapter, but for now all we need
+to know is that a process that is _running_ or _garbage_collecting_
+is actually running in on a scheduler.
+Since the machine in the example has four cores and four schedulers
+there are four process running in parallel (the shell process and
+three of the _busy processes_). There are also five busy processes
+waiting to run in the state _runnable_.
+
+By using the _Load Charts_ tab in the Observer we can see that all
+four schedulers are fully loaded while the busy processes execute.
+
+----
+observer:start().
+ok
+3> RunThem(8).
+
+----
+
+![](images/observer_load.jpg)
+
 
 === Process Queues
 The main job of the scheduler is to keep track of work queues,
