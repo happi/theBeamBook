@@ -39,63 +39,6 @@ scheduler and emulator per thread.  In a system using the default
 settings for ERTS there will be one thread per enabled core (physical
 or hyper threaded).
 
-The preemptive multitasking on the Erlang level is achieved by
-cooperative multitasking on the C level. The Erlang language, the
-compiler and the virtual machine works together to ensure that the
-execution of an Erlang process will yield within a limited time and
-let the net process run.  The technique used to measure and limit the
-allowed execution time is called reduction counting, we will look at
-all the details of reduction counting soon.
-
-
-
-==== "Soft Real-Time"
-
-Erlang is  often described as  a soft  real-time system. I  think that
-this is slightly misleading. Erlang is  only a real-time system in the
-sense that  responses to  input should be  delivered without  a delay,
-that is, an Erlang  system is an on-line system as  opposed to a batch
-system.
-
-In a more strict Computer Science  definition of the world a real-time
-system  would  have to  be  able  to  guarantee  to respond  within  a
-specified time constraint,  that is there is a real  deadline for each
-task to complete within. In Erlang there are no such guarantees, a
-_timeout_ in Erlang is only guaranteed to not trigger before the given
-deadline.
-
-Real-time systems are classified as being either _hard_, _firm_, or
-_soft_.  In a _hard_ real-time system a missed deadline results in
-total system failure. These are the kind of systems you want to have
-controlling your car or a life-support system. On the other end of the
-spectrum are _soft_ real-time systems which will continue to function
-with degraded performance if deadlines are missed. A _firm_ real-time
-system, such as voice and video systems, fall somewhere in between; a
-video frame has to be handled in time to show it on the display, if
-the deadline is missed that frame is useless but the system can just
-skip the frame and still show a slightly stuttered video.
-
-Erlang was developed to be  able to build telephone switching systems.
-Such a system  have firm real-time parts for  handling voice encoding,
-decoding and  transmission, often implemented mostly  in hardware. The
-part of  the system responsible  for the actual switching  are usually
-soft  real-time or  not real-time  at all.  A missed  deadline in  the
-switching process means degraded performance,  a call will take longer
-time to place.
-
-When you hear people talking about soft real-time in Erlang, it usually
-means that the systems is an online system where responses to input
-are expected within milliseconds, but where no guarantees are given.
-
-=== Scheduling
-
-There is no known way to make a scheduler that works optimally for all
-possible situations. For some limited problems where all processes and
-all inputs are known beforehand you can precalculate an optimal
-scheduling; this is often done in small real time systems by a
-real-time scheduler.
-
-
 We can check that we have a system capable of parallel execution,
 by checking if SMP support is enabled:
 
@@ -165,7 +108,224 @@ ok
 
 ----
 
-![](images/observer_load.jpg)
+image::images/observer_load.jpg[Observer]
+
+=== Preemptive Multitasking in ERTS Cooperating in C
+
+
+The preemptive multitasking on the Erlang level is achieved by
+cooperative multitasking on the C level. The Erlang language, the
+compiler and the virtual machine works together to ensure that the
+execution of an Erlang process will yield within a limited time and
+let the net process run.  The technique used to measure and limit the
+allowed execution time is called reduction counting, we will look at
+all the details of reduction counting soon.
+
+=== Reductions
+
+One can describe the scheduling in BEAM as preemptive scheduling on top
+of cooperative scheduling.
+A process can only be suspended at certain
+points of the execution, such as at a receive or a function call. In
+that way the scheduling is cooperative---a process has to execute code
+which allows for suspension.  The nature of Erlang code makes it
+almost impossible for a process to run for a long time without doing a
+function call. There are a few Built In Functions (BIFs) that still
+can take too long without yielding. Also, if you call C code in a
+badly implemented Native Implemented Function (NIF) you might block
+one scheduler for a long time.
+We will look at how to write well behaved NIFs in <ref linkend="ch.c"/>.)
+
+Since there are no other loop constructs than recursion and
+list comprehensions,
+there is no way to loop forever without doing a function call.
+Each function call is counted as a `reduction`; when the reduction
+limit for the process is reached it is suspended.
+
+NOTE: Reductions
+The term reduction comes from the Prolog ancestry of Erlang.
+In Prolog each execution step is a goal-reduction, where each
+step reduces a logic problem into its constituent parts, and
+then tries to solve each part.
+
+==== How Many Reductions Will You Get?
+
+When a process is scheduled it will get a number of reductions defined
+by `CONTEXT_REDS` (defined in +erl_vm.h+,
+currently as 2000). After using
+up its reductions or when doing a receive without a matching message
+in the inbox, the process will be suspended and a new processes will
+be scheduled.
+
+If the VM has executed as many reductions as defined by
+`INPUT_REDUCTIONS` (currently `2*CONTEXT_REDS`, also defined in
++erl_vm.h+) or if there is no process ready to run
+the scheduler will do system-level activities.  That is, basically,
+check for IO; we will cover the details soon.
+
+==== What is a Reduction Really?
+
+It is not completely defined what a reduction is, but at least each
+function call should be counted as a reduction. Things get a bit more
+complicated when talking about BIFs and NIFs. A process should not be
+able to run for "a long time" without using a reduction and yielding.
+A function written in C can not yield in the middle, it has to make
+sure it is in a clean state and return. In order to be re-entrant it
+has to save its internal state somehow before it returns and then set
+up the state again on re-entry. This can be very costly, especially
+for a function that sometimes only does little work and sometimes lot.
+The reason for writing a function in C instead of Erlang is usually to
+achieve performance and to not do unnecessary book keeping work.
+Since there is no clear definition of what one reduction is, other
+than a function call on the Erlang level, there is a risk that a
+function implemented in C takes many more clock cycles per reduction
+than a normal Erlang function. This can lead to an imbalance in
+the scheduler, and even starvation.
+
+For example in Erlang versions prior to R16, the BIFs
+`binary_to_term/1` and `term_to_binary/1` were non yielding and only
+counted as one reduction.  This meant that a process calling these
+functions on large terms could starve other processes. This can even
+happen in a SMP system because of the way processes are balanced
+between schedulers, which we will get to soon.
+
+While a process is running the emulator keeps the number of reductions
+left to execute in the (register mapped) variable `FCALLS` (see
++beam_emu.c+).
+
+We can examine this value with `hipe_bifs:show_pcb/1`:
+
++++++
+
+iex(13)> :hipe_bifs.show_pcb self
+P: 0x00007efd7c2c0400
+-----------------------------------------------------------------
+Offset| Name          |              Value |             *Value |
+    0 | id            | 0x00000270000004e3 |                    |
+...
+  328 | rcount        | 0x0000000000000000 |                    |
+  336 | reds          | 0x000000000000a528 |                    |
+...
+  320 | fcalls        | 0x00000000000004a3 |                    |
+
++++++
+
+The field `reds` keep track of the total number of reductions a
+process has done up until it was last suspended. By monitoring this
+number you can see which processes do the most work.
+
+You can see the total number of reductions for a process (the reds
+field) by calling `erlang:process_info/2` with the atom `reductions`
+as the second argument. You can also see this number in the process
+tab in the observer or with the i/0 command in the Erlang shell.
+
+As noted earlier, each time a process starts the field fcalls is set to
+the value of `CONTEXT_REDS` and for each function call the
+process executes fcalls is reduced by 1. When the process is
+suspended the field reds is increased by the number of executed
+reductions. In some C like code something like:
+ `p->reds += (CONTEXT_REDS - p->fcalls)`.
+
+Normally a process would do all its alloted reductions and `fcalls`
+would be 0 at this point, but if the process suspends in a receive
+waiting for a message it will have some reductions left.
+
+When a process uses up all its reductions it will yield to
+let another process run, it will go from the process state
+_running_ to the state _runnable_, if it yields in a receive
+it will instead go into the state _waiting_ (for a message).
+In the next section we will take a look at all the different
+states a process can be in.
+
+=== The Process State (or _status_)
+
+The field `status` in the PCB contains the process state. It can be one
+of _free_, _runnable_, _waiting_, _running_, _exiting_, _garbing_,
+and _suspended_. When a process exits it is marked as
+free---you should never be able to see a process in this state,
+it is a short lived state where the process no longer exist as
+far as the rest of the system is concerned but there is still
+some clean up to be done (freeing memory and other resources).
+
+Each process status represents a state in the Process State
+Machine. Events such as a timeout or a delivered
+message triggers transitions along the edges in the state machine.
+The _Process State Machine_ looks like this:
+
+----
+
+
+                                +--------+
+                                |  free  |
+              +-----------+     |        |
+          +---> suspended |     +---^----+
+          | +-+           |         |
+          | | ++-------^^-+     +---+----+
+          | |  |       ||       | exiting|
+          | |  |       ||       |        |
+          | |  |       ||       +---^----+
+          | |  |       ||suspend    |
+          | |  |       |+--------+  |
+          | |  | resume|         |  | exit
+          | |  |       |         |  |
+          | | +v-------+--+    +-+--+-----+   GC   +----------+
+          | | | runnable  |+-->| running  +--------> garbing  |
+          | | |           |    |          <--------+          |
+          | | +^------^---+    +----+-----+        +----------+
+          | |  |      |             |
+          | |  | msg  | timeout     | receive
+          | |  |      |             |
+          | |  |      |             |
+          | |  |      |        +----v-----+
+          | |  |      +--------+ waiting  |
+          | |  +---------------+          |
+          | |                  +^---+-----+
+          | |resume             |   |
+          | +-------------------+   |suspend
+          +-------------------------+
+
+----
+
+
+The normal states for a process are _runnable_, _waiting_, and _running_.
+A running process is currently executing code in one of the schedulers.
+When a process enters a receive and there is no matching message in
+the message queue, the process will become waiting until a message
+arrives or a timeout occurs. If a process uses up all its reductions,
+it will become runnable and wait for a scheduler to pick it up again.
+A waiting process receiving a message or a timeout will become
+runnable.
+
+
+Whenever a process needs to do garbage collection, it will go into
+the _garbing_
+state until the GC is done. While it is doing GC
+is saves the old state in the field `gcstatus` and when it is done
+it sets the state back to the old state using `gcstatus`.
+
+The suspended state is only supposed to be used for debugging
+purposes. You can call `erlang:suspend_process/2` on another process
+to force it into the suspended state. Each time a process calls
+`suspend_process` on another process, the _suspend count_ is increased.
+This is recorded in the field `rcount`.
+A call to (`erlang:resume_process/1`) by the suspending process will
+decrease the suspend count. A process in the suspend state will not
+leave the suspend state until the suspend count reaches zero.
+
+The field `rstatus` (resume status) is used to keep track of the
+state the process was in before a suspend. If it was _running_
+or _runnable_ it will start up as _runnable_, and if it was _waiting_
+it will go back to the wait queue. If a suspended waiting process
+receives a timeout `rstatus` is set to _runnable_ so it will resume
+as _runnable_.
+
+To keep track of which process to run next the scheduler keeps
+the processes in a queue.
+
+
+
+
+
 
 
 === Process Queues
