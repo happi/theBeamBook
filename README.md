@@ -9,3 +9,11 @@ The book is written in AsciiDoc and can be read directly on github in your brows
 
 To read the book online just open the file [book.asciidoc](book.asciidoc).
 
+
+## Building
+
+To build a pdf from source you will need make, asciidoc, pdflatex.
+
+
+ sudo apt-get install asciidoc
+ make
