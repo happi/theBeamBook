@@ -1,7 +1,7 @@
 # TheBeamBook
 A description of the Erlang Runtime System ERTS and the virtual Machine BEAM.
 
-This is an attempt to document how the internals of the Erlang Runtime System works.
+This is an attempt to document how the internals of the Erlang Runtime System work.
 
 Please feel free to contribute since this work is far from done, and it will probably never be done since there is continuous development of the Erlang runtime system.
 
