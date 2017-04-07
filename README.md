@@ -7,7 +7,5 @@ Please feel free to contribute since this work is far frome done, and it will pr
 
 The book is written in AsciiDoc and can be read directly on github in your browser or you can create a pdf from the source code.
 
-To read the book online just open the file book.asciidoc:
-
-include::book.asciidoc
+To read the book online just open the file [book.asciidoc](book.asciidoc).
 
