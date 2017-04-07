@@ -56,7 +56,7 @@ where all integers are considered smaller than all floats. If all the
 keys are the same then each value pair (in key order) is compared
 arithmetically, i.e. by first converting them to the same precision.
 
-The same is true when comparing for equality, thus #{1 =&gt; 1.0} == #{1 =&gt; 1} but #{1.0 =&gt; 1} /= #{1 =&gt; 1}.
+The same is true when comparing for equality, thus #{1 => 1.0} == #{1 => 1} but #{1.0 => 1} /= #{1 => 1}.
 
 In Erlang versions prior to 18 keys where also compared
 arithmetically.
