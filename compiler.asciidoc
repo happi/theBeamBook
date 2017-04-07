@@ -80,7 +80,7 @@ xref:fig_compiler_passes[Compiler Passes].
             v
     +---------------+    +---------------+    
     |     Parse     | -> | user defined  |
-    |   Transform   | &lt;- | transformation|
+    |   Transform   | <- | transformation|
     +---------------+    +---------------+
             |
             +---------> (.Pbeam) [makedep]
