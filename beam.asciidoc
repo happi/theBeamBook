@@ -2,9 +2,9 @@
 == The Erlang Virtual Machine: BEAM 
 
 BEAM (Bogumil's/Bj&ouml;rn's Abstract Machine) is the machine that executes
-the code in the Erlang Runtime System.  It is a garbage collecting,
+the code in the Erlang Runtime System. It is a garbage collecting,
 reduction counting, virtual, non-preemptive, directly threaded,
-register machine.  If that doesn't tell you much, don't worry, in the
+register machine. If that doesn't tell you much, don't worry, in the
 following sections we will go through what each of those words means
 in this context.
 
@@ -335,7 +335,7 @@ _subroutine threaded code_.
 // TODO make sure to use the right terminology for different threaded code types.
 
 This approach will make the decoding simpler at runtime, but it makes
-the whole VM more complicated by requiring a loader.  The loader
+the whole VM more complicated by requiring a loader. The loader
 replaces the byte code instructions with addresses to
 functions implementing the instructions.
 
@@ -414,15 +414,15 @@ void stop() { running = 0; }
 -------------------------------------------
 
 In BEAM this concept is taken one step further, and BEAM uses
-_directly threaded code_ (sometimes called only _thread code_).  In
+_directly threaded code_ (sometimes called only _thread code_). In
 directly threaded code the call and return sequence is replaced by
-direct jumps to the implementation of the next instruction.  In order
+direct jumps to the implementation of the next instruction. In order
 to implement this in C, BEAM uses the GCC extension "labels as
 values".
 
 We will look closer at the BEAM emulator later but we will take a
 quick look at how the add instruction is implemented. The code is
-somewhat hard to follow due to the heavy usage of macros.  The
+somewhat hard to follow due to the heavy usage of macros. The
 STORE_ARITH_RESULT macro actually hides the dispatch function which
 looks something like: _I += 4; Goto(*I);_.
 
@@ -541,7 +541,7 @@ as "+goto&#42;+".
 Now imagine that the compile C code for these instructions end up at
 memory addresses 0x3000, 0x3100, and 0x3200. When the BEAM code is
 loaded the three move instructions in the code will be replaced by the
-memory addresses of the implementation of the instructions.  Imagine
+memory addresses of the implementation of the instructions. Imagine
 that the code (+{move,{x,0},{x,1}}, {move,{y,0},{x,0}},
 {move,{x,1},{y,0}}+) is loaded at address 0x1000:
 
@@ -592,7 +592,7 @@ tuple. This would make it very hard to traverse a suspended process
 stack and heap.
 
 On the language level all processes are running concurrently and the
-programmer should not have to deal with explicit yields.  BEAM solves
+programmer should not have to deal with explicit yields. BEAM solves
 this by keeping track of how long a process has been running. This is
 done by counting _reductions_. The term originaly comes from the
 mathematical term beta-reduction used in lambda calculus.

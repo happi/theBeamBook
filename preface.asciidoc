@@ -23,7 +23,7 @@ About this book
 
 
 For anyone who: Want to tune an Erlang installation. Want to know how
-to debug VM crashes.  Want to improve performance of Erlang
+to debug VM crashes. Want to improve performance of Erlang
 applications. Want to understand how Erlang really works. Want to
 learn how to build your own runtime environment.
 
@@ -68,7 +68,7 @@ _parallelism_. In this book _concurrency_ is the concept of having
 two or more processes that *can* execute independently of each other,
 this can be done by first executing one process then the other or by
 interleaving the execution, or by executing the processes in
-parallel.  With _parallel_ executions we mean that the processes
+parallel. With _parallel_ executions we mean that the processes
 actually execute at the exact same time by using several physical
 execution units. Parallelism can be achieved on different levels.
 Through multiple execution units in the execution pipeline in one core,

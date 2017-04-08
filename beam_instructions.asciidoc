@@ -20,7 +20,7 @@ between Erlang versions, especially between major versions.
 This is the instruction set which we will cover in this chapter.
 
 The other instruction set, the specific, is an optimized instruction
-set used by the Beam to implement the external instruction set.  To
+set used by the Beam to implement the external instruction set. To
 give you an understanding of how the Beam works we will cover this
 instruction set in xref:CH-Internal_instructions[]. The internal
 instruction set can change without warning between minor version or
@@ -143,7 +143,7 @@ beamexmaple.S file:
 In addition to the actual beam code for the integer identity
 function we also get some meta instructions.
 
-The first line +{module, beamexample1}.  %% version = 0+ tells
+The first line +{module, beamexample1}. %% version = 0+ tells
 us the module name "beamexample1" and the version number for
 the instruction set "0".
 
@@ -187,7 +187,7 @@ is thrown.
 
 The other two functions in the file are auto generated. If we look at
 the second function the instruction +{move,{x,0},{x,1}}+ moves the
-argument in register x0 to the second argument register x1.  Then the
+argument in register x0 to the second argument register x1. Then the
 instruction +{move,{atom,beamexample1},{x,0}}+ moves the module name
 atom to the first argument register x1. Finally a tail call is made to
 +erlang:get_module_info/2+ 
@@ -342,7 +342,7 @@ pointer in X0. (It also removes any timeout, more on this soon.)
 
 ==== A Selective Receive Loop
 
-For a selective receive like e.g.  +receive [] -> ok end+ we will
+For a selective receive like e.g. +receive [] -> ok end+ we will
 loop over the message queue to check if any message in the queue
 matches.
 

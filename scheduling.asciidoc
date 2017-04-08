@@ -5,7 +5,7 @@ to understand how the system decides which Erlang code to run
 and when to run it. These decisions are made by the Scheduler.
 
 The scheduler is responsible for the real-time guarantees of the
-system.  In a strict Computer Science definition of the word
+system. In a strict Computer Science definition of the word
 real-time, a real-time system have to be able to guarantee a response
 within a specified time. That is, there are real deadlines
 and each task has to complete before its deadline. In Erlang there are
@@ -33,9 +33,9 @@ will suspend it and let another process run.
 
 In a multicore or a distributed system we can achieve true
 parallelism, that is, two or more processes actually executing at the
-exact same time.  In an SMP enabled emulator the system uses several
+exact same time. In an SMP enabled emulator the system uses several
 OS threads to indirectly execute Erlang processes by running one
-scheduler and emulator per thread.  In a system using the default
+scheduler and emulator per thread. In a system using the default
 settings for ERTS there will be one thread per enabled core (physical
 or hyper threaded).
 
@@ -117,7 +117,7 @@ The preemptive multitasking on the Erlang level is achieved by
 cooperative multitasking on the C level. The Erlang language, the
 compiler and the virtual machine works together to ensure that the
 execution of an Erlang process will yield within a limited time and
-let the net process run.  The technique used to measure and limit the
+let the net process run. The technique used to measure and limit the
 allowed execution time is called reduction counting, we will look at
 all the details of reduction counting soon.
 
@@ -128,7 +128,7 @@ of cooperative scheduling.
 A process can only be suspended at certain
 points of the execution, such as at a receive or a function call. In
 that way the scheduling is cooperative---a process has to execute code
-which allows for suspension.  The nature of Erlang code makes it
+which allows for suspension. The nature of Erlang code makes it
 almost impossible for a process to run for a long time without doing a
 function call. There are a few Built In Functions (BIFs) that still
 can take too long without yielding. Also, if you call C code in a
@@ -160,7 +160,7 @@ be scheduled.
 If the VM has executed as many reductions as defined by
 `INPUT_REDUCTIONS` (currently `2*CONTEXT_REDS`, also defined in
 +erl_vm.h+) or if there is no process ready to run
-the scheduler will do system-level activities.  That is, basically,
+the scheduler will do system-level activities. That is, basically,
 check for IO; we will cover the details soon.
 
 ==== What is a Reduction Really?
@@ -184,7 +184,7 @@ the scheduler, and even starvation.
 
 For example in Erlang versions prior to R16, the BIFs
 `binary_to_term/1` and `term_to_binary/1` were non yielding and only
-counted as one reduction.  This meant that a process calling these
+counted as one reduction. This meant that a process calling these
 functions on large terms could starve other processes. This can even
 happen in a SMP system because of the way processes are balanced
 between schedulers, which we will get to soon.
@@ -348,7 +348,7 @@ queue is implemented by a first and a last pointer and by the next
 pointer in the PCB of each participating process.
 When a new process is added to the queue the
 _last_ pointer is followed and the process is added to the end of the
-queue in an O(1) operation.  When a new process is scheduled it is
+queue in an O(1) operation. When a new process is scheduled it is
 just popped from the head (the _first_ pointer) of the queue.
 
 [[the_ready_queue]]
@@ -487,7 +487,7 @@ and file IO are all done through ports on the Erlang side.
 
 A port, like a process, is created on the same scheduler as the
 creating process. Also like processes port uses reductions to decide
-when to yield, and they also get to run for 2000 reductions.  But
+when to yield, and they also get to run for 2000 reductions. But
 since ports don't run Erlang code there are no Erlang function calls
 to count as reductions, instead each _port task_ is counted as a
 number of reductions. Currently a task uses a little more than 200
@@ -513,7 +513,7 @@ be scheduled.
 If the VM has executed as many reductions as defined by
 INPUT_REDUCTIONS (currently 2*CONTEXT_REDS, also defined in
 +erl_vm.h+) or if there is no process ready to run the scheduler will
-do system-level activities.  That is, basically, check for IO; we will
+do system-level activities. That is, basically, check for IO; we will
 cover the details soon.
 
 It is not completely defined what a reduction is, but at least each
@@ -527,7 +527,7 @@ the scheduler.
 
 For example in Erlang versions prior to R16 the BIFs
 +binary_to_term/1+ and +term_to_binary/1+ where non yielding and only
-counted as one reduction.  This meant that a process calling theses
+counted as one reduction. This meant that a process calling theses
 functions on large terms could starve other processes. This can even
 happen in a smp system because of the way processes are balanced
 between schedulers, which we will get to soon.
@@ -635,7 +635,7 @@ the same CPU.
 
 One thing to note though is that the load balancing done in the
 scheduler is between scheduler threads and not necessarily between
-CPUs or cores.  When you start the runtime system you can specify how
+CPUs or cores. When you start the runtime system you can specify how
 schedulers should be allocated to cores. The default behaviour is that
 it is up to the OS to allocated scheduler threads to cores, but you
 can also choose to bind schedulers to cores.
@@ -661,7 +661,7 @@ scheduler.
 
 First the scheduler takes a lock on itself to prevent other schedulers
 to try to steal work from the current scheduler. Then it checks if
-there are any inactive schedulers that it can steal a task from.  If
+there are any inactive schedulers that it can steal a task from. If
 there are no inactive schedulers with stealable tasks then it will
 look at active schedulers, starting with schedulers having a higher id
 than itself, trying to find a stealable task.

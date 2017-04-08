@@ -55,7 +55,7 @@ how the runtime system works.
 
 In the following chapters of xref:P-ERTS[] I will try to explain each
 component of the system by itself, in one separate chapter for each of
-the major component.  You should be able to read any one of these
+the major component. You should be able to read any one of these
 chapters without having a full understanding of how the other
 components are implemented, but you will need a basic understanding of
 what each component is. The rest of this introductory chapter should
@@ -100,12 +100,12 @@ two Erlang nodes running on one machine.
 
 In the bottom of the stack there is the hardware you are running
 on. The easiest way to improve the performance of your app is probably
-to run it on better hardware.  If economical or physical constraints
+to run it on better hardware. If economical or physical constraints
 wont let you upgrade your hardware you can start exploring higher
 levels of the stack. The two most important choices for your hardware
 is whether it is multicore and whether it is 32-bit or 64-bit. You
 need different builds of ERTS depending on whether you want to use
-multicore or not and whether you want to use 32-bit or 64-bit.  (See
+multicore or not and whether you want to use 32-bit or 64-bit. (See
 xref:CH-BuildingERTS[] for information on how to build different
 versions of ERTS.)  This book will not go into any details about
 hardware but I will talk a bit about multicore and NUMA architectures
@@ -139,7 +139,7 @@ The fifth layer, OTP(((OTP))), supplies the Erlang standard
 libraries. OTP originally stood for "Open Telecom Platform" and was a
 number of Erlang libraries supplying building blocks (such as
 +supervisor+, +gen_server+ and +gen_ftp+) for building robust
-applications (such as telephony exchanges).  Early on, the libraries
+applications (such as telephony exchanges). Early on, the libraries
 and the meaning of OTP got intermingled with all the other standard
 libraries shipped with ERTS. Nowadays most people use OTP together
 with Erlang in "Erlang/OTP" as the name for ERTS and all Erlang
@@ -255,7 +255,7 @@ running at the same time as all other processes, but in reality there
 is just one process running in the VM. On a multicore machine Erlang
 actually runs more than one scheduler, usually one per physical core,
 each having their own queues. This way Erlang achieves true
-parallelism.  To utilize more than one core ERTS has to be built (see
+parallelism. To utilize more than one core ERTS has to be built (see
 xref:CH-BuildingERTS[]) in _SMP_(((SMP))) mode. SMP stands for
 _Symetric MultiProcessing_, that is, the ability to execute a
 processes on any one of multiple CPUs.
