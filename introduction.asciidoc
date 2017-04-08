@@ -101,7 +101,7 @@ two Erlang nodes running on one machine.
 In the bottom of the stack there is the hardware you are running
 on. The easiest way to improve the performance of your app is probably
 to run it on better hardware. If economical or physical constraints
-wont let you upgrade your hardware you can start exploring higher
+won't let you upgrade your hardware you can start exploring higher
 levels of the stack. The two most important choices for your hardware
 is whether it is multicore and whether it is 32-bit or 64-bit. You
 need different builds of ERTS depending on whether you want to use
