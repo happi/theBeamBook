@@ -291,9 +291,39 @@ You might notice that many processes have a heap size of
 233, that is because it is the default starting heap size
 of a process.
 
-See the documentation of the module `erlang` for
-a full description of the information available with
+See the documentation of the module `erlang` for a full description of
+the information available with
 [`process_info`](http://erlang.org/doc/man/erlang.html#process_info-1).
+Notice how the `process_info/1` function only returns a subset of all
+the information available for the process and how the `process_info/2`
+function can be used to fetch extra information. As an example, to
+extract the `backtrace` for the `code_server` process above, we could
+run:
+
+----
+3> process_info(whereis(code_server), backtrace).
+{backtrace,<<"Program counter: 0x00000000161de900 (code_server:loop/1 + 152)\nCP: 0x0000000000000000 (invalid)\narity = 0\n\n0"...>>}
+----
+
+See the three dots at the end of the binary above? That means that the
+output has been truncated. A useful trick to see the whole value is to
+wrap the above function call using the `rp/1` function:
+
+----
+4> rp(process_info(whereis(code_server), backtrace)).
+----
+
+An alternative is to use the `io:put_chars/1` function, as follows:
+
+----
+5> {backtrace, Backtrace} = process_info(whereis(code_server), backtrace).
+{backtrace,<<"Program counter: 0x00000000161de900 (code_server:loop/1 + 152)\nCP: 0x0000000000000000 (invalid)\narity = 0\n\n0"...>>}
+6> io:put_chars(Backtrace).
+----
+
+Due to its verbosity, the output for commands `4>` and `6>` has not
+been included here, but feel free to try the above commands in your
+Erlang shell.
 
 ==== Using the Observer to Inspect Processes
 
