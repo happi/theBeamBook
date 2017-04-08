@@ -20,17 +20,25 @@ The book is written in AsciiDoc and can be read directly on github in your brows
 To read the book online just open the file [book.asciidoc](book.asciidoc).
 
 
-## Building
+## Building from source
 
-To build a pdf from source you will need make, asciidoc, pdflatex, and dblatex.
+To build a PDF version of the book from source, simply run:
 
 ```shell
-sudo apt-get install asciidoc
-easy_install dblatex
 make
 ```
 
- # TODO
+Since the above command requires a number of dependencies (including
+erlang, asciidoc and dblatex), a Docker image containing everything
+which is needed to build the book from source is provided. To use it:
+
+```shell
+docker pull robertoaloi/docker-thebeambook:latest
+docker run -v $PWD:/book robertoaloi/docker-thebeambook make
+```
+
+# TODO
+
  * Bring in missing chapters [Happi]
  * Bring in missing text in the process and scheduler chapters [Happi]
  * Fix the mess caused by mergin two different versions into the first chapters [Happi]
