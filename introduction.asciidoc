@@ -156,7 +156,7 @@ upgrading your hardware this is probably the place where you most
 easily can improve your application's performance. In
 xref:CH-Tracing[] I will give some hints and show some tools that can
 help you profile and optimize your application. In xref:CH-Crash[] and
-xref:CH-Debugger[] I'll give you some hints on hove to find the cause
+xref:CH-Debugger[] I'll give you some hints on how to find the cause
 of crashing applications and how to find bugs in your application.
 
 
