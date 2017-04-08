@@ -185,13 +185,13 @@ mailbox  (`{message_queue_len,0}`, `{messages,[]}`). We will look
 closer at how message passing works later in this chapter.
 
 The fields `priority`, `suspending`, `reductions`, `links`,
-`trap_exit`, `error_handler`, and `group_leader` controls the process
+`trap_exit`, `error_handler`, and `group_leader` control the process
 execution, error handling, and IO. We will look into this a bit more
 when we introduce the _Observer_.
 
 The last few fields (`dictionary`, `total_heap_size`, `heap_size`,
-`stack_size`, and `garbage_collection`) gives us information about the
-process memory usage and we will look at the process memory areas in
+`stack_size`, and `garbage_collection`) give us information about the
+process memory usage. We will look at the process memory areas in
 detail in this chapter in <ref linkend="ch.memory"/>.
 
 Another, even more intrusive way of getting information
@@ -293,13 +293,12 @@ of a process.
 
 See the documentation of the module `erlang` for
 a full description of the information available with
-[`process_info`.](http://erlang.org/doc/man/erlang.html#process_info-1)
-
+[`process_info`](http://erlang.org/doc/man/erlang.html#process_info-1).
 
 ==== Using the Observer to Inspect Processes
 
 A third way of examining processes is with the
-[_Observer_.](http://erlang.org/doc/apps/observer/observer_ug.html)
+[_Observer_](http://erlang.org/doc/apps/observer/observer_ug.html).
 The Observer is an extensive graphical interface for inspecting
 the Erlang RunTime System. We will use the Observer throughout
 this book to examine different aspects of the system.
