@@ -58,7 +58,7 @@ component of the system by itself, in one separate chapter for each of
 the major component.  You should be able to read any one of these
 chapters without having a full understanding of how the other
 components are implemented, but you will need a basic understanding of
-what each component is. The rest of this introductory chpater should
+what each component is. The rest of this introductory chapter should
 give you enough basic understanding and vocabulary to be able to jump
 between the rest of the chapters in part one in any order you like.
 

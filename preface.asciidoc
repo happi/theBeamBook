@@ -80,7 +80,7 @@ processes are similar to most OS processes, they execute in parallel
 and can communicate through signals. In practices there is a huge
 difference in that Erlang processes are much more lightweight than
 most OS processes. Many other concurrent programming languages call
-their equivalent to Erlang processes for _agents_.
+their equivalent to Erlang processes _agents_.
 
 Erlang achieves concurrency by interleaving the execution of processes
 on the Erlang virtual machine, the BEAM. On multi-core processor the
