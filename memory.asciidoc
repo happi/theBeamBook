@@ -711,7 +711,7 @@ P2
 
 ----
 
-When P1 start sending the message M to P2. It (through the code in
+Then P1 start sending the message M to P2. It (through the code in
 erl_message.c) first calculates the flat size of M (which in our example is
 23 words)footnote:[We ignore tracing here which will add a trace token
 to the size of the message, and always use a heap fragment.]. 
@@ -771,7 +771,7 @@ erl_heap_fragment:
                                   NIL</pre>
 ----
 
-In either case a a new mbox (+ErlMessage+) is allocated, a lock
+In either case a new mbox (+ErlMessage+) is allocated, a lock
  (+ERTS_PROC_LOCK_MSGQ+) is taken on the receiver and the message
  on the heap or the in the new heap fragment is linked into the mbox.
 
