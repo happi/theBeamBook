@@ -121,7 +121,7 @@ Depending on your use case you might actually get best performance on
 a Solaris system. The OS choice is usually not based on performance
 requirements, but is restricted by other demands. If you are building
 an embedded application you might be restricted to Raspbian or VxWorks,
-and if you fore some reason are building an end user or client
+and if you are for some reason building an end user or client
 application you might have to use Windows. The Windows port of ERTS
 has so far not had the highest priority and might not be the best
 choice from a performance or maintenance perspective. If you want to
