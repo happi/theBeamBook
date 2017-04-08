@@ -49,7 +49,7 @@ Here the meta information +{function, id, 1, 4}+ tells us that
 execution of the id/1 function will start at label 4. At label 4 we do
 an +is_integer+ on x0 and if we fail we jump to label 3 (f3) which
 points to the func_info instruction, which will generate a _function
-clause_ exception.  Otherwise we just fall through and return the
+clause_ exception. Otherwise we just fall through and return the
 argument (x0).
 
 === Test instructions
@@ -91,7 +91,7 @@ compare any two terms. You can for example test if the atom +self+
 is less than the pid  returned by +self()+. (It is.)
 
 Note that for numbers the comparison is done on the Erlang type
-_number_, see xref:CH-TypeSystem[].  That is, for a mixed float and
+_number_, see xref:CH-TypeSystem[]. That is, for a mixed float and
 integer comparison the number of lower precision is converted to the
 other type before comparison. For example on my system 1 and 0.1
 compares as equal, as well as 9999999999999999 and 1.0e16.
@@ -160,7 +160,7 @@ context switch.
 ==== +bif0 Bif Reg+, +bif1 Lbl Bif Arg Reg+, +bif2 Lbl Bif Arg1 Arg2 Reg+
 
 Call the bif +Bif+ with the given arguments, and store the result in
-+Reg+.  If the bif fails jump to +Lbl+. No zero arity bif can fail an
++Reg+. If the bif fails jump to +Lbl+. No zero arity bif can fail an
 thus those calls doesn't take a fail label.
 
 // Bif called by these instructions may not allocate on the heap nor

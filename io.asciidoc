@@ -74,7 +74,7 @@ There are three different classes of ports: file descriptors, external
 programs and drivers. A file descriptor port makes it possible for a
 process to access an already opened file descriptor. A port to an
 external program invokes the external program as a separate OS
-process.  A driver port requires a driver to be loaded in the Erlang
+process. A driver port requires a driver to be loaded in the Erlang
 node.
 
 All ports are created by a call to +erlang:open_port(PortName,
@@ -110,7 +110,7 @@ predefined port types. There are the common drivers available on all
 platforms: tcp_inet, udp_inet, sctp_inet, efile, zlib_drv,
 ram_file_drv, binary_filer, tty_sl. These drivers are used to
 implement e.g. file handling and sockets in Erlang. On Windows there
-is also a driver to access the registry: registry__drv__.  And on most
+is also a driver to access the registry: registry__drv__. And on most
 platforms there are example drivers to use when implementing your own
 driver like: multi and sig_drv.
 
