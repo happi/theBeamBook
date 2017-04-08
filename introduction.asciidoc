@@ -54,7 +54,7 @@ xref:P-ERTS[] of this book you will get a deep understanding of
 how the runtime system works.
 
 In the following chapters of xref:P-ERTS[] I will try to explain each
-component of the system by itself, in one separate chapter for each of
+component of the system by itself, in a separate chapter for each of
 the major component. You should be able to read any one of these
 chapters without having a full understanding of how the other
 components are implemented, but you will need a basic understanding of
@@ -117,7 +117,7 @@ VxWorks, Solaris, and Mac OS X. Today most of the development of ERTS
 is done on Linux and OS X, and you can expect the best performance on
 these platforms. However, Ericsson have been using Solaris internally
 in many projects and ERTS have been tuned for Solaris for many years.
-Depending on your use case you might actually get best performance on
+Depending on your use case you might actually get better performance on
 a Solaris system. The OS choice is usually not based on performance
 requirements, but is restricted by other demands. If you are building
 an embedded application you might be restricted to Rasbian or VxWork,
