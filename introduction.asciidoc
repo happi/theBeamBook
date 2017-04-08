@@ -116,7 +116,7 @@ versions of Windows and most POSIX "compliant" OS:es, including Linux,
 VxWorks, Solaris, and Mac OS X. Today most of the development of ERTS
 is done on Linux and OS X, and you can expect the best performance on
 these platforms. However, Ericsson have been using Solaris internally
-in many projects and ERTS have been tuned for Solaris for many years.
+in many projects and ERTS has been tuned for Solaris for many years.
 Depending on your use case you might actually get better performance on
 a Solaris system. The OS choice is usually not based on performance
 requirements, but is restricted by other demands. If you are building
