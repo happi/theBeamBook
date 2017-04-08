@@ -30,7 +30,7 @@ such an ideal Platonic system would look like by taking ERTS and
 removing all the implementation specific details. This is
 unfortunately a circular definition, since you need to know the
 general definition to be able to identify an implementation specific
-detail. In the Erlang world we are usually to pragmatic to worry about
+detail. In the Erlang world we are usually too pragmatic to worry about
 this.
 
 I will try to use the term _Erlang Runtime System_ to refer to the
@@ -101,7 +101,7 @@ two Erlang nodes running on one machine.
 In the bottom of the stack there is the hardware you are running
 on. The easiest way to improve the performance of your app is probably
 to run it on better hardware. If economical or physical constraints
-wont let you upgrade your hardware you can start exploring higher
+won't let you upgrade your hardware you can start exploring higher
 levels of the stack. The two most important choices for your hardware
 is whether it is multicore and whether it is 32-bit or 64-bit. You
 need different builds of ERTS depending on whether you want to use
@@ -120,8 +120,8 @@ in many projects and ERTS have been tuned for Solaris for many years.
 Depending on your use case you might actually get best performance on
 a Solaris system. The OS choice is usually not based on performance
 requirements, but is restricted by other demands. If you are building
-an embedded application you might be restricted to Rasbian or VxWork,
-and if you fore some reason are building an end user or client
+an embedded application you might be restricted to Raspbian or VxWorks,
+and if you are for some reason building an end user or client
 application you might have to use Windows. The Windows port of ERTS
 has so far not had the highest priority and might not be the best
 choice from a performance or maintenance perspective. If you want to
@@ -156,7 +156,7 @@ upgrading your hardware this is probably the place where you most
 easily can improve your application's performance. In
 xref:CH-Tracing[] I will give some hints and show some tools that can
 help you profile and optimize your application. In xref:CH-Crash[] and
-xref:CH-Debugger[] I'll give you some hints on hove to find the cause
+xref:CH-Debugger[] I'll give you some hints on how to find the cause
 of crashing applications and how to find bugs in your application.
 
 
@@ -266,7 +266,7 @@ All this and more is described in detail in xref:CH-Scheduling[].
 
 ==== The Erlang Tag Scheme
 
-Erlang is a dynamically typed language, and the runtime system need a
+Erlang is a dynamically typed language, and the runtime system needs a
 way to keep track of the type of each data object. This is done with a
 tagging scheme. Each data object or pointer to a data object also has
 a tag with information about the data type of the object.
