@@ -293,7 +293,7 @@ references into one of the other two types.
 Binaries that are 64 bytes or less can be stored directly on the
 process heap as _heap binaries_. Larger binaries are reference
 counted and the paylod is stored outside of the process heap, a
-reference to the payload is stoed on the process heap in an object
+reference to the payload is stored on the process heap in an object
 called a _ProcBin_.
 
 // Todo: draw a picture of binaries and their tags.
