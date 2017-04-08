@@ -266,7 +266,7 @@ All this and more is described in detail in xref:CH-Scheduling[].
 
 ==== The Erlang Tag Scheme
 
-Erlang is a dynamically typed language, and the runtime system need a
+Erlang is a dynamically typed language, and the runtime system needs a
 way to keep track of the type of each data object. This is done with a
 tagging scheme. Each data object or pointer to a data object also has
 a tag with information about the data type of the object.
