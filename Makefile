@@ -28,7 +28,7 @@ adocs = book.asciidoc \
 	code/memory_chapter/src/share.erl
 
 
-all: beam-book.pdf
+all: beam-book.pdf book.html
 
 book-revhistory.xml: .git hg2revhistory.xsl
 	./gitlog.sh git-log.xml $@ 
@@ -40,6 +40,8 @@ beam-book-from-ab.xml:  $(adocs)\
 beam-book.pdf: beam-book-from-ab.xml book-revhistory.xml
 	dblatex beam-book-from-ab.xml -o $@ 
 
+book.html:
+	asciidoc --backend=html5 --doctype=book book.asciidoc
 
 # $(subst .asciidoc,.html, $(adocs)): %.html: %.asciidoc 
 # 	asciidoc -a icons -a toc2 $<
