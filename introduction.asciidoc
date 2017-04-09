@@ -22,7 +22,7 @@ System. "Erlang/OTP" by Ericsson is the de facto standard
 implementation of Erlang and the Erlang Runtime System. In this book I
 will refer to this implementation as _ERTS_ or spelled out _Erlang
 RunTime System_ with a capital T. (See xref:ERTS[] for a definition of
-OTP.)
+OTP).
 
 There is no official definition of what an Erlang Runtime System is,
 or what an Erlang Virtual Machine is. You could sort of imagine what
@@ -107,7 +107,7 @@ is whether it is multicore and whether it is 32-bit or 64-bit. You
 need different builds of ERTS depending on whether you want to use
 multicore or not and whether you want to use 32-bit or 64-bit. (See
 xref:CH-BuildingERTS[] for information on how to build different
-versions of ERTS.)  This book will not go into any details about
+versions of ERTS).  This book will not go into any details about
 hardware but I will talk a bit about multicore and NUMA architectures
 in xref:CH-Scheduling[] and xref:CH-Memory[].
 
@@ -144,11 +144,10 @@ and the meaning of OTP got intermingled with all the other standard
 libraries shipped with ERTS. Nowadays most people use OTP together
 with Erlang in "Erlang/OTP" as the name for ERTS and all Erlang
 libraries shipped by Ericsson. Knowing these standard libraries
-and how and when to uses them can greatly improve the performance
+and how and when to use them can greatly improve the performance
 of your application. This book will not go into any details about
-the standard libraries and OTP, there are other books that
+the standard libraries and OTP, since there are other books that
 cover these aspects.
-
 
 Finally, the sixth layer (APP) is your application which can use all
 the functionality provided by the underlying layers. Apart from
@@ -158,8 +157,6 @@ xref:CH-Tracing[] I will give some hints and show some tools that can
 help you profile and optimize your application. In xref:CH-Crash[] and
 xref:CH-Debugger[] I'll give you some hints on how to find the cause
 of crashing applications and how to find bugs in your application.
-
-
 
 ----
 
