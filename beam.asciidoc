@@ -14,7 +14,7 @@ BEAM that executes your application code. Understanding how BEAM
 executes the code is vital to be able to profile and tune your
 code.
 
-The BEAM desig influences large parts of the rest of ERTS. The
+The BEAM design influences large parts of the rest of ERTS. The
 primitives for scheduling infuences the Scheduler
 (xref:CH-Scheduling[]), the representation of Erlang terms and the
 interaction with the memory infuences the Garbage Collector
@@ -109,7 +109,7 @@ The X registers are used as argument registers for function calls
 and register X0 is used for the return value.
 
 The X registers are stored in a C-array in the BEAM emulator and they
-are globally accessible from all functions. The X0 register is cashed
+are globally accessible from all functions. The X0 register is cached
 in a local variable mapped to a physical machine register in the native
 machine on most architectures. 
 
