@@ -16,11 +16,20 @@ after_failure:
   - docker logs thebeambook
 
 deploy:
-  provider: releases
-  api_key:
-    secure: [secure-key-goes-here]
-  file: beam-book.pdf
-  skip_cleanup: true
-  on:
-    repo: happi/theBeamBook
-    tags: true
+  - provider: releases
+    skip_cleanup: true
+    api_key:
+      secure: [secure-key-goes-here]
+    file: beam-book.pdf
+    on:
+      repo: happi/theBeamBook
+      branch: master
+      tags: true
+  - provider: pages
+    skip_cleanup: true
+    github_token:
+      secure: [secure-key-goes-here]
+    on:
+      repo: happi/theBeamBook
+      branch: master
+      tags: true
