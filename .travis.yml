@@ -14,3 +14,13 @@ after_error:
 
 after_failure:
   - docker logs thebeambook
+
+deploy:
+  provider: releases
+  api_key:
+    secure: [secure-key-goes-here]
+  file: beam-book.pdf
+  skip_cleanup: true
+  on:
+    repo: happi/theBeamBook
+    tags: true
