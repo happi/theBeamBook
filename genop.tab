@@ -437,7 +437,7 @@ BEAM_FORMAT_NUMBER=0
 122: bs_save2/2
 123: bs_restore2/2
 
-# New GC bifs introduced in R11B.
+# New GC BIFs introduced in R11B.
 
 ## @spec gc_bif1 Lbl Live Bif Arg Reg
 ## @doc Call the bif Bif with the argument Arg, and store the result in Reg.
@@ -454,7 +454,7 @@ BEAM_FORMAT_NUMBER=0
 ##      for the result (saving Live number of X registers).
 125: gc_bif2/6
 
-# Experimental new bit_level bifs introduced in R11B.
+# Experimental new bit_level BIFs introduced in R11B.
 # NOT used in R12B.
 126: -bs_final2/2
 127: -bs_bits_to_bytes2/2
