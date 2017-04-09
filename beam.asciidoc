@@ -213,7 +213,7 @@ again _{call,1,{f,4}}_.
 
 After the call x0 contains _id(B)_ and y0 contains _id(A)_,
 now we can do the addition: _{gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}_.
-(We will go into the details of bif calls and gc later.)
+(We will go into the details of BIF calls and GC later.)
 
 === Dispatch: Directly Threaded Code
 
@@ -610,12 +610,12 @@ amount of work without using up its reductions.
 [WARNING]
 ====
 
-There are some bifs that can run for a long time only using 1
+There are some BIFs that can run for a long time only using 1
 reduction, like +term_to_binary+ and +binary_to_term+. Try to make
-sure that you only call these biffs with small terms or binaries, or
+sure that you only call these BIFs with small terms or binaries, or
 you might lock up the scheduler for a very long time.
 
-Also, if you write your own Nifs, make sure they can yield and that
+Also, if you write your own NIFs, make sure they can yield and that
 they bump the reduction counter by an amount proportional to their
 run time.
 

@@ -78,7 +78,7 @@ Shouldn't Code Loading come before Hot Code Loading? Or are the two topics not r
 
 
 In the Erlang Runtime System the code loading is handled by the
-code server. The code server will call the lover level bifs in the
+code server. The code server will call the lover level BIFs in the
 +erlang+ module for the actual loading. But the code server also
 determines the purging policy.
 
