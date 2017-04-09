@@ -399,6 +399,6 @@ you can jump directly to that chapter. Or if you are really eager to
 find a solution to a specific problem you could jump to the right
 chapter in xref:P-Running[], and try the different methods to tune,
 tweak, or debug your system. Although, I strongly suggest that you
-read through the chapters in xref:P-ERTS[] in order first in order
-to get a deep understanding of how ERTS really works.
+read through the chapters in xref:P-ERTS[] in order to first get
+a deep understanding of how ERTS really works.
 
