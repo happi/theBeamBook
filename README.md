@@ -20,7 +20,7 @@ The book is written in AsciiDoc and can be read directly on github in your brows
 To read the book online just open the file [book.asciidoc](book.asciidoc).
 
 
-## Building
+## Building on Linux
 
 To build a pdf from source you will need make, asciidoc, pdflatex, and dblatex.
 
@@ -29,6 +29,13 @@ sudo apt-get install asciidoc
 easy_install dblatex
 make
 ```
+
+## Building on Mac OSX
+
+1. Install [MacTex](http://www.tug.org/mactex/). Note that you would need to _full_ MacTex rather than just BasicTex.
+1. Add `/Library/TeX/texbin` to your `PATH`.
+1. `easy_install dblatex`
+1. `make`
 
  # TODO
  * Bring in missing chapters [Happi]
