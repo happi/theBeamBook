@@ -55,6 +55,9 @@ code/book/ebin/generate_op_doc.beam: code/book/src/generate_op_doc.erl
 opcodes_doc.asciidoc: genop.tab code/book/ebin/generate_op_doc.beam
 	erl -noshell -s generate_op_doc from_shell genop.tab opcodes_doc.asciidoc
 
+genop.tab:
+	wget -O genop.tab https://raw.githubusercontent.com/erlang/otp/master/lib/compiler/src/genop.tab
+	touch $@
 
 # generate_op_doc.beam: generate_op_doc.erl
 # 	erlc generate_op_doc.erl
