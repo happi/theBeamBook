@@ -17,3 +17,4 @@ opcodes_doc.asciidoc
 .#.gitignore
 genop.tab
 book.html
+chapters/contributors.txt

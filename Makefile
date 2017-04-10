@@ -1,5 +1,5 @@
 
-ABFLAGS = --backend=docbook --doctype=book --attribute=revisionhistory
+ABFLAGS = --backend=docbook --doctype=book
 adocs = book.asciidoc \
         chapters/beam.asciidoc \
         chapters/beam_instructions.asciidoc \
@@ -9,6 +9,7 @@ adocs = book.asciidoc \
 	chapters/c.asciidoc \
 	chapters/calls.asciidoc \
         chapters/compiler.asciidoc \
+	chapters/contributors.txt \
         chapters/introduction.asciidoc \
         chapters/memory.asciidoc \
 	chapters/opcodes_doc.asciidoc \
@@ -32,14 +33,13 @@ adocs = book.asciidoc \
 
 all: beam-book.pdf book.html
 
-xml/book-revhistory.xml: .git hg2revhistory.xsl
-	./bin/gitlog.sh xml/git-log.xml $@ 
+chapters/contributors.txt: .git
+	./bin/gitlog.sh $@
 
-xml/beam-book-from-ab.xml:  $(adocs)\
-                       xml/book-revhistory.xml
+xml/beam-book-from-ab.xml:  $(adocs)
 	asciidoc $(ABFLAGS) -o $@ book.asciidoc
 
-beam-book.pdf: xml/beam-book-from-ab.xml xml/book-revhistory.xml
+beam-book.pdf: xml/beam-book-from-ab.xml
 	dblatex xml/beam-book-from-ab.xml -o $@ 
 
 book.html:
@@ -60,9 +60,3 @@ chapters/opcodes_doc.asciidoc: genop.tab code/book/ebin/generate_op_doc.beam
 genop.tab:
 	wget -O genop.tab https://raw.githubusercontent.com/erlang/otp/master/lib/compiler/src/genop.tab
 	touch $@
-
-# generate_op_doc.beam: generate_op_doc.erl
-# 	erlc generate_op_doc.erl
-
-# opcodes_doc.asciidoc: ../otp/lib/compiler/src/genop.tab generate_op_doc.beam
-# 	erl -noshell -s generate_op_doc from_shell ../otp/lib/compiler/src/genop.tab opcodes_doc.asciidoc

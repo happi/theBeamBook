@@ -130,5 +130,12 @@ Since Erlang/OTP R13B03 you can also provide your own functions
 implemented in C by using the _Native Implemented Functions_ (_NIF_)
 interface.
 
+== Acknowledgments
+
+A big thanks to everyone who has contributed in some way by checking in
+something:
+
+include::contributors.txt[]
+
 
 
