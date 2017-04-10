@@ -209,6 +209,7 @@ and more information about a process with
 `erlang:process_info/1`. We can also use the function
 `whereis/1` to get a pid from a name:
 
+[source,erlang]
 ----
 
 1> Ps = erlang:processes().
@@ -254,6 +255,7 @@ then get information about the heap size of each process
 then construct a list with pid and heap size and sort
 it on heap size:
 
+[source,erlang]
 ----
 1> lists:reverse(lists:keysort(2,[{P,element(2,
     erlang:process_info(P,total_heap_size))}
@@ -300,6 +302,7 @@ function can be used to fetch extra information. As an example, to
 extract the `backtrace` for the `code_server` process above, we could
 run:
 
+[source,erlang]
 ----
 3> process_info(whereis(code_server), backtrace).
 {backtrace,<<"Program counter: 0x00000000161de900 (code_server:loop/1 + 152)\nCP: 0x0000000000000000 (invalid)\narity = 0\n\n0"...>>}
@@ -309,12 +312,14 @@ See the three dots at the end of the binary above? That means that the
 output has been truncated. A useful trick to see the whole value is to
 wrap the above function call using the `rp/1` function:
 
+[source,erlang]
 ----
 4> rp(process_info(whereis(code_server), backtrace)).
 ----
 
 An alternative is to use the `io:put_chars/1` function, as follows:
 
+[source,erlang]
 ----
 5> {backtrace, Backtrace} = process_info(whereis(code_server), backtrace).
 {backtrace,<<"Program counter: 0x00000000161de900 (code_server:loop/1 + 152)\nCP: 0x0000000000000000 (invalid)\narity = 0\n\n0"...>>}
@@ -478,6 +483,7 @@ in the code section and the instructions in <ref linkend="ap.building_erts"/>.
 
 We can see the context of the stack of a process with `hipe_bifs:show_estack/1`:
 
+[source,erlang]
 ----
 1> hipe_bifs:show_estack(self()).
  |                BEAM  STACK              |
@@ -524,6 +530,7 @@ The content of the heap is printed by `hipe_bifs:show_heap/1`.
 Since we do not want to list a large heap here we'll just
 spawn a new process that does nothing and show that heap:
 
+[source,erlang]
 ----
 2> hipe_bifs:show_heap(spawn(fun () -> ok end)).
 From: 0x00007f7f33ec9588 to 0x00007f7f33ec9848
@@ -572,6 +579,7 @@ true
 We can also print the content of some of the fields in
 the PCB with `hipe_bifs:show_pcb/1':
 
+[source,erlang]
 ----
 3> hipe_bifs:show_pcb(self()).                                            
 P: 0x00007f7f3cbc0400
@@ -665,6 +673,7 @@ code section there is a module for inspecting Erlang terms
 the chapter on types. We can use it now to to examine the
 type of a tagged word though.
 
+[source,erlang]
 ----
 4> show:tag_to_type(16#0000001d0000003a3).
 pid
@@ -905,6 +914,7 @@ Let us use our introspection tools to see how this works in more
 detail. We start by setting up a process with a message in the mailbox
 and then take a look at the PCB.
 
+[source,erlang]
 ----
 4> P = spawn(fun() -> receive stop -> ok end end).
 <0.63.0>
@@ -939,6 +949,7 @@ With this program we can try sending a message on heap and off heap and
 look at the PCB after each send. With on heap we get the same result
 as when just sending a message before:
 
+[source,erlang]
 ----
 5> msg:send_on_heap().
 
@@ -961,6 +972,7 @@ as when just sending a message before:
 If we try sending to a process with the flag set to _off_heap_
 the message ends up in the in queue instead:
 
+[source,erlang]
 ----
 
 6> msg:send_off_heap().
@@ -1266,6 +1278,7 @@ Use the functions `erlang:processes/0` and `erlang:process_info/1/2`
 to inspect the processes in the system. Here are
 some functions to try:
 
+[source,erlang]
 ----
 
 1> Ps = erlang:processes().
