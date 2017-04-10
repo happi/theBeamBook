@@ -210,13 +210,13 @@ Let us try out our newfound knowledge to look at the generated code.
 Let us try with a small example program "world.erl":
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.erl[]
+include::../code/compiler_chapter/src/world.erl[]
 ----
 
 And the include file "world.hrl"
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.hrl[]
+include::../code/compiler_chapter/src/world.hrl[]
 ----
 
 If you now compile this with the 'P' option to get the parsed file you
@@ -235,7 +235,7 @@ applied:
 
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.P[]
+include::../code/compiler_chapter/src/world.P[]
 ----
 
 To see how the code looks after all source code transformations are
@@ -254,7 +254,7 @@ added to the source:
 
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.E[]
+include::../code/compiler_chapter/src/world.E[]
 ----
 
 We will make use of the 'P' and 'E' options when we look at parse
@@ -274,7 +274,7 @@ The file +world.S+ should look like this:
 
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.S[]
+include::../code/compiler_chapter/src/world.S[]
 ----
 
 Since this is a file with dot ("_._") separated Erlang terms, you can 
@@ -736,7 +736,7 @@ we can see that there are only a handful of tokens that we need to handle.
 
 [source,erlang]
 ----
-include::code/compiler_chapter/src/json_tokens.xrl[]
+include::../code/compiler_chapter/src/json_tokens.xrl[]
 ----
 
 By using the Leex compiler we can compile this DFA to Erlang code,
@@ -757,11 +757,11 @@ You can view the DFA graph using for example dotty.
 > dotty json_tokens.dot
 ----
 
-image::code/compiler_chapter/json_tokens.png[]
+image::../code/compiler_chapter/json_tokens.png[]
 
 We can try our tokenizer on an example json file (test.json).
 
-include::code/compiler_chapter/src/test.json
+include::../code/compiler_chapter/src/test.json
 
 First we need to compile our tokenizer, then we read the file
 and convert it to a string. Finally we can use
@@ -796,7 +796,7 @@ Yecc is a parser generator for Erlang. The name comes from Yacc
 Now that we have a lexer for JSON terms we can write a parser using
 yecc.
 
-include::code/compiler_chapter/src/yecc_json_parser.yrl[]
+include::../code/compiler_chapter/src/yecc_json_parser.yrl[]
 
 Then we can use yecc to generate an Erlang program that implements
 the parser, and call the parse/1 function provided with the tokens

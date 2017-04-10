@@ -1,0 +1,88 @@
+
+[[AP-listings]]
+== Appendix B: Full Code Listings
+
+[source,erlang]
+----
+include::../code/beam_modules_chapter/src/beamfile.erl[]
+----
+
+// [source,erlang]
+// ----
+// include::../stack_machine.erl[]
+// ----
+
+[source,erlang]
+----
+include::../code/compiler_chapter/src/world.erl[]
+----
+
+[source,erlang]
+----
+include::../code/compiler_chapter/src/json_parser.erl[]
+----
+
+[source,erlang]
+----
+include::../code/compiler_chapter/src/json_test.erl[]
+----
+
+[source,erlang]
+----
+include::../code/beam_chapter/src/stack_machine_compiler.erl[]
+----
+
+[source,c]
+----
+include::../code/beam_chapter/src/vsm.c[]
+----
+
+[source,c]
+----
+include::../code/beam_chapter/src/token_threaded_vsm.c[]
+----
+
+// [source,erlang]
+// ----
+// include::../add.erl[]
+// ----
+
+// [source,beam]
+// ----
+// include::../add.S[]
+// ----
+
+[[listing-share]]
+
+[source,erlang]
+----
+include::../code/memory_chapter/src/share.erl[]
+----
+
+[[listing-send]]
+
+
+[source,erlang]
+----
+include::../code/memory_chapter/src/send.erl[]
+----
+
+[[listing-lb]]
+Load Balancer.
+
+[source,erlang]
+----
+include::../code/memory_chapter/src/lb.erl[]
+----
+
+// [[listing-lbS]]
+// [source,beam]
+// ----
+// include::../lb.S[]
+// ----
+
+// [[listing-gdb]]
+// [source,c]
+// ----
+// include::../gdb_scripts[]
+// ----

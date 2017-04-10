@@ -957,7 +957,7 @@ just look at the diagrams and the explanations of how the GC works.
 
 [source,erlang]
 ----
-include::code/memory_chapter/src/gc_example.erl[]
+include::../code/memory_chapter/src/gc_example.erl[]
 ----
 
 After compiling the example I start an erlang shell, test the call

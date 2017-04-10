@@ -108,7 +108,7 @@ ok
 
 ----
 
-image::images/observer_load.jpg[Observer]
+image::../images/observer_load.jpg[Observer]
 
 === Preemptive Multitasking in ERTS Cooperating in C
 
