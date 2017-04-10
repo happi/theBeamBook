@@ -34,7 +34,7 @@ adocs = book.asciidoc \
 all: beam-book.pdf book.html
 
 chapters/contributors.txt: .git
-	./bin/gitlog.sh $@
+	./bin/gitlog.sh $@ 
 
 xml/beam-book-from-ab.xml:  $(adocs)
 	asciidoc $(ABFLAGS) -o $@ book.asciidoc
