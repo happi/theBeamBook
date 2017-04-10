@@ -47,7 +47,7 @@ line for your distribution in /etc/apt/sources.list.
 
 For the Yakkety Yak release you could add the line by:
 
-[source,shell]
+[source,sh]
 ----
 > sudo cat "deb-src http://se.archive.ubuntu.com/ubuntu/ \
 yakkety main restricted" >> /etc/apt/sources.list
@@ -55,7 +55,7 @@ yakkety main restricted" >> /etc/apt/sources.list
 
 Then the following commands will get almost all the tools you need:
 
-[source,shell]
+[source,sh]
 ----
 > sudo apt-get install git autoconf m4
 > sudo apt-get build-dep erlang
@@ -64,7 +64,7 @@ Then the following commands will get almost all the tools you need:
 If you have a slightly older version of Ubuntu like Saucy and you
 want to build with wx support, you need to get the wx libraries:
 
-[source,shell]
+[source,sh]
 ----
 > sudo apt-key adv --fetch-keys http://repos.codelite.org/CodeLite.asc
 > sudo apt-add-repository 'deb http://repos.codelite.org/wx3.0/ubuntu/ saucy universe'
@@ -79,7 +79,7 @@ You might also want to create a directory where you keep the
 source code and also install your home built version without
 interfering with any pre built and system wide installations.
 
-[source,shell]
+[source,sh]
 ----
 > cd
 > mkdir otp
@@ -92,7 +92,7 @@ can check out the source code directly from Github.
 
 If you want to quickly download a stable version of the source try:
 
-[source,shell]
+[source,sh]
 ----
 > cd ~/otp
 > wget http://erlang.org/download/otp_src_19.1.tar.gz
@@ -105,7 +105,7 @@ or if you want to be able to easilly update to the latest bleeding
 edge or you want to contribute fixes back to the comunity you can
 check out the source through git:
 
-[source,shell]
+[source,sh]
 ----
 > cd ~/otp
 > git clone https://github.com/erlang/otp.git source
@@ -116,7 +116,7 @@ check out the source through git:
 
 Now you are ready to build and install Erlang:
 
-[source,shell]
+[source,sh]
 ----
 > export LANG=C
 > ./configure --prefix=$HOME/otp/install
