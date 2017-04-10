@@ -15,3 +15,6 @@ beam-book-from-ab.xml
 beam-book.pdf
 opcodes_doc.asciidoc
 .#.gitignore
+genop.tab
+book.html
+chapters/contributors.txt

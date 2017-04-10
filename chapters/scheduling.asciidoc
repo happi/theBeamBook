@@ -108,7 +108,7 @@ ok
 
 ----
 
-image::images/observer_load.jpg[Observer]
+image::../images/observer_load.jpg[Observer]
 
 === Preemptive Multitasking in ERTS Cooperating in C
 
@@ -117,7 +117,7 @@ The preemptive multitasking on the Erlang level is achieved by
 cooperative multitasking on the C level. The Erlang language, the
 compiler and the virtual machine works together to ensure that the
 execution of an Erlang process will yield within a limited time and
-let the net process run. The technique used to measure and limit the
+let the next process run. The technique used to measure and limit the
 allowed execution time is called reduction counting, we will look at
 all the details of reduction counting soon.
 
@@ -413,7 +413,7 @@ a mailbox with no matching messages will yield and go into the
 waiting state.
 
 When a message is deliverd to an inbox the sending process will check
-wether the receiver is _sleeping_ in the waiting state, and in that
+whether the receiver is _sleeping_ in the waiting state, and in that
 case it will _wake_ the process, change its state to runable, and put
 it at the end of the appropriate ready queue.
 
@@ -694,10 +694,10 @@ letting schedulers execute on that plan until a new plan is set up.
 Every 2000*2000 reductions a scheduler calculates a migration path per
 priority per scheduler by looking at the workload of all
 schedulers. The migration path can have three different types of
-values: 1) cleared 2) migrate to schedueler # 3) immigrate from
+values: 1) cleared 2) migrate to scheduler # 3) immigrate from
 scheduler #
 
-When a process becomes ready (for example by reciving a message or
+When a process becomes ready (for example by receiving a message or
 triggering a timeout) it will normally be scheduled on the last
 scheduler it ran on (S1). That is, if the migration path of that
 scheduler (S1), at that priority, is cleared. If the migration path of

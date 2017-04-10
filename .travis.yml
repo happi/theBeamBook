@@ -1,0 +1,35 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker pull robertoaloi/docker-thebeambook:latest
+
+script:
+  - docker run -v $TRAVIS_BUILD_DIR:/book --name thebeambook robertoaloi/docker-thebeambook make
+
+after_error:
+  - docker logs thebeambook
+
+after_failure:
+  - docker logs thebeambook
+
+deploy:
+  - provider: releases
+    skip_cleanup: true
+    api_key:
+      secure: n89QSwR4RpCpY62E79DAJn8QxThk4q/YKPliBOO/5xC2oGp54cEOmewygg/1FaAK42Pr+L3c72FLIKKbuRwUcS1pPaOlbcy/97qHLrLvnMBS3wP3BMPrTtyxdXclQoNJ2K/a0HrkHVUz/fIC188C/gZZeWYuuyz07u9wEXb4h9vajHkWoRokL3eBiGC4pbk+gUw+q3l1bYs4LPevIfesBje2JW7LaZoZgqlE7pkBJGf5uYSNNusDNDJOx/genoWeoUrN3e6mYHqZcHnClUvsraZ8Bvx61gW1rhVEYfU6/79PZ5bWU8BojHh6tWlfD8euIc+fBcAKyP68fODwo008BsjuulcpFhDc1qEmnvMnh8FKLoMX6BSJyW/3EGFMXfOggDtGp/4QElEPxeHBLc1bZXZOTHtjuebnc+o6ZimtJ9c3m3W5N/aEPDbHJrrUCAvKYTkt1k+eNptHO0r3Fzahq+ZInspfnqoCDq5aRsTMyCYjg3ZT8KNLsKTCZ2maI0/DaSJMz+RFj/JkVIxZauyF+R8hyLIcIpVEMqQxxYepewFai51vbHNcIQ9yKcYT9iGHn2/F3YnbgpkHgEFV5B8y+hm6DAueAmQS5E569B8WQbgpUgtIRqEhAoTlmaRQjty8gxJ4K1EgeG3QfajSawPLm2leWoD7RU5AgAkH/idER10=
+    file: beam-book.pdf
+    on:
+      repo: happi/theBeamBook
+      branch: master
+      tags: true
+  - provider: pages
+    skip_cleanup: true
+    github_token:
+      secure: n89QSwR4RpCpY62E79DAJn8QxThk4q/YKPliBOO/5xC2oGp54cEOmewygg/1FaAK42Pr+L3c72FLIKKbuRwUcS1pPaOlbcy/97qHLrLvnMBS3wP3BMPrTtyxdXclQoNJ2K/a0HrkHVUz/fIC188C/gZZeWYuuyz07u9wEXb4h9vajHkWoRokL3eBiGC4pbk+gUw+q3l1bYs4LPevIfesBje2JW7LaZoZgqlE7pkBJGf5uYSNNusDNDJOx/genoWeoUrN3e6mYHqZcHnClUvsraZ8Bvx61gW1rhVEYfU6/79PZ5bWU8BojHh6tWlfD8euIc+fBcAKyP68fODwo008BsjuulcpFhDc1qEmnvMnh8FKLoMX6BSJyW/3EGFMXfOggDtGp/4QElEPxeHBLc1bZXZOTHtjuebnc+o6ZimtJ9c3m3W5N/aEPDbHJrrUCAvKYTkt1k+eNptHO0r3Fzahq+ZInspfnqoCDq5aRsTMyCYjg3ZT8KNLsKTCZ2maI0/DaSJMz+RFj/JkVIxZauyF+R8hyLIcIpVEMqQxxYepewFai51vbHNcIQ9yKcYT9iGHn2/F3YnbgpkHgEFV5B8y+hm6DAueAmQS5E569B8WQbgpUgtIRqEhAoTlmaRQjty8gxJ4K1EgeG3QfajSawPLm2leWoD7RU5AgAkH/idER10=
+    on:
+      repo: happi/theBeamBook
+      branch: master
+      tags: true

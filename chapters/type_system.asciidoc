@@ -67,7 +67,7 @@ compiler does not check the types at compile time, unlike in a
 statically typed language like C or Java where you can get a
 type error during compilation.
 
-These aspects of the Erlang type system, strongly statically typed
+These aspects of the Erlang type system, strongly dynamically typed
 with an order on the types puts some constraints on the implementation
 of the language. In order to be able to check and compare types at
 runtime each Erlang term has to carry its type with it.

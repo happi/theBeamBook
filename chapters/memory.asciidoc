@@ -420,8 +420,8 @@ executing Erlang code.
 
 Note that no Erlang process running on the same scheduler as the
 allocator may start executing Erlang code before the block is freed.
-This means that you can not use a temporary allocation over a bif
-or nif trap (yield).
+This means that you can not use a temporary allocation over a BIF
+or NIF trap (yield).
 
 In a default R16 smp system there is N+1 temp_alloc allocators where N
 is the number of schedulers. The temp_alloc uses the "A fit" (+af+)
@@ -469,7 +469,7 @@ except for some short lived or temporary data used by ets tables-
 
 ==== The driver allocator: driver_alloc
 
-The driver allocator is used for ports, linked in drivers and nifs.
+The driver allocator is used for ports, linked in drivers and NIFs.
 
 ==== The short lived allocator: sl_alloc
 
@@ -957,7 +957,7 @@ just look at the diagrams and the explanations of how the GC works.
 
 [source,erlang]
 ----
-include::code/memory_chapter/src/gc_example.erl[]
+include::../code/memory_chapter/src/gc_example.erl[]
 ----
 
 After compiling the example I start an erlang shell, test the call

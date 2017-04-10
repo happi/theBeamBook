@@ -78,18 +78,18 @@ Shouldn't Code Loading come before Hot Code Loading? Or are the two topics not r
 
 
 In the Erlang Runtime System the code loading is handled by the
-code server. The code server will call the lover level bifs in the
+code server. The code server will call the lower level BIFs in the
 +erlang+ module for the actual loading. But the code server also
 determines the purging policy.
 
 The runtime system can keep two versions of each module, a _current_
-version and an _old_ version. All fully qualified (remote) calls goes
+version and an _old_ version. All fully qualified (remote) calls go
 to the current version. Local calls in the old version and return
 addresses on the stack can still go to the old version.
 
-If a third version of a module is loaded and there still are processes
-running (have pointers on the stack to) old code the code server
-will kill does processes and purge the old code. Then the current
+If a third version of a module is loaded and there are still processes
+running (have pointers on the stack to) the code server
+will kill those processes and purge the old code. Then the current
 version will become old and the third version will be loaded as the
 current version.
 

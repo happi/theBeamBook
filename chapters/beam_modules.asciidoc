@@ -61,7 +61,7 @@ This file format prepends all areas with the size of the following area making i
 
 [source,erlang]
 ----
-include::code/beam_modules_chapter/src/beamfile1.erl[]
+include::../code/beam_modules_chapter/src/beamfile1.erl[]
 ----
 
 
@@ -113,7 +113,7 @@ Let us add a decoder for the atom chunk to our Beam file reader:
 
 [source,erlang]
 ----
-include::code/beam_modules_chapter/src/beamfile2.erl[]
+include::../code/beam_modules_chapter/src/beamfile2.erl[]
 ----
 
 [[export_table_chunk]]
