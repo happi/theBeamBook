@@ -336,7 +336,12 @@ this book to examine different aspects of the system.
 The Observer can either be started from the OS shell and attach itself
 to an node or directly from an Elixir or Erlang shell. For now we will
 just start the Observer from the Elixir shell with `:observer.start`
-or from the Erlang shell with `observer:start().`.
+or from the Erlang shell with:
+
+[source,erlang]
+----
+>7 observer:start().
+----
 
 When the Observer is started it will show you a system overview,
 see the following screen shot.
