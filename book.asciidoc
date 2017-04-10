@@ -1,46 +1,45 @@
 = The Erlang Runtime System
 
-include::preface.asciidoc[]
+include::chapters/preface.asciidoc[]
 
 // Part I
 
-include::introduction.asciidoc[]
+include::chapters/introduction.asciidoc[]
 
-include::compiler.asciidoc[]
+include::chapters/compiler.asciidoc[]
 
-include::processes.asciidoc[]
+include::chapters/processes.asciidoc[]
 
-include::type_system.asciidoc[]
+include::chapters/type_system.asciidoc[]
 
-include::beam.asciidoc[]
+include::chapters/beam.asciidoc[]
 
-include::beam_modules.asciidoc[]
+include::chapters/beam_modules.asciidoc[]
 
-include::beam_instructions.asciidoc[]
+include::chapters/beam_instructions.asciidoc[]
 
-include::calls.asciidoc[]
+include::chapters/calls.asciidoc[]
 
-include::beam_loader.asciidoc[]
+include::chapters/beam_loader.asciidoc[]
 
-include::beam_internal_instructions.asciidoc[]
+include::chapters/beam_internal_instructions.asciidoc[]
 
-include::scheduling.asciidoc[]
+include::chapters/scheduling.asciidoc[]
 
-include::memory.asciidoc[]
+include::chapters/memory.asciidoc[]
 
 == Advanced data structures (ETS, DETS, Mnesia)
-// include::data_structures.asciidoc[]
+// include::chapters/data_structures.asciidoc[]
 
-include::io.asciidoc[]
+include::chapters/io.asciidoc[]
 
 == Distribution
-// include::distribution.asciidoc[]
+// include::chapters/distribution.asciidoc[]
 
-== Interfacing C -- BIFs NIFs and Linked in Drivers
-// include::c.asciidoc[]
+include::chapters/c.asciidoc[]
 
 == Native code
-// include::hipe.asciidoc[]
+// include::chapters/hipe.asciidoc[]
 
 // Part II
 [[P-Running]]
@@ -48,19 +47,19 @@ include::io.asciidoc[]
 
 == Operation and Maintenance
 
-// include::ops.asciidoc[]
+// include::chapters/ops.asciidoc[]
 
-// include::tweak.asciidoc[]
+// include::chapters/tweak.asciidoc[]
 
 [appendix]
 = Apendicies
-// include::index.asciidoc[]
+// include::chapters/index.asciidoc[]
 
-=== Building Erlang OTP
+include::chapters/building.asciidoc[]
 
-include::ap-beam_instructions.asciidoc[]
+include::chapters/ap-beam_instructions.asciidoc[]
 
-include::ap-code_listings.asciidoc[]
+include::chapters/ap-code_listings.asciidoc[]
 
 
 

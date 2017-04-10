@@ -1,0 +1,127 @@
+[[CH-BuildingERTS]]
+== Building the Erlang Runtime System
+
+In this chapter we will look at different way to configure and build
+Erlang/OTP to suite your needs. We will use an Ubuntu Linux for most
+of the examples. If you are using a different OS you can find detailed
+instructions on how to build for that OS in the documentation in the
+source code (in HOWTO/INSTALL.md), or on the web
+[INSTALL.html.](http://www.erlang.org/doc/installation_guide/INSTALL.html)
+
+There are basically two ways to build the runtime system, the traditional
+way with autoconf, configure and make or with the help of
+[kerl.](https://github.com/spawngrid/kerl)
+
+I recommend that you first give the traditional way a try, that way
+you will get a better understanding of what happens when you
+build and what settings you can change. Then go over to using kerl
+for your day to day job of managing configurations and builds.
+
+=== First Time Build
+
+To get you started we will go though a step by step process of
+building the system from scratch and then we will look at
+how you can configure your system for different purposes.
+
+This step by step guide assumes that you have a modern Ubuntu
+installation. We will look at how to build on OS X and Windows
+later in this chapter.
+
+==== Prerequisites
+
+You will need a number of tools in order to fetch, unpack and
+build from source. The file Install.md lists some of the most
+important ones.
+
+Gven that we have a recent Ubuntu installation to start with
+many of the needed tools such as tar, make, perl and gcc should
+already be installed. But some tools like git, m4 and ncurses
+will probably need to be installed.
+
+
+
+If you add a source URI to your apt configuration you will
+be able to use the build-dep command to get the needed sources
+to build erlang. You can do this by uncommenting the deb-src
+line for your distribution in /etc/apt/sources.list.
+
+For the Yakkety Yak release you could add the line by:
+
+[source,sh]
+----
+> sudo cat "deb-src http://se.archive.ubuntu.com/ubuntu/ \
+yakkety main restricted" >> /etc/apt/sources.list
+----
+
+Then the following commands will get almost all the tools you need:
+
+[source,sh]
+----
+> sudo apt-get install git autoconf m4
+> sudo apt-get build-dep erlang
+----
+
+If you have a slightly older version of Ubuntu like Saucy and you
+want to build with wx support, you need to get the wx libraries:
+
+[source,sh]
+----
+> sudo apt-key adv --fetch-keys http://repos.codelite.org/CodeLite.asc
+> sudo apt-add-repository 'deb http://repos.codelite.org/wx3.0/ubuntu/ saucy universe'
+> sudo apt-get update
+> sudo apt-get install libwxbase3.0-0-unofficial libwxbase3.0-dev libwxgtk3.0-0-unofficial \
+libwxgtk3.0-dev wx3.0-headers wx-common libwxbase3.0-dbg libwxgtk3.0-dbg wx3.0-i18n \
+wx3.0-examples wx3.0-doc
+----
+
+
+You might also want to create a directory where you keep the
+source code and also install your home built version without
+interfering with any pre built and system wide installations.
+
+[source,sh]
+----
+> cd
+> mkdir otp
+----
+
+=== Getting the source
+There are two main ways of getting the source. You can download a
+tarball from [erlang.org](http://www.erlang.org/download.html) or you
+can check out the source code directly from Github.
+
+If you want to quickly download a stable version of the source try:
+
+[source,sh]
+----
+> cd ~/otp
+> wget http://erlang.org/download/otp_src_19.1.tar.gz
+> tar -xzf otp_src_19.1.tar.gz
+> cd otp_src_19.1
+> export ERL_TOP=`pwd`
+----
+
+or if you want to be able to easilly update to the latest bleeding
+edge or you want to contribute fixes back to the comunity you can
+check out the source through git:
+
+[source,sh]
+----
+> cd ~/otp
+> git clone https://github.com/erlang/otp.git source
+> cd source
+> export ERL_TOP=`pwd`
+> ./otp_build autoconf
+----
+
+Now you are ready to build and install Erlang:
+
+[source,sh]
+----
+> export LANG=C
+> ./configure --prefix=$HOME/otp/install
+> make
+> make install
+> export PATH=$HOME/otp/install/bin/:$PATH
+> export ROOTDIR=$HOME/otp/install/
+----
