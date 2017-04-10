@@ -250,7 +250,7 @@ If the underlying operating system supports mmap a specific memory
 allocator can use mseg_alloc instead of sys_alloc to allocate
 memory from the operating system.
 
-Memory areas allocated through mseg_alloc are called segments.  When a
+Memory areas allocated through mseg_alloc are called segments. When a
 segment is freed it is not immediately returned to the OS, instead it
 is kept in a segment cache.
 
@@ -283,7 +283,7 @@ In a smp system there is usually one allocator of each type per
 scheduler thread.
 
 The smallest unit of memory that an allocator work with is called a
-_block_.  When you call an allocator to allocate a certain amount of
+_block_. When you call an allocator to allocate a certain amount of
 memory what you get back is a block. It is also blocks that you give
 as an argument to the allocator when you want to deallocate memory.
 
@@ -406,7 +406,7 @@ __________________________
 ==== The temporary allocator: temp_alloc
 
 The allocator _temp_alloc_, is used for temporary
-allocations. That is very short lived allocations.  Memory allocated
+allocations. That is very short lived allocations. Memory allocated
 by temp_alloc may not be allocated over a Erlang process context
 switch.
 
@@ -420,8 +420,8 @@ executing Erlang code.
 
 Note that no Erlang process running on the same scheduler as the
 allocator may start executing Erlang code before the block is freed.
-This means that you can not use a temporary allocation over a bif
-or nif trap (yield).
+This means that you can not use a temporary allocation over a BIF
+or NIF trap (yield).
 
 In a default R16 smp system there is N+1 temp_alloc allocators where N
 is the number of schedulers. The temp_alloc uses the "A fit" (+af+)
@@ -450,7 +450,7 @@ where tagged Erlang terms are stored, such as Erlang process heaps
 (all generations), heap fragments, and the beam_registers.
 
 This is probably the memory areas you are most interested in as an
-Erlang developer or when tuning an Erlang system.  We will talk more
+Erlang developer or when tuning an Erlang system. We will talk more
 about how these areas are managed in the upcoming sections on garbage
 collection and process memory. There we will also cover what a heap
 fragment is.
@@ -469,7 +469,7 @@ except for some short lived or temporary data used by ets tables-
 
 ==== The driver allocator: driver_alloc
 
-The driver allocator is used for ports, linked in drivers and nifs.
+The driver allocator is used for ports, linked in drivers and NIFs.
 
 ==== The short lived allocator: sl_alloc
 
@@ -556,7 +556,7 @@ objects.
 ==== Term sharing
 
 Objects on the heap are passed by references within the context of one
-process.  If you call one function with a tuple as an argument, then
+process. If you call one function with a tuple as an argument, then
 only a tagged reference to that tuple is passed to the called
 function. When you build new terms you will also only use references
 to sub terms.
@@ -711,7 +711,7 @@ P2
 
 ----
 
-When P1 start sending the message M to P2. It (through the code in
+Then P1 start sending the message M to P2. It (through the code in
 erl_message.c) first calculates the flat size of M (which in our example is
 23 words)footnote:[We ignore tracing here which will add a trace token
 to the size of the message, and always use a heap fragment.]. 
@@ -771,7 +771,7 @@ erl_heap_fragment:
                                   NIL</pre>
 ----
 
-In either case a a new mbox (+ErlMessage+) is allocated, a lock
+In either case a new mbox (+ErlMessage+) is allocated, a lock
  (+ERTS_PROC_LOCK_MSGQ+) is taken on the receiver and the message
  on the heap or the in the new heap fragment is linked into the mbox.
 
@@ -909,7 +909,7 @@ This part of the content seems to be good, and probably worthy of being a top-le
 
 
 When a process runs out of space on the stack and heap the process
-will try to reclaim space by doing a minor garbage collection.  The
+will try to reclaim space by doing a minor garbage collection. The
 code for this can be found in
 link:https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_gc.c[erl_gc.c].
 
@@ -957,7 +957,7 @@ just look at the diagrams and the explanations of how the GC works.
 
 [source,erlang]
 ----
-include::code/memory_chapter/src/gc_example.erl[]
+include::../code/memory_chapter/src/gc_example.erl[]
 ----
 
 After compiling the example I start an erlang shell, test the call
@@ -1055,15 +1055,15 @@ way. (see xref:AP-listings[] for the definitions of the scripts in gdb_script.)
 
 Here we can see the heap of the process after it has allocated the
 list "Hello" on the heap and the cons containing that list twice, and
-the tuple containing the cons and the list.  The _root set_, in this
+the tuple containing the cons and the list. The _root set_, in this
 case the stack, contains a pointer to the cons containing two copies
-of the list.  The tuple is dead, that is, there are no references to
+of the list. The tuple is dead, that is, there are no references to
 it.
 
 The garbage collection starts by calculating the root set and by
 allocating a new heap (_to space_). By stepping into the gc code in the
 debugger you can see how this is done. I will not go through the
-details here.  After a number of steps the execution will reach the
+details here. After a number of steps the execution will reach the
 point where all terms in the root set are copied to the new heap. This
 starts around (depending on version) line 1272 with a +while+ loop in
 erl_gc.c.

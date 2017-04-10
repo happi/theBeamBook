@@ -41,7 +41,7 @@ isolating the effect of the error to the process executing
 the faulty code.
 
 The runtime comes with a number of tools for inspecting processes to
-help us find bottlenecks, problems and overuse of resources.  These
+help us find bottlenecks, problems and overuse of resources. These
 tools will help you identify and inspect problematic processes.
 
 
@@ -172,7 +172,7 @@ the pid we get this information:
 ----
 
 We got a lot of information from this call and in the rest of this
-chapter we will learn in detail what most of these items mean.  The
+chapter we will learn in detail what most of these items mean. The
 first line tells us that the process has been given a name
 `code_server`. Next we can see which function the process is
 currently executing or suspended in (`current_function`)
@@ -185,13 +185,13 @@ mailbox  (`{message_queue_len,0}`, `{messages,[]}`). We will look
 closer at how message passing works later in this chapter.
 
 The fields `priority`, `suspending`, `reductions`, `links`,
-`trap_exit`, `error_handler`, and `group_leader` controls the process
+`trap_exit`, `error_handler`, and `group_leader` control the process
 execution, error handling, and IO. We will look into this a bit more
 when we introduce the _Observer_.
 
 The last few fields (`dictionary`, `total_heap_size`, `heap_size`,
-`stack_size`, and `garbage_collection`) gives us information about the
-process memory usage and we will look at the process memory areas in
+`stack_size`, and `garbage_collection`) give us information about the
+process memory usage. We will look at the process memory areas in
 detail in this chapter in <ref linkend="ch.memory"/>.
 
 Another, even more intrusive way of getting information
@@ -291,15 +291,44 @@ You might notice that many processes have a heap size of
 233, that is because it is the default starting heap size
 of a process.
 
-See the documentation of the module `erlang` for
-a full description of the information available with
-[`process_info`.](http://erlang.org/doc/man/erlang.html#process_info-1)
+See the documentation of the module `erlang` for a full description of
+the information available with
+[`process_info`](http://erlang.org/doc/man/erlang.html#process_info-1).
+Notice how the `process_info/1` function only returns a subset of all
+the information available for the process and how the `process_info/2`
+function can be used to fetch extra information. As an example, to
+extract the `backtrace` for the `code_server` process above, we could
+run:
 
+----
+3> process_info(whereis(code_server), backtrace).
+{backtrace,<<"Program counter: 0x00000000161de900 (code_server:loop/1 + 152)\nCP: 0x0000000000000000 (invalid)\narity = 0\n\n0"...>>}
+----
+
+See the three dots at the end of the binary above? That means that the
+output has been truncated. A useful trick to see the whole value is to
+wrap the above function call using the `rp/1` function:
+
+----
+4> rp(process_info(whereis(code_server), backtrace)).
+----
+
+An alternative is to use the `io:put_chars/1` function, as follows:
+
+----
+5> {backtrace, Backtrace} = process_info(whereis(code_server), backtrace).
+{backtrace,<<"Program counter: 0x00000000161de900 (code_server:loop/1 + 152)\nCP: 0x0000000000000000 (invalid)\narity = 0\n\n0"...>>}
+6> io:put_chars(Backtrace).
+----
+
+Due to its verbosity, the output for commands `4>` and `6>` has not
+been included here, but feel free to try the above commands in your
+Erlang shell.
 
 ==== Using the Observer to Inspect Processes
 
 A third way of examining processes is with the
-[_Observer_.](http://erlang.org/doc/apps/observer/observer_ug.html)
+[_Observer_](http://erlang.org/doc/apps/observer/observer_ug.html).
 The Observer is an extensive graphical interface for inspecting
 the Erlang RunTime System. We will use the Observer throughout
 this book to examine different aspects of the system.
@@ -324,7 +353,7 @@ tree of the running system:
 
 ![](images/observer_applications.png)
 
-Here we get a graphical view of how the processes are linked.  This is
+Here we get a graphical view of how the processes are linked. This is
 a very nice way to get an overview of how a system is structured.
 You also get a nice feeling of processes as isolated entities
 floating in space connected to each other through links.
@@ -368,7 +397,7 @@ a _message area_, and the _Process Control Block_ (_the PCB_).
 
 The stack is used for keeping track of program execution by storing
 return addresses, for passing arguments to functions, and for keeping
-local variables.  Larger structures, such as lists and tuples are
+local variables. Larger structures, such as lists and tuples are
 stored on the heap.
 
 The _message area_, also called _the mailbox_, is used
@@ -399,7 +428,7 @@ later chapters. The PCB on the other hand is statically allocated and
 contains a number of fields that controls the process.
 
 We can actually inspect some of these memory areas by using _HiPE's
-Built In Functions_ (HiPE BIFs) for introspection.  With these BIFs we
+Built In Functions_ (HiPE BIFs) for introspection. With these BIFs we
 can print out the memory content of stacks, heaps, and the PCB. The
 raw data is printed and in most cases a human readable version is
 pretty printed alongside the data. To really understand everything
@@ -608,7 +637,7 @@ at what this fields in the PCB means.
 
 The Process Control Block contains all the fields that control the
 behavior and current state of a process. In this section and the rest
-of the chapter we will go through the most important fields.  We will
+of the chapter we will go through the most important fields. We will
 leave out some fields that have to do with execution and tracing from
 this chapter, instead we will cover those in <ref linkend="ch.BEAM"/>.
 
@@ -784,14 +813,14 @@ write data directly on the receiving process' heap.
 When multicore systems were introduced and the Erlang implementation
 was extended with several schedulers running processes in parallel it
 was no longer safe to write directly on another process' heap without
-taking the `main lock` of the receiver.  At this time the concept of
+taking the `main lock` of the receiver. At this time the concept of
 `m-bufs` was introduced (also called `heap fragments`). An `m-buf` is
 a memory area
 outside of a process heap where other processes can
 safely write data. If a sending process can not get the lock it would
-write to the `m-buf` instead.  When all data of a message has been
+write to the `m-buf` instead. When all data of a message has been
 copied to the `m-buf` the message is linked to the process through the
-mailbox.  The linking (_LINK_MESSAGE_ in
+mailbox. The linking (_LINK_MESSAGE_ in
 <filename>erl_message.h</filename>) appends the message to the receiver's
 message queue.
 
@@ -1137,7 +1166,7 @@ heap during a GC.
 ==== Receiving a Message
 
 Erlang supports selective receive, which means that a message that
-doesn't match can be left in the mailbox for a later receive.  And the
+doesn't match can be left in the mailbox for a later receive. And the
 processes can be suspended with messages in the mailbox when no
 message matches. The `msg.save` field contains a pointer to a pointer
 to the next message to look at.
@@ -1213,7 +1242,7 @@ list is a two tuple (_{key, Value}_) also stored on the heap.
 
 Putting an element in the PD is not completely free, it will result in
 an extra tuple and a cons, and
-might cause garbage collection to be triggered.  Updating a key in the
+might cause garbage collection to be triggered. Updating a key in the
 dictionary, which is in a bucket, causes the whole bucket (the whole
 list) to be reallocated to make sure we don't get pointers from the
 old heap to the new heap. (In <ref linkend="ch.memory"/> we will
@@ -1221,7 +1250,7 @@ see the details of how garbage collection works.)
 
 === Dig In
 
-In this chapter we have looked at how a process in implemented.  In
+In this chapter we have looked at how a process in implemented. In
 particular we looked at how the memory of a process is organized, how
 message passing works and the information in the PCB. We also looked
 at a number of tools for inspecting processes introspection, such as

@@ -1,0 +1,7 @@
+[[CH-C]]
+== Interfacing C -- BIFs NIFs and Linked in Drivers
+
+// What is a bif, difference between bifs and operators and library
+// functions, how are bifs implemented. What is a nif, how to implement a
+// nif. What is a linked in driver, how to implement a linked in
+// driver. Why you shouldn&rsquo;t do this.

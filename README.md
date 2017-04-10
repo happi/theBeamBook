@@ -19,30 +19,39 @@ The book is written in AsciiDoc and can be read directly on github in your brows
 
 To read the book online just open the file [book.asciidoc](book.asciidoc).
 
+## Building on Linux
 
-## Building
-
-To build a pdf from source you will need make, asciidoc, pdflatex, and dblatex.
+To build a PDF version of the book from source, simply run:
 
 ```shell
-sudo apt-get install asciidoc
-easy_install dblatex
 make
 ```
+Since the above command requires a number of dependencies (including
+erlang, asciidoc and dblatex), a Docker image containing everything
+which is needed to build the book from source is provided. To use it:
+
+```shell
+docker pull robertoaloi/docker-thebeambook:latest
+docker run -v $PWD:/book robertoaloi/docker-thebeambook make
+```
+
+## Building on Mac OSX
+
+1. Install [MacTex](http://www.tug.org/mactex/). Note that you would need to _full_ MacTex rather than just BasicTex.
+1. Add `/Library/TeX/texbin` to your `PATH`.
+1. `easy_install dblatex`
+1. `make`
 
  # TODO
- * Bring in missing chapters
- * Bring in missing text in the process and scheduler chapters
- * Fix the mess caused by mergin two different versions into the first chapters
- * Go over the new outline
- * Fix the license
+ * Bring in missing chapters [Happi]
+ * Bring in missing text in the process and scheduler chapters [Happi]
+ * Fix the mess caused by mergin two different versions into the first chapters [Happi]
+ * Go over the new outline [Happi]
  * Fix links
  * Add images
  * Fix build system for ascii-art
- * Bring in the beam instruction documentation automatically from the latest Erlang release 
- * Set up a build system that produces a new pdf on check-in
  * Links to OTP code on github
  * Add some kind of forum/wiki to discuss what needs to be done
  * Fix the gdb examples to use the "new" gdb macros provided by OTP.
  * Index
- * Get the Erlang Industrial User Group and/or OTP to publish it on their site
+ 

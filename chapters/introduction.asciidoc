@@ -22,7 +22,7 @@ System. "Erlang/OTP" by Ericsson is the de facto standard
 implementation of Erlang and the Erlang Runtime System. In this book I
 will refer to this implementation as _ERTS_ or spelled out _Erlang
 RunTime System_ with a capital T. (See xref:ERTS[] for a definition of
-OTP.)
+OTP).
 
 There is no official definition of what an Erlang Runtime System is,
 or what an Erlang Virtual Machine is. You could sort of imagine what
@@ -30,7 +30,7 @@ such an ideal Platonic system would look like by taking ERTS and
 removing all the implementation specific details. This is
 unfortunately a circular definition, since you need to know the
 general definition to be able to identify an implementation specific
-detail. In the Erlang world we are usually to pragmatic to worry about
+detail. In the Erlang world we are usually too pragmatic to worry about
 this.
 
 I will try to use the term _Erlang Runtime System_ to refer to the
@@ -54,8 +54,8 @@ xref:P-ERTS[] of this book you will get a deep understanding of
 how the runtime system works.
 
 In the following chapters of xref:P-ERTS[] I will try to explain each
-component of the system by itself, in one separate chapter for each of
-the major component.  You should be able to read any one of these
+component of the system by itself, in a separate chapter for each of
+the major component. You should be able to read any one of these
 chapters without having a full understanding of how the other
 components are implemented, but you will need a basic understanding of
 what each component is. The rest of this introductory chapter should
@@ -98,16 +98,16 @@ the _ERTS Stack_.
 In xref:the_erts_stack[] you can see the ERTS Stack illustrated with
 two Erlang nodes running on one machine.
 
-In the bottom of the stack there is the hardware you are running
+At the bottom of the stack there is the hardware you are running
 on. The easiest way to improve the performance of your app is probably
-to run it on better hardware.  If economical or physical constraints
-wont let you upgrade your hardware you can start exploring higher
+to run it on better hardware. If economical or physical constraints
+won't let you upgrade your hardware you can start exploring higher
 levels of the stack. The two most important choices for your hardware
 is whether it is multicore and whether it is 32-bit or 64-bit. You
 need different builds of ERTS depending on whether you want to use
-multicore or not and whether you want to use 32-bit or 64-bit.  (See
+multicore or not and whether you want to use 32-bit or 64-bit. (See
 xref:CH-BuildingERTS[] for information on how to build different
-versions of ERTS.)  This book will not go into any details about
+versions of ERTS).  This book will not go into any details about
 hardware but I will talk a bit about multicore and NUMA architectures
 in xref:CH-Scheduling[] and xref:CH-Memory[].
 
@@ -116,12 +116,12 @@ versions of Windows and most POSIX "compliant" OS:es, including Linux,
 VxWorks, Solaris, and Mac OS X. Today most of the development of ERTS
 is done on Linux and OS X, and you can expect the best performance on
 these platforms. However, Ericsson have been using Solaris internally
-in many projects and ERTS have been tuned for Solaris for many years.
-Depending on your use case you might actually get best performance on
+in many projects and ERTS has been tuned for Solaris for many years.
+Depending on your use case you might actually get better performance on
 a Solaris system. The OS choice is usually not based on performance
 requirements, but is restricted by other demands. If you are building
-an embedded application you might be restricted to Rasbian or VxWork,
-and if you fore some reason are building an end user or client
+an embedded application you might be restricted to Raspbian or VxWorks,
+and if you are for some reason building an end user or client
 application you might have to use Windows. The Windows port of ERTS
 has so far not had the highest priority and might not be the best
 choice from a performance or maintenance perspective. If you want to
@@ -139,16 +139,15 @@ The fifth layer, OTP(((OTP))), supplies the Erlang standard
 libraries. OTP originally stood for "Open Telecom Platform" and was a
 number of Erlang libraries supplying building blocks (such as
 +supervisor+, +gen_server+ and +gen_ftp+) for building robust
-applications (such as telephony exchanges).  Early on, the libraries
+applications (such as telephony exchanges). Early on, the libraries
 and the meaning of OTP got intermingled with all the other standard
 libraries shipped with ERTS. Nowadays most people use OTP together
 with Erlang in "Erlang/OTP" as the name for ERTS and all Erlang
 libraries shipped by Ericsson. Knowing these standard libraries
-and how and when to uses them can greatly improve the performance
+and how and when to use them can greatly improve the performance
 of your application. This book will not go into any details about
-the standard libraries and OTP, there are other books that
+the standard libraries and OTP, since there are other books that
 cover these aspects.
-
 
 Finally, the sixth layer (APP) is your application which can use all
 the functionality provided by the underlying layers. Apart from
@@ -156,10 +155,8 @@ upgrading your hardware this is probably the place where you most
 easily can improve your application's performance. In
 xref:CH-Tracing[] I will give some hints and show some tools that can
 help you profile and optimize your application. In xref:CH-Crash[] and
-xref:CH-Debugger[] I'll give you some hints on hove to find the cause
+xref:CH-Debugger[] I'll give you some hints on how to find the cause
 of crashing applications and how to find bugs in your application.
-
-
 
 ----
 
@@ -255,7 +252,7 @@ running at the same time as all other processes, but in reality there
 is just one process running in the VM. On a multicore machine Erlang
 actually runs more than one scheduler, usually one per physical core,
 each having their own queues. This way Erlang achieves true
-parallelism.  To utilize more than one core ERTS has to be built (see
+parallelism. To utilize more than one core ERTS has to be built (see
 xref:CH-BuildingERTS[]) in _SMP_(((SMP))) mode. SMP stands for
 _Symetric MultiProcessing_, that is, the ability to execute a
 processes on any one of multiple CPUs.
@@ -266,7 +263,7 @@ All this and more is described in detail in xref:CH-Scheduling[].
 
 ==== The Erlang Tag Scheme
 
-Erlang is a dynamically typed language, and the runtime system need a
+Erlang is a dynamically typed language, and the runtime system needs a
 way to keep track of the type of each data object. This is done with a
 tagging scheme. Each data object or pointer to a data object also has
 a tag with information about the data type of the object.
@@ -399,6 +396,6 @@ you can jump directly to that chapter. Or if you are really eager to
 find a solution to a specific problem you could jump to the right
 chapter in xref:P-Running[], and try the different methods to tune,
 tweak, or debug your system. Although, I strongly suggest that you
-read through the chapters in xref:P-ERTS[] in order first in order
-to get a deep understanding of how ERTS really works.
+read through the chapters in xref:P-ERTS[] in order to first get
+a deep understanding of how ERTS really works.
 

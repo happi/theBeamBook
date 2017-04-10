@@ -210,13 +210,13 @@ Let us try out our newfound knowledge to look at the generated code.
 Let us try with a small example program "world.erl":
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.erl[]
+include::../code/compiler_chapter/src/world.erl[]
 ----
 
 And the include file "world.hrl"
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.hrl[]
+include::../code/compiler_chapter/src/world.hrl[]
 ----
 
 If you now compile this with the 'P' option to get the parsed file you
@@ -235,7 +235,7 @@ applied:
 
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.P[]
+include::../code/compiler_chapter/src/world.P[]
 ----
 
 To see how the code looks after all source code transformations are
@@ -254,7 +254,7 @@ added to the source:
 
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.E[]
+include::../code/compiler_chapter/src/world.E[]
 ----
 
 We will make use of the 'P' and 'E' options when we look at parse
@@ -274,7 +274,7 @@ The file +world.S+ should look like this:
 
 [source,erlang]
 ----
-include::code/compiler_chapter/src/world.S[]
+include::../code/compiler_chapter/src/world.S[]
 ----
 
 Since this is a file with dot ("_._") separated Erlang terms, you can 
@@ -389,7 +389,7 @@ has become as popular and widely used as e.g. QLC.
 OK, so you know you shouldn't use it, but if you have to, here is what
 you need to know. A parse transforms is a function that works on the
 abstract syntax tree (AST) (see
-link:http://www.erlang.org/doc/apps/erts/absform.html[] ).  The compiler
+link:http://www.erlang.org/doc/apps/erts/absform.html[] ). The compiler
 does preprocessing, tokenization and parsing and then it will call the
 parse transform function with the AST and expects to get back a
 new AST.
@@ -422,7 +422,7 @@ which occures after the parse transform pass.
 
 The documenation of the abstract format is somewhat dense and it is
 quite hard to get a grip on the abstract format by reading the
-documentation.  I encourage you to use the _syntax_tools_ and
+documentation. I encourage you to use the _syntax_tools_ and
 especially +erl_syntax_lib+ for any serious work on the AST.
 
 Here we will develop a a simple parse transform just to get an
@@ -631,7 +631,7 @@ abstract syntax tree will then be saved by the "Save AST" until the
 end of the compilation, where it will be written to the .beam file.
 
 It is important to note that the code is saved before any
-optimisations are appilied, so if there is a bug in an optimisation
+optimisations are applied, so if there is a bug in an optimisation
 pass in the compiler and you run code in the debugger you will get a
 diffferent behavior. If you are implementing your own compiler
 optimisations this can trick you up badly.
@@ -684,7 +684,7 @@ Pattern matching is compiled to more primitive operations.
 
 ==== Compiler Pass: BEAM Code
 The last step of a normal compilation is the external beam code
-format.  Some low level optimizations such as dead code elimination and
+format. Some low level optimizations such as dead code elimination and
 peep hole optimisations are done on this level.
 
 The BEAM code is described in detail in
@@ -736,7 +736,7 @@ we can see that there are only a handful of tokens that we need to handle.
 
 [source,erlang]
 ----
-include::code/compiler_chapter/src/json_tokens.xrl[]
+include::../code/compiler_chapter/src/json_tokens.xrl[]
 ----
 
 By using the Leex compiler we can compile this DFA to Erlang code,
@@ -757,11 +757,11 @@ You can view the DFA graph using for example dotty.
 > dotty json_tokens.dot
 ----
 
-image::code/compiler_chapter/json_tokens.png[]
+image::../code/compiler_chapter/json_tokens.png[]
 
 We can try our tokenizer on an example json file (test.json).
 
-include::code/compiler_chapter/src/test.json
+include::../code/compiler_chapter/src/test.json
 
 First we need to compile our tokenizer, then we read the file
 and convert it to a string. Finally we can use
@@ -796,7 +796,7 @@ Yecc is a parser generator for Erlang. The name comes from Yacc
 Now that we have a lexer for JSON terms we can write a parser using
 yecc.
 
-include::code/compiler_chapter/src/yecc_json_parser.yrl[]
+include::../code/compiler_chapter/src/yecc_json_parser.yrl[]
 
 Then we can use yecc to generate an Erlang program that implements
 the parser, and call the parse/1 function provided with the tokens

@@ -51,7 +51,7 @@ significant digits are to the left of the decimal point.
 
 Since Erlang 18, when two maps are compared for order they are
 compared as follows: If one map has fewer elements than the other it
-is considered smaller.  Otherwise the keys are compared in term order,
+is considered smaller. Otherwise the keys are compared in term order,
 where all integers are considered smaller than all floats. If all the
 keys are the same then each value pair (in key order) is compared
 arithmetically, i.e. by first converting them to the same precision.
@@ -67,7 +67,7 @@ compiler does not check the types at compile time, unlike in a
 statically typed language like C or Java where you can get a
 type error during compilation.
 
-These aspects of the Erlang type system, strongly statically typed
+These aspects of the Erlang type system, strongly dynamically typed
 with an order on the types puts some constraints on the implementation
 of the language. In order to be able to check and compare types at
 runtime each Erlang term has to carry its type with it.
@@ -78,7 +78,7 @@ This is solved by _tagging_ the terms.
 
 In the memory representation of an Erlang term a few bits are reserved
 for a type tag. For performance reasons the terms are divided into
-_immediates_ and _boxed_ terms.  An immediate term can fit into a
+_immediates_ and _boxed_ terms. An immediate term can fit into a
 machine word, that is, in a register or on a stack slot. A boxed term
 consists of two parts: a tagged pointer and a number of words stored
 on the process heap. The _boxes_ stored on the heap have a header and
@@ -234,7 +234,7 @@ The string "Hello" might look like this in memory:
 
 All other boxed terms start with a header word. The header word uses a
 four bit header tag and the primary header tag (00), it also has an
-arity which says how many words the boxed term uses.  On a 32-bit
+arity which says how many words the boxed term uses. On a 32-bit
 machine it looks like this: +aaaaaaaaaaaaaaaaaaaaaaaaaatttt00+.
 
 The tags are:
@@ -284,16 +284,16 @@ the word 0 (header tag 0, tuple tag 0000, and arity 0).
 
 ----
 
-A _binary_ is an imutable array of bytes.  There are four types of
+A _binary_ is an imutable array of bytes. There are four types of
 internal representations of _binaries_. The two types _heap binaries_
-and _refc binaries_ contains binary data.  The other two types, _sub
+and _refc binaries_ contains binary data. The other two types, _sub
 binaries_ and _match contexts_ (the BINARY_AGREGATE tag) are smaller
 references into one of the other two types.
 
 Binaries that are 64 bytes or less can be stored directly on the
 process heap as _heap binaries_. Larger binaries are reference
 counted and the paylod is stored outside of the process heap, a
-reference to the payload is stoed on the process heap in an object
+reference to the payload is stored on the process heap in an object
 called a _ProcBin_.
 
 // Todo: draw a picture of binaries and their tags.
@@ -303,7 +303,7 @@ We will talk more about binaries in the xref:CH-Memory[].
 Integers that do not fit in a small integer (word size - 4 bits) are
 stored on the heap as "bignums" (or arbitrary precision integers). A
 bignum has a header word followed by a number of words encoding the
-bignum.  The sign part of the bignum tag (s) in the header encodes the
+bignum. The sign part of the bignum tag (s) in the header encodes the
 sign of the number (s=0 for positive numbers, and s=1 for negative
 numbers).
 
