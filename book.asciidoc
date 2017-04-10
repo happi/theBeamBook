@@ -55,7 +55,7 @@ include::chapters/c.asciidoc[]
 = Apendicies
 // include::chapters/index.asciidoc[]
 
-include::chapters/building.asciidoc
+include::chapters/building.asciidoc[]
 
 include::chapters/ap-beam_instructions.asciidoc[]
 
