@@ -11,13 +11,22 @@ Welcome to the site, please contribute.
 # About this book
 A description of the Erlang Runtime System ERTS and the virtual Machine BEAM.
 
-This is an attempt to document how the internals of the Erlang Runtime System work.
+This is an attempt to document how the internals of the Erlang Runtime
+System work.
 
-Please feel free to contribute since this work is far from done, and it will probably never be done since there is continuous development of the Erlang runtime system.
+Please feel free to contribute since this work is far from done, and
+it will probably never be done since there is continuous development
+of the Erlang runtime system.
 
-The book is written in AsciiDoc and can be read directly on github in your browser or you can create a pdf from the source code.
+The book is written in AsciiDoc and most of it can be read directly
+from source on github in your browser. To read the book online just
+open the file [book.asciidoc](book.asciidoc).
 
-To read the book online just open the file [book.asciidoc](book.asciidoc).
+You can also read or download the book as a PDF from the [latest
+stable release](https://github.com/happi/theBeamBook/releases/latest).
+
+Alternatively you can create your own PDF from the source code
+following the instructions below.
 
 ## Building on Linux
 
