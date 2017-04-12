@@ -1,6 +1,8 @@
+[![Build Status](https://travis-ci.org/happi/theBeamBook.svg?branch=master)](https://travis-ci.org/happi/theBeamBook)
+
 # Hi
 
-Hi I opened this repo to the public today (April 7) to share it with
+I opened this repo to the public today (April 7) to share it with
 some students. I was giving a lecture about the BEAM at Chalmers. I
 didn't think anyone else would notice. I was not planning to release
 this for real yet since the repo currently just contains bits and
