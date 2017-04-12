@@ -3,6 +3,8 @@
 include::chapters/preface.asciidoc[]
 
 // Part I
+[[P-ERTS]]
+= Understanding ERTS
 
 include::chapters/introduction.asciidoc[]
 
@@ -28,28 +30,27 @@ include::chapters/scheduling.asciidoc[]
 
 include::chapters/memory.asciidoc[]
 
-== Advanced data structures (ETS, DETS, Mnesia)
-// include::chapters/data_structures.asciidoc[]
+include::chapters/data_structures.asciidoc[]
 
 include::chapters/io.asciidoc[]
 
-== Distribution
-// include::chapters/distribution.asciidoc[]
+include::chapters/distribution.asciidoc[]
 
 include::chapters/c.asciidoc[]
 
-== Native code
-// include::chapters/hipe.asciidoc[]
+include::chapters/hipe.asciidoc[]
 
 // Part II
 [[P-Running]]
 = Running ERTS
 
-== Operation and Maintenance
+include::chapters/tracing.asciidoc[]
 
-// include::chapters/ops.asciidoc[]
+include::chapters/debugging.asciidoc[]
 
-// include::chapters/tweak.asciidoc[]
+include::chapters/ops.asciidoc[]
+
+include::chapters/tweak.asciidoc[]
 
 [appendix]
 = Appendices

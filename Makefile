@@ -9,12 +9,18 @@ adocs = book.asciidoc \
 	chapters/calls.asciidoc \
 	chapters/compiler.asciidoc \
 	chapters/contributors.txt \
+	chapters/data_structures.asciidoc \
+	chapters/debugging.asciidoc \
+	chapters/hipe.asciidoc \
 	chapters/introduction.asciidoc \
 	chapters/memory.asciidoc \
 	chapters/opcodes_doc.asciidoc \
+	chapters/ops.asciidoc \
 	chapters/preface.asciidoc \
 	chapters/processes.asciidoc \
 	chapters/scheduling.asciidoc \
+	chapters/tracing.asciidoc \
+	chapters/tweak.asciidoc \
 	chapters/type_system.asciidoc \
 	chapters/ap-beam_instructions.asciidoc \
 	chapters/ap-code_listings.asciidoc \
