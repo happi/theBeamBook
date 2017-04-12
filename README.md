@@ -1,15 +1,25 @@
 # Hi
 
-Hi I opened this repo to the public today (April 7) to share it with some students. I was giving a lecture about the BEAM at Chalmers. I didn't think anyone else would notice. I was not planning to release this for real yet since the repo currently just contains bits and pieces from several different versions of the book that I have been writing.
+Hi I opened this repo to the public today (April 7) to share it with
+some students. I was giving a lecture about the BEAM at Chalmers. I
+didn't think anyone else would notice. I was not planning to release
+this for real yet since the repo currently just contains bits and
+pieces from several different versions of the book that I have been
+writing.
 
-I hope to bring in more chapters and fill out the existing chapters in the weeks to come, but please feel free to comment and correct any errors you find. The plan is to make this into a collaborate effort so that we can get a complete documentation of the Erlang Runtime system as soon as possible.
+I hope to bring in more chapters and fill out the existing chapters in
+the weeks to come, but please feel free to comment and correct any
+errors you find. The plan is to make this into a collaborate effort so
+that we can get a complete documentation of the Erlang Runtime system
+as soon as possible.
 
 Anyway, it is finally out in the public, warts and all.
 
 Welcome to the site, please contribute.
 
 # About this book
-A description of the Erlang Runtime System ERTS and the virtual Machine BEAM.
+A description of the Erlang Runtime System ERTS and the virtual
+Machine BEAM.
 
 This is an attempt to document how the internals of the Erlang Runtime
 System work.
@@ -48,7 +58,8 @@ make
 
 ### Mac OSX
 
-1. Install [MacTex](http://www.tug.org/mactex/). Note that you would need to _full_ MacTex rather than just BasicTex.
+1. Install [MacTex](http://www.tug.org/mactex/). Note that you would
+   need to _full_ MacTex rather than just BasicTex.
 1. Add `/Library/TeX/texbin` to your `PATH`.
 1. `easy_install dblatex`
 1. Install [asciidoc](http://asciidoc.org/INSTALL.html)
@@ -68,3 +79,10 @@ make
 1. `brew install source-highlight`
 1. `brew install wget`
 1. `make`
+
+## License
+
+_The Erlang Runtime System_ by Erik Stenman is licensed under a
+Creative Commons Attribution 4.0 International License. Based on a
+work at https://github.com/happi/theBeamBook.
+A complete copy of the license can be found [here](LICENSE).
