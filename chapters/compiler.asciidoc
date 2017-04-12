@@ -229,7 +229,7 @@ get a file "world.P":
 ok
 ----
 
-In the resulting +.P+ file you can see a pretty printet version of
+In the resulting +.P+ file you can see a pretty printed version of
 the code after the preprocessor (and parse transformation) has been
 applied:
 
