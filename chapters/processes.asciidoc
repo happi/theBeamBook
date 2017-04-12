@@ -633,7 +633,7 @@ true
 ----
 
 Now armed with these inspection tools we are ready to look
-at what this fields in the PCB means.
+at what these fields in the PCB mean.
 
 === The PCB
 
@@ -771,7 +771,7 @@ heap.
 Most of the time, then, there is
 another heap area for
 each process: the old heap, handled by the fields `old_heap`,
-`old_htop` and `old_hend` in the PCB. This almost bings us back to
+`old_htop` and `old_hend` in the PCB. This almost brings us back to
 our original picture of a process as four memory areas:
 
 ----
@@ -1252,14 +1252,14 @@ see the details of how garbage collection works.)
 
 === Dig In
 
-In this chapter we have looked at how a process in implemented. In
+In this chapter we have looked at how a process is implemented. In
 particular we looked at how the memory of a process is organized, how
 message passing works and the information in the PCB. We also looked
 at a number of tools for inspecting processes introspection, such as
 _erlang:process_info_, and the _hipe:show_*_ bifs.
 
 
-Use the functions `erlang:processes/0` and `erlang:process_info/1/2`
+Use the functions `erlang:processes/0` and `erlang:process_info/1,2`
 to inspect the processes in the system. Here are
 some functions to try:
 
