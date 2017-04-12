@@ -56,7 +56,7 @@ make
 1. Install wget
 1. `make`
 
-## Building on Mac OSX (with brew)
+## Mac OSX (using brew)
 
 1. `brew install Caskroom/cask/mactex`
 1. Add `/Library/TeX/texbin` to your `PATH`.
