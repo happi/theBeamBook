@@ -65,17 +65,4 @@ make
 1. `brew install source-highlight`
 1. `brew install wget`
 1. `make`
-
- # TODO
- * Bring in missing chapters [Happi]
- * Bring in missing text in the process and scheduler chapters [Happi]
- * Fix the mess caused by mergin two different versions into the first chapters [Happi]
- * Go over the new outline [Happi]
- * Fix links
- * Add images
- * Fix build system for ascii-art
- * Links to OTP code on github
- * Add some kind of forum/wiki to discuss what needs to be done
- * Fix the gdb examples to use the "new" gdb macros provided by OTP.
- * Index
  
