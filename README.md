@@ -51,18 +51,20 @@ make
 1. Install [MacTex](http://www.tug.org/mactex/). Note that you would need to _full_ MacTex rather than just BasicTex.
 1. Add `/Library/TeX/texbin` to your `PATH`.
 1. `easy_install dblatex`
-1. Install asciidoc
-1. Install source-highlight
-1. Install wget
+1. Install [asciidoc](http://asciidoc.org/INSTALL.html)
+1. Install [shaape](https://github.com/christiangoltz/shaape)
+1. Install [source-highlight](https://www.gnu.org/software/src-highlite/)
+1. Install [wget](https://www.gnu.org/software/wget/)
 1. `make`
 
-## Mac OSX (using brew)
+### Mac OSX (using brew)
 
 1. `brew install Caskroom/cask/mactex`
 1. Add `/Library/TeX/texbin` to your `PATH`.
 1. `sudo easy_install dblatex`
 1. `brew install asciidoc`
+1. `brew install pygtk py2cairo pango`
+1. `pip install shaape`
 1. `brew install source-highlight`
 1. `brew install wget`
 1. `make`
- 
