@@ -60,3 +60,7 @@ chapters/opcodes_doc.asciidoc: genop.tab code/book/ebin/generate_op_doc.beam
 genop.tab:
 	wget -O genop.tab https://raw.githubusercontent.com/erlang/otp/master/lib/compiler/src/genop.tab
 	touch $@
+
+clean:
+	rm -f beam-book.pdf book.html
+
