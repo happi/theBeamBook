@@ -344,7 +344,7 @@ or from the Erlang shell with:
 
 [source,erlang]
 ----
->7 observer:start().
+7> observer:start().
 ----
 
 When the Observer is started it will show you a system overview,
@@ -458,7 +458,7 @@ They are not supported by the OTP team.
 They might be removed or changed at any time, so
 don't base your mission critical services on them.
 
-These BIFs examines the internals of ERTS in a ways that
+These BIFs examine the internals of ERTS in a way that
 might not be safe. The BIFs for introspection often just
 print to standard out and you might be surprised where that
 output ends up.
@@ -652,7 +652,7 @@ at what these fields in the PCB mean.
 === The PCB
 
 The Process Control Block contains all the fields that control the
-behavior and current state of a process. In this section and the rest
+behaviour and current state of a process. In this section and the rest
 of the chapter we will go through the most important fields. We will
 leave out some fields that have to do with execution and tracing from
 this chapter, instead we will cover those in xref:CH-BEAM[].
