@@ -52,7 +52,7 @@ include::chapters/c.asciidoc[]
 // include::chapters/tweak.asciidoc[]
 
 [appendix]
-= Apendicies
+= Appendices
 // include::chapters/index.asciidoc[]
 
 include::chapters/building.asciidoc[]
@@ -60,7 +60,3 @@ include::chapters/building.asciidoc[]
 include::chapters/ap-beam_instructions.asciidoc[]
 
 include::chapters/ap-code_listings.asciidoc[]
-
-
-
-
