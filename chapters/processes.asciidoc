@@ -418,6 +418,7 @@ of the process.
 
 See the following figure for an illustration of a process as memory:
 
+[shaape]
 ----
   +-------+  +-------+
   |  PCB  |  | Stack |
@@ -695,6 +696,7 @@ with and which it will not shrink smaller than, the default value is
 We can now refine the picture of the process heap with the
 fields from the PCB that controls the shape of the heap:
 
+[shaape]
 ----
 
   hend ->  +----+    -
@@ -707,14 +709,13 @@ fields from the PCB that controls the shape of the heap:
           The Heap
 ----
 
-
-
 But wait, how come we have a heap start and a heap end, but no start
 and stop for the stack? That is because the BEAM uses a trick to save
 space and pointers by allocating the heap and the stack together. It
 is time for our first revision of our process as memory picture. The
 heap and the stack are actually just one memory area:
 
+[shaape]
 ----
  +-------+  +-------+
  |  PCB  |  | Stack |
@@ -725,11 +726,11 @@ heap and the stack are actually just one memory area:
  +-------+  +-------+
 ----
 
-
 The stack grows towards lower memory addresses and the heap towards
 higher memory, so we can also refine the picture of the heap
 by adding the stack top pointer to the picture:
 
+[shaape]
 ----
   hend ->  +----+    -
            |....|    ^
@@ -788,8 +789,8 @@ each process: the old heap, handled by the fields `old_heap`,
 `old_htop` and `old_hend` in the PCB. This almost brings us back to
 our original picture of a process as four memory areas:
 
+[shaape]
 ----
-
 
   +-------+               +-------+
   |  PCB  |               | Stack |  +-------+  - old_hend
@@ -886,7 +887,7 @@ We can now revise our picture of the process as four memory areas
 once more. Now the process is made up of five memory areas (two
 mailboxes) and a varying number of heap fragments (`m-bufs`):
 
-
+[shaape]
 ----
 
  +-------+             +-------+
@@ -1002,6 +1003,7 @@ consider messages sent between Erlang nodes. Imagine two processes
 `P1` and `P2`. Process `P1` wants to send a message (_Msg_) to process
 `P2`, as illustrated by this figure:
 
+[shaape]
 ----
                  P 1
  +---------------------------------+
@@ -1046,6 +1048,7 @@ send a message to `P2` and there is space on the heap and the
 allocation strategy is _on_heap_ the message will directly end up
 on the heap:
 
+[shaape]
 ----
                  P 1
  +---------------------------------+
@@ -1090,7 +1093,7 @@ If `P1` can not get the `main lock` of P2 or there is not enough space
 on `P2's` heap and the allocation strategy is _on_heap_ the message
 will end up in an `m-buf` but linked from the internal mailbox:
 
-
+[shaape]
 ----
                  P 1
  +---------------------------------+
@@ -1225,7 +1228,6 @@ worse if all processes use off heap allocation.
 Then you might want to find bottle neck processes and test switching
 allocation strategies for those processes only.
 
-
 === The Process Dictionary
 There is actually one more memory area in a process where
 Erlang terms can be stored, the _Process Dictionary_.
@@ -1237,6 +1239,7 @@ and there is no copying as with send or an ETS table.
 We can now update our view of a process with yet another
 memory area, PD, the process dictionary:
 
+[shaape]
 ----
 
  +-------+             +-------+  +-------+
