@@ -1,6 +1,3 @@
-[[P-ERTS]]
-= Understanding ERTS
-
 [[introduction]]
 
 == Introducing the Erlang Runtime System
@@ -33,36 +30,37 @@ general definition to be able to identify an implementation specific
 detail. In the Erlang world we are usually too pragmatic to worry about
 this.
 
-I will try to use the term _Erlang Runtime System_ to refer to the
+We will try to use the term _Erlang Runtime System_ to refer to the
 general idea of any Erlang Runtime System as opposed to the specific
-implementation by Ericsson which I'll call the Erlang RunTime System
+implementation by Ericsson which we call the Erlang RunTime System
 or usually just ERTS.
 
 *Note* This book is mostly a book about ERTS in particular and only to
 a small extent about any general Erlang Runtime System. If you assume
-that I talk about the Ericsson implementation unless I clearly state
-that I am talking about a general principle you will probably be
+that we talk about the Ericsson implementation unless is clearly stated
+that we are talking about a general principle you will probably be
 right.
 
 === How to read this book
 
-In xref:P-Running[] of this book I will show you how to tune the
+In xref:P-Running[] of this book we will look at how to tune the
 runtime system for your application and how to profile and debug
 your application and the runtime system. In order to really know
 how to tune the system you also need to know the system. In
 xref:P-ERTS[] of this book you will get a deep understanding of
 how the runtime system works.
 
-In the following chapters of xref:P-ERTS[] I will try to explain each
-component of the system by itself, in a separate chapter for each of
-the major component. You should be able to read any one of these
+The following chapters of xref:P-ERTS[] will go over each
+component of the system by itself.
+You should be able to read any one of these
 chapters without having a full understanding of how the other
 components are implemented, but you will need a basic understanding of
 what each component is. The rest of this introductory chapter should
 give you enough basic understanding and vocabulary to be able to jump
 between the rest of the chapters in part one in any order you like.
 
-However, if you have the time I strongly recommend reading the book in
+However, if you have the time
+read the book in
 order the first time. Words that are specific to Erlang and ERTS or
 used in a specific way in this book are usually explained at their
 first occurrence. Then, when you know the vocabulary, you can come
@@ -72,7 +70,7 @@ particular component.
 [[ERTS]]
 === ERTS
 
-In this section I will give a basic overview of the main components of
+In this there is a basic overview of the main components of
 ERTS (((ERTS))) and some vocabulary needed to understand the more
 detailed descriptions of each component in the following chapters.
 
@@ -108,7 +106,7 @@ need different builds of ERTS depending on whether you want to use
 multicore or not and whether you want to use 32-bit or 64-bit. (See
 xref:CH-BuildingERTS[] for information on how to build different
 versions of ERTS).  This book will not go into any details about
-hardware but I will talk a bit about multicore and NUMA architectures
+hardware but will talk a bit about multicore and NUMA architectures
 in xref:CH-Scheduling[] and xref:CH-Memory[].
 
 The second layer in the stack is the OS level. ERTS runs on most
@@ -126,7 +124,7 @@ application you might have to use Windows. The Windows port of ERTS
 has so far not had the highest priority and might not be the best
 choice from a performance or maintenance perspective. If you want to
 use a 64-bit ERTS you of course need to have both a 64-bit machine and
-a 64-bit OS. I will not cover many OS specific questions in this book.
+a 64-bit OS. This book will not cover many OS specific questions.
 
 The third layer in the stack is the Erlang Runtime System. In our case
 this will be ERTS. This and the next layer, the Erlang Virtual Machine
@@ -153,11 +151,12 @@ Finally, the sixth layer (APP) is your application which can use all
 the functionality provided by the underlying layers. Apart from
 upgrading your hardware this is probably the place where you most
 easily can improve your application's performance. In
-xref:CH-Tracing[] I will give some hints and show some tools that can
-help you profile and optimize your application. In xref:CH-Crash[] and
-xref:CH-Debugger[] I'll give you some hints on how to find the cause
+xref:CH-Tracing[] there are some hints and some tools that can
+help you profile and optimize your application. In
+xref:CH-Debugger[] we will look at how to find the cause
 of crashing applications and how to find bugs in your application.
 
+[shaape]
 ----
 
   Node1     Node2
@@ -308,19 +307,15 @@ shell. In this case the code is not compiled to BEAM code and executed by
 the BEAM, instead the code is parsed and interpreted by the Erlang
 interpreter. In general the interpreted code behaves exactly as compiled
 code, but there a few subtle differences, these differences and all other
-aspects of the shell are explained in xref:CH-Shell[].
+aspects of the shell are explained in xref:CH-Ops[].
 
 [[Other_Erlang_Implementations]]
 === Other Erlang Implementations
 
 This book is mainly concerned with the "standard" Erlang
 implementation by Ericsson/OTP called ERTS, but there are a few other
-implementations available and in this section I will discuss some of
+implementations available and in this section we will look at some of
 them briefly.
-
-Throught the book I will sometimes mention differences between other
-implementations and ERTS, but there is no guarantee that I will
-mention all differences.
 
 ==== Erlang on Xen
 
@@ -336,6 +331,7 @@ is that there is no operating system in the Erlang on Xen stack.
 Since Ling implements the generic instruction set of BEAM, it can reuse
 the BEAM compiler from the OTP layer to compile Erlang to Ling.
 
+[shaape]
 ----
   Node1     Node2       Node2     Node3
 
@@ -368,6 +364,7 @@ to note here is that JVM has replaced BEAM as the virtual machine
 and that Erjang provides the services of ERTS by implementing them
 in Java on top of the VM.
 
+[shaape]
 ----
   Node1     Node2       Node3     Node4
 
@@ -395,7 +392,6 @@ each component. If you are eager to understand a certain component,
 you can jump directly to that chapter. Or if you are really eager to
 find a solution to a specific problem you could jump to the right
 chapter in xref:P-Running[], and try the different methods to tune,
-tweak, or debug your system. Although, I strongly suggest that you
-read through the chapters in xref:P-ERTS[] in order to first get
-a deep understanding of how ERTS really works.
+tweak, or debug your system.
+
 

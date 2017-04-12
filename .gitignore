@@ -18,3 +18,6 @@ opcodes_doc.asciidoc
 genop.tab
 book.html
 chapters/contributors.txt
+xml/*.png
+xml/*.png.md5
+site

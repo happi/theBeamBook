@@ -61,6 +61,7 @@ xref:fig_compiler_passes[Compiler Passes].
 
 [[fig_compiler_passes]]
 .Compiler Passes.
+[shaape]
 ----
 [] = Compiler options, () = files, {} = erlang terms, boxes = passes </title>
          (.erl)
@@ -186,7 +187,7 @@ the source:
 
 Looking at the code produced by the compiler is a great help in trying
 to understand how the virtual machine works. Fortunately, the compiler
-can show os the intermediate code after each compiler pass and the
+can show us the intermediate code after each compiler pass and the
 final beam code.
 
 Let us try out our newfound knowledge to look at the generated code.
@@ -229,7 +230,7 @@ get a file "world.P":
 ok
 ----
 
-In the resulting +.P+ file you can see the a pretty printet version of
+In the resulting +.P+ file you can see a pretty printed version of
 the code after the preprocessor (and parse transformation) has been
 applied:
 
@@ -259,7 +260,7 @@ include::../code/compiler_chapter/src/world.E[]
 
 We will make use of the 'P' and 'E' options when we look at parse
 transforms in xref:SEC-parse_transform[], but first we will take a
-look at an "assembler" view of generated BEAM code. Bu giving the
+look at an "assembler" view of generated BEAM code. By giving the
 option +'S'+ to the compiler you get a +.S+ file with Erlang terms
 for each BEAM instruction in the code.
 
@@ -653,7 +654,7 @@ explicit.
 Core Erlang is the best target for a language you want to run in
 ERTS. It changes very seldom and it contains all aspects of Erlang in
 a clean way. If you target the beam instruction set directly you will
-have to deal with much more detail, and that instruction set usually
+have to deal with much more details, and that instruction set usually
 changes slightly between each major release of ERTS. If you on the other
 hand target Erlang directly you will be more restricted in what you
 can describe, and you will also have to deal with more details, since
@@ -718,8 +719,8 @@ program that matches tokens described by the DFA.
 The details of how to write a DFA definition for a tokenizer
 is beyond the scope of this book. For a thorough explanation
 I recommend the "Dragon book" (Compiler ... by Aho, Sethi and Ullman).
-Other good resources are the man and info entry for "flex" the lexer program t
-inspired leex, and the leex documentation itself.
+Other good resources are the man and info entry for "flex" the lexer program
+that inspired leex, and the leex documentation itself.
 If you have info and flex installed you can read the full manual by typing:
 
 ----
@@ -784,7 +785,7 @@ variable multiple times, for example as you are writing the lexer and
 want to try it out after each rewrite. We will look at the shell
 commands in detail in the a later chapter.
 
-Armed with a tokenizer for Json we can now write a json parser
+Armed with a tokenizer for JSON we can now write a json parser
 using the parser generator Yecc.
 
 

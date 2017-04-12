@@ -1,3 +1,3 @@
 #/bin/sh
 
-git log | grep Author | sed -- 's/Author: /\* /g' | sed -- 's/<.*>//g' | sort -u | sed -- 's/\* Your Name//g' > $1 
+git shortlog -s -n | awk '{$1=""}1' | grep -v "Erik Stenman" | grep -v "Your Name" > $1

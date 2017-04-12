@@ -24,7 +24,9 @@ types, numbers have the sub types integer and float, and list has the
 subtypes nil and cons. (One could also argue that tuple has one
 subtype for each size.)
 
-The Erlang Type Lattice 
+The Erlang Type Lattice
+
+[shaape]
 ----
 
                                                   any()

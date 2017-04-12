@@ -28,23 +28,25 @@ stable release](https://github.com/happi/theBeamBook/releases/latest).
 Alternatively you can create your own PDF from the source code
 following the instructions below.
 
-## Building on Linux
+## Building from source
 
-To build a PDF version of the book from source, simply run:
+### Docker
 
-```shell
-make
-```
-Since the above command requires a number of dependencies (including
-erlang, asciidoc and dblatex), a Docker image containing everything
+A Docker image containing everything
 which is needed to build the book from source is provided. To use it:
 
 ```shell
 docker pull robertoaloi/docker-thebeambook:latest
-docker run -v $PWD:/book robertoaloi/docker-thebeambook make
+docker run -v $PWD:/book -t robertoaloi/docker-thebeambook make
 ```
 
-## Building on Mac OSX
+### Linux
+
+```shell
+make
+```
+
+### Mac OSX
 
 1. Install [MacTex](http://www.tug.org/mactex/). Note that you would need to _full_ MacTex rather than just BasicTex.
 1. Add `/Library/TeX/texbin` to your `PATH`.
@@ -63,17 +65,3 @@ docker run -v $PWD:/book robertoaloi/docker-thebeambook make
 1. `brew install source-highlight`
 1. `brew install wget`
 1. `make`
-
- # TODO
- * Bring in missing chapters [Happi]
- * Bring in missing text in the process and scheduler chapters [Happi]
- * Fix the mess caused by mergin two different versions into the first chapters [Happi]
- * Go over the new outline [Happi]
- * Fix links
- * Add images
- * Fix build system for ascii-art
- * Links to OTP code on github
- * Add some kind of forum/wiki to discuss what needs to be done
- * Fix the gdb examples to use the "new" gdb macros provided by OTP.
- * Index
- 

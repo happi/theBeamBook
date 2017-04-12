@@ -1,5 +1,5 @@
 [[CH-BEAM]]
-== The Erlang Virtual Machine: BEAM 
+== The Erlang Virtual Machine: BEAM
 
 BEAM (Bogumil's/Bj&ouml;rn's Abstract Machine) is the machine that executes
 the code in the Erlang Runtime System. It is a garbage collecting,
@@ -92,7 +92,6 @@ Great, you have built your first virtual machine! Handling
 subtraction, division and the rest of the Erlang language is left as
 an exercise for the reader.
 
-
 Anyway, the BEAM is *not* a stack machine, it is a _register machine_.
 In a register machine instruction operands are stored in registers
 instead of the stack, and the result of an operation usually end up
@@ -101,7 +100,7 @@ in a specific register.
 Most register machines do still have a stack used for passing arguments
 to functions and saving return addresses. BEAM has both a stack and
 registers, but just as in WAM the stack slots are accessible through
-registers called Y-registers. BEAM also have a number of X-registers, 
+registers called Y-registers. BEAM also have a number of X-registers,
 and a special register X0 (sometimes also called R0) which works as
 an accumulator where results are stored.
 
@@ -111,7 +110,7 @@ and register X0 is used for the return value.
 The X registers are stored in a C-array in the BEAM emulator and they
 are globally accessible from all functions. The X0 register is cached
 in a local variable mapped to a physical machine register in the native
-machine on most architectures. 
+machine on most architectures.
 
 The Y registers are stored in the stack frame of the caller and only
 accessible by the calling functions. To save a value across a function
@@ -119,10 +118,12 @@ call BEAM allocates a stack slot for it in the current stack frame and
 then moves the value to a Y register.
 
 [[x_and_y_regs_in_memory]]
+
+[shaape]
 ----
   hend ->  +----+    -
-           |....| 
-  (fp) ->  | AN | 
+           |....|
+  (fp) ->  | AN |
   (y0) ->  |    |
   (y1) ->  |    |
   stop ->  |    |
