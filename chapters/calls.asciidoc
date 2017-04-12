@@ -1,4 +1,3 @@
-
 [[CH-Calls]]
 == Different Types of Calls, Linking and Hot Code Loading (5p)
 
@@ -15,7 +14,7 @@ hot code loading. Higher order functions in a distributed system.
 In Erlang there is a semantic difference between a local function call
 and a remote function call. A remote call, that is a call to a
 function in a named module, is guaranteed to go to the latest loaded
-version of that module. A local call, a unqualified call to a function
+version of that module. A local call, an unqualified call to a function
 within the same module, is guaranteed to go to the same version
 of the code as the caller.
 
@@ -40,25 +39,25 @@ a remote call and possibly a state upgrade:
 ------------------------------------------
 loop(State) ->
   receive
-    upgrade -> 
+    upgrade ->
        NewState = ?MODULE:code_upgrade(State),
        ?MODULE:loop(NewState);
-     Msg -> 
+     Msg ->
        NewState = handle_msg(Msg, State),
        loop(NewState)
    end.
 
 ------------------------------------------
 
-With this construct, which is basically what gen_server uses,
+With this construct, which is basically what `gen_server` uses,
 the programmer has control over when and how a code upgrade is done.
 
 The hot code upgrade is one of the most important features of Erlang
 which makes it possible to write servers that operates 24/7 year out
 and year in. It is also one of the main reasons why Erlang is
 dynamically typed. It is very hard in a statically typed language to
-give type for the code_upgrade function. (It is also hard to give the
-type of the loop function) These types will change in the future as
+give type for the `code_upgrade` function. (It is also hard to give the
+type of the loop function). These types will change in the future as
 the type of State changes to handle new features.
 
 For a language implementer concerned with performance, the hot code
@@ -66,7 +65,7 @@ loading functionality is a burden though. Since each call to or from a
 remote module can change to new code in the future it is very hard to
 do whole program optimization across module boundaries. (Hard but not
 impossible, there are solutions but so far I have not seen one fully
-implemented.)
+implemented).
 
 === Code Loading
 

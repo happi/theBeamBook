@@ -1,4 +1,3 @@
-
 [[CH-Beam_loader]]
 == The BEAM Loader
 
@@ -11,7 +10,6 @@
 // ops.tab format/syntax
 //  Catches
 // Linking and Exports
-
 
 === Transforming from Generic to Specific instructions
 
@@ -51,4 +49,3 @@ e.g. +erts/emulator/x86_64-unknown-linux-gnu/opt/smp/+).
 
 The same program (beam_makeops) also generates the Erlang code for the
 compiler back end +beam_opcodes.erl+.
-
