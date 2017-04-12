@@ -28,6 +28,7 @@ adocs = book.asciidoc \
 	code/memory_chapter/src/lb.erl \
 	code/memory_chapter/src/send.erl \
 	code/memory_chapter/src/share.erl
+DBLATEX_OPTS = -P latex.output.revhistory=0 -P doc.collab.show=0
 
 all: beam-book.pdf book.html
 
@@ -38,7 +39,7 @@ xml/beam-book-from-ab.xml:  $(adocs)
 	asciidoc $(ABFLAGS) -o $@ book.asciidoc
 
 beam-book.pdf: xml/beam-book-from-ab.xml
-	dblatex xml/beam-book-from-ab.xml -o $@
+	dblatex $(DBLATEX_OPTS) xml/beam-book-from-ab.xml -o $@
 
 book.html:
 	asciidoc --backend=html5 --doctype=book book.asciidoc
