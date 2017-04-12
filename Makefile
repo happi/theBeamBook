@@ -27,7 +27,13 @@ adocs = book.asciidoc \
 	code/compiler_chapter/src/world.erl \
 	code/memory_chapter/src/lb.erl \
 	code/memory_chapter/src/send.erl \
-	code/memory_chapter/src/share.erl
+	code/memory_chapter/src/share.erl \
+	images/observer_applications.png \
+	images/observer_code_server.png \
+	images/observer_load.jpg \
+	images/observer_processes.png \
+	images/observer_system.png
+
 DBLATEX_OPTS = -P latex.output.revhistory=0 -P doc.collab.show=0
 
 all: beam-book.pdf book.html
