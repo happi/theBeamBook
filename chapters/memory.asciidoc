@@ -11,6 +11,7 @@ compile on.
 
 A program's memory layout looks something like this:
 
+[shaape]
 ----
  high
  addresses
@@ -306,6 +307,7 @@ of system flags below.
 Most allocators also have one "main multiblock carrier" which is never
 deallocated.
 
+[shaape]
 ----
  high
  addresses

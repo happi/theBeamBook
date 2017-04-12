@@ -158,6 +158,7 @@ help you profile and optimize your application. In xref:CH-Crash[] and
 xref:CH-Debugger[] I'll give you some hints on how to find the cause
 of crashing applications and how to find bugs in your application.
 
+[shaape]
 ----
 
   Node1     Node2
@@ -336,6 +337,7 @@ is that there is no operating system in the Erlang on Xen stack.
 Since Ling implements the generic instruction set of BEAM, it can reuse
 the BEAM compiler from the OTP layer to compile Erlang to Ling.
 
+[shaape]
 ----
   Node1     Node2       Node2     Node3
 
@@ -368,6 +370,7 @@ to note here is that JVM has replaced BEAM as the virtual machine
 and that Erjang provides the services of ERTS by implementing them
 in Java on top of the VM.
 
+[shaape]
 ----
   Node1     Node2       Node3     Node4
 
