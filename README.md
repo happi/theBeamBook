@@ -49,6 +49,19 @@ docker run -v $PWD:/book robertoaloi/docker-thebeambook make
 1. Install [MacTex](http://www.tug.org/mactex/). Note that you would need to _full_ MacTex rather than just BasicTex.
 1. Add `/Library/TeX/texbin` to your `PATH`.
 1. `easy_install dblatex`
+1. Install asciidoc
+1. Install source-highlight
+1. Install wget
+1. `make`
+
+## Building on Mac OSX (with brew)
+
+1. `brew install Caskroom/cask/mactex`
+1. Add `/Library/TeX/texbin` to your `PATH`.
+1. `sudo easy_install dblatex`
+1. `brew install asciidoc`
+1. `brew install source-highlight`
+1. `brew install wget`
 1. `make`
 
  # TODO
