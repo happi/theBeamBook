@@ -28,15 +28,11 @@ stable release](https://github.com/happi/theBeamBook/releases/latest).
 Alternatively you can create your own PDF from the source code
 following the instructions below.
 
-## Building on Linux
+## Building from source
 
-To build a PDF version of the book from source, simply run:
+### Docker
 
-```shell
-make
-```
-Since the above command requires a number of dependencies (including
-erlang, asciidoc and dblatex), a Docker image containing everything
+A Docker image containing everything
 which is needed to build the book from source is provided. To use it:
 
 ```shell
@@ -44,7 +40,13 @@ docker pull robertoaloi/docker-thebeambook:latest
 docker run -v $PWD:/book robertoaloi/docker-thebeambook make
 ```
 
-## Building on Mac OSX
+### Linux
+
+```shell
+make
+```
+
+### Mac OSX
 
 1. Install [MacTex](http://www.tug.org/mactex/). Note that you would need to _full_ MacTex rather than just BasicTex.
 1. Add `/Library/TeX/texbin` to your `PATH`.
@@ -54,7 +56,7 @@ docker run -v $PWD:/book robertoaloi/docker-thebeambook make
 1. Install wget
 1. `make`
 
-## Building on Mac OSX (with brew)
+## Mac OSX (using brew)
 
 1. `brew install Caskroom/cask/mactex`
 1. Add `/Library/TeX/texbin` to your `PATH`.
