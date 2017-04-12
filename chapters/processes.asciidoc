@@ -138,7 +138,7 @@ for the reductions then the process has executed a lot of code.
 We can further examine a process with the `i/3` function. Let
 us take a look at the `code_server` process. We can see in the
 previous list that the process identifier (pid) of the `code_server`
-is `\<0.36.0\>`. By calling `i/3` with the three numbers of
+is `<0.36.0>`. By calling `i/3` with the three numbers of
 the pid we get this information:
 
 [source,erlang]
@@ -192,14 +192,14 @@ when we introduce the _Observer_.
 The last few fields (`dictionary`, `total_heap_size`, `heap_size`,
 `stack_size`, and `garbage_collection`) give us information about the
 process memory usage. We will look at the process memory areas in
-detail in this chapter in <ref linkend="ch.memory"/>.
+detail in chapter xref:CH-Memory[].
 
 Another, even more intrusive way of getting information
 about processes is to use the process information given
 by the `BREAK` menu: `ctrl+c p [enter]`. Note that while
 you are in the `BREAK` state the whole node freezes.
 
-==== Programatic Process Probing
+==== Programmatic Process Probing
 
 The shell functions just print the information about the
 process but you can actually get this information as data,
@@ -292,8 +292,7 @@ You might notice that many processes have a heap size of
 of a process.
 
 See the documentation of the module `erlang` for a full description of
-the information available with
-[`process_info`](http://erlang.org/doc/man/erlang.html#process_info-1).
+the information available with http://erlang.org/doc/man/erlang.html#process_info-1[`process_info`].
 Notice how the `process_info/1` function only returns a subset of all
 the information available for the process and how the `process_info/2`
 function can be used to fetch extra information. As an example, to
@@ -328,7 +327,7 @@ Erlang shell.
 ==== Using the Observer to Inspect Processes
 
 A third way of examining processes is with the
-[_Observer_](http://erlang.org/doc/apps/observer/observer_ug.html).
+http://erlang.org/doc/apps/observer/observer_ug.html[_Observer_].
 The Observer is an extensive graphical interface for inspecting
 the Erlang RunTime System. We will use the Observer throughout
 this book to examine different aspects of the system.
@@ -379,11 +378,13 @@ right now, but if you keep on reading all will eventually
 be revealed.
 
 .Enabling the Observer
-[NOTE]  If you are building your application with erlang.mk or
-  rebar and you want to include the Observer application
-  in your build you might need to add the applications
-  `runtime_tools`, `wx`, and `observer` to your list
-  of applications in yourapp.app.src.
+****
+If you are building your application with erlang.mk or
+rebar and you want to include the Observer application
+in your build you might need to add the applications
+`runtime_tools`, `wx`, and `observer` to your list
+of applications in yourapp.app.src.
+****
 
 Now that we have a basic understanding of what a process is
 and some tools to find and inspect processes in a system we
@@ -433,9 +434,9 @@ can print out the memory content of stacks, heaps, and the PCB. The
 raw data is printed and in most cases a human readable version is
 pretty printed alongside the data. To really understand everything
 that we see when we inspect the memory we will need to know more about
-the Erlang tagging scheme (which we will go through in <ref
-linkend="ch.types"/> and about the execution model and error handling
-which we will go through in <ref linkend="ch.BEAM"/>), but using these
+the Erlang tagging scheme (which we will go through in xref:CH-TypeSystem[]
+and about the execution model and error handling
+which we will go through in xref:CH-BEAM[], but using these
 tools will give us a nice view of how a process really is just memory.
 
 
@@ -456,7 +457,7 @@ without using any reductions (we will look at what that
 means in the next chapter). Printing the heap of a
 very large process for example can take a long time.
 
-Theses BIFs are only meant to be used for debugging
+These BIFs are only meant to be used for debugging
 and you use them at you own risk. You should probably
 not run them on a live system.
 
@@ -467,7 +468,7 @@ There are new versions of these BIFs that do a better
 job, hopefully they will be included in ERTS at the
 time of the printing of this book. Otherwise you
 can build your own version with the patch provided
-in the code section and the instructions in <ref linkend="ap.building_erts"/>.
+in the code section and the instructions in xref:CH-BuildingERTS[].
 
 ****
 
@@ -514,7 +515,7 @@ true
 ----
 
 We will look closer at the values on the stack and the
-heap in <ref linkend="ch.types"/>.
+heap in xref:CH-TypeSystem[].
 The content of the heap is printed by `hipe_bifs:show_heap/1`.
 Since we do not want to list a large heap here we'll just
 spawn a new process that does nothing and show that heap:
@@ -569,69 +570,70 @@ the PCB with `hipe_bifs:show_pcb/1':
 
 ----
 3> hipe_bifs:show_pcb(self()).                                            
-P: 0x00007f7f3cbc0400
----------------------------------------------------------------
-Offset| Name        | Value              | *Value             |
-    0 | id          | 0x000001d0000003a3 |                    |
-   72 | htop        | 0x00007f7f33f15298 |                    |
-   96 | hend        | 0x00007f7f33f16540 |                    |
-   88 | heap        | 0x00007f7f33f11470 |                    |
-  104 | heap_sz     | 0x0000000000000a1a |                    |
-   80 | stop        | 0x00007f7f33f16480 |                    |
-  592 | gen_gcs     | 0x0000000000000012 |                    |
-  594 | max_gen_gcs | 0x000000000000ffff |                    |
-  552 | high_water  | 0x00007f7f33f11c50 |                    |
-  560 | old_hend    | 0x00007f7f33e90648 |                    |
-  568 | old_htop    | 0x00007f7f33e8f8e8 |                    |
-  576 | old_head    | 0x00007f7f33e8e770 |                    |
-  112 | min_heap_.. | 0x00000000000000e9 |                    |
-  328 | rcount      | 0x0000000000000000 |                    |
-  336 | reds        | 0x0000000000002270 |                    |
-   16 | tracer      | 0xfffffffffffffffb |                    |
-   24 | trace_fla.. | 0x0000000000000000 |                    |
-  344 | group_lea.. | 0x0000019800000333 |                    |
-  352 | flags       | 0x0000000000002000 |                    |
-  360 | fvalue      | 0xfffffffffffffffb |                    |
-  368 | freason     | 0x0000000000000000 |                    |
-  320 | fcalls      | 0x00000000000005a2 |                    |
-  384 | next        | 0x0000000000000000 |                    |
-   48 | reg         | 0x0000000000000000 |                    |
-   56 | nlinks      | 0x00007f7f3cbc0750 |                    |
-  616 | mbuf        | 0x0000000000000000 |                    |
-  640 | mbuf_sz     | 0x0000000000000000 |                    |
-  464 | dictionary  | 0x0000000000000000 |                    |
-  472 | seq..clock  | 0x0000000000000000 |                    |
-  480 | seq..astcnt | 0x0000000000000000 |                    |
-  488 | seq..token  | 0xfffffffffffffffb |                    |
-  496 | intial[0]   | 0x000000000000320b |                    |
-  504 | intial[1]   | 0x0000000000000c8b |                    |
-  512 | intial[2]   | 0x0000000000000002 |                    |
-  520 | current     | 0x00007f7f3be87c20 | 0x000000000000ed8b |
-  296 | cp          | 0x00007f7f3d3a5100 | 0x0000000000440848 |
-  304 | i           | 0x00007f7f3be87c38 | 0x000000000044353a |
-  312 | catches     | 0x0000000000000001 |                    |
-  224 | arity       | 0x0000000000000000 |                    |
-  232 | arg_reg     | 0x00007f7f3cbc04f8 | 0x000000000000320b |
-  240 | max_arg_reg | 0x0000000000000006 |                    |
-  248 | def..reg[0] | 0x000000000000320b |                    |
-  256 | def..reg[1] | 0x0000000000000c8b |                    |
-  264 | def..reg[2] | 0x00007f7f33ec9589 |                    |
-  272 | def..reg[3] | 0x0000000000000000 |                    |
-  280 | def..reg[4] | 0x0000000000000000 |                    |
-  288 | def..reg[5] | 0x00000000000007d0 |                    |
-  136 | nsp         | 0x0000000000000000 |                    |
-  144 | nstack      | 0x0000000000000000 |                    |
-  152 | nstend      | 0x0000000000000000 |                    |
-  160 | ncallee     | 0x0000000000000000 |                    |
-   56 | ncsp        | 0x0000000000000000 |                    |
-   64 | narity      | 0x0000000000000000 |                    |
----------------------------------------------------------------
+ P: 0x00007f7f3cbc0400
+ ---------------------------------------------------------------
+ Offset| Name        | Value              | *Value             |
+     0 | id          | 0x000001d0000003a3 |                    |
+    72 | htop        | 0x00007f7f33f15298 |                    |
+    96 | hend        | 0x00007f7f33f16540 |                    |
+    88 | heap        | 0x00007f7f33f11470 |                    |
+   104 | heap_sz     | 0x0000000000000a1a |                    |
+    80 | stop        | 0x00007f7f33f16480 |                    |
+   592 | gen_gcs     | 0x0000000000000012 |                    |
+   594 | max_gen_gcs | 0x000000000000ffff |                    |
+   552 | high_water  | 0x00007f7f33f11c50 |                    |
+   560 | old_hend    | 0x00007f7f33e90648 |                    |
+   568 | old_htop    | 0x00007f7f33e8f8e8 |                    |
+   576 | old_head    | 0x00007f7f33e8e770 |                    |
+   112 | min_heap_.. | 0x00000000000000e9 |                    |
+   328 | rcount      | 0x0000000000000000 |                    |
+   336 | reds        | 0x0000000000002270 |                    |
+    16 | tracer      | 0xfffffffffffffffb |                    |
+    24 | trace_fla.. | 0x0000000000000000 |                    |
+   344 | group_lea.. | 0x0000019800000333 |                    |
+   352 | flags       | 0x0000000000002000 |                    |
+   360 | fvalue      | 0xfffffffffffffffb |                    |
+   368 | freason     | 0x0000000000000000 |                    |
+   320 | fcalls      | 0x00000000000005a2 |                    |
+   384 | next        | 0x0000000000000000 |                    |
+    48 | reg         | 0x0000000000000000 |                    |
+    56 | nlinks      | 0x00007f7f3cbc0750 |                    |
+   616 | mbuf        | 0x0000000000000000 |                    |
+   640 | mbuf_sz     | 0x0000000000000000 |                    |
+   464 | dictionary  | 0x0000000000000000 |                    |
+   472 | seq..clock  | 0x0000000000000000 |                    |
+   480 | seq..astcnt | 0x0000000000000000 |                    |
+   488 | seq..token  | 0xfffffffffffffffb |                    |
+   496 | intial[0]   | 0x000000000000320b |                    |
+   504 | intial[1]   | 0x0000000000000c8b |                    |
+   512 | intial[2]   | 0x0000000000000002 |                    |
+   520 | current     | 0x00007f7f3be87c20 | 0x000000000000ed8b |
+   296 | cp          | 0x00007f7f3d3a5100 | 0x0000000000440848 |
+   304 | i           | 0x00007f7f3be87c38 | 0x000000000044353a |
+   312 | catches     | 0x0000000000000001 |                    |
+   224 | arity       | 0x0000000000000000 |                    |
+   232 | arg_reg     | 0x00007f7f3cbc04f8 | 0x000000000000320b |
+   240 | max_arg_reg | 0x0000000000000006 |                    |
+   248 | def..reg[0] | 0x000000000000320b |                    |
+   256 | def..reg[1] | 0x0000000000000c8b |                    |
+   264 | def..reg[2] | 0x00007f7f33ec9589 |                    |
+   272 | def..reg[3] | 0x0000000000000000 |                    |
+   280 | def..reg[4] | 0x0000000000000000 |                    |
+   288 | def..reg[5] | 0x00000000000007d0 |                    |
+   136 | nsp         | 0x0000000000000000 |                    |
+   144 | nstack      | 0x0000000000000000 |                    |
+   152 | nstend      | 0x0000000000000000 |                    |
+   160 | ncallee     | 0x0000000000000000 |                    |
+    56 | ncsp        | 0x0000000000000000 |                    |
+    64 | narity      | 0x0000000000000000 |                    |
+ ---------------------------------------------------------------
+
 true
 4>
 ----
 
 Now armed with these inspection tools we are ready to look
-at what this fields in the PCB means.
+at what these fields in the PCB mean.
 
 === The PCB
 
@@ -639,11 +641,11 @@ The Process Control Block contains all the fields that control the
 behavior and current state of a process. In this section and the rest
 of the chapter we will go through the most important fields. We will
 leave out some fields that have to do with execution and tracing from
-this chapter, instead we will cover those in <ref linkend="ch.BEAM"/>.
+this chapter, instead we will cover those in xref:CH-BEAM[].
 
 If you want to dig even deeper than we will go in this chapter you can
 look at the C source code. The PCB is implemented as a C struct called `process` in the file
-[`erl_process.h`.](https://github.com/erlang/otp/blob/OTP_R16B03-1/erts/emulator/beam/erl_process.h)
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h[`erl_process.h`].
 
 
 The field `id` contains the process ID (or PID).
@@ -652,8 +654,7 @@ The field `id` contains the process ID (or PID).
     0 | id          | 0x000001d0000003a3 |                    |
 ----
 
-The process id is an Erlang term and hence tagged. (See <ref
-linkend="sec.tagging"/>) This means
+The process ID is an Erlang term and hence tagged (See xref:CH-TypeSystem[]). This means
 that the 4 least significant bits are a tag (0011). In the
 code section there is a module for inspecting Erlang terms
 (<filename>show.erl</filename>) which we will cover in
@@ -770,7 +771,7 @@ heap.
 Most of the time, then, there is
 another heap area for
 each process: the old heap, handled by the fields `old_heap`,
-`old_htop` and `old_hend` in the PCB. This almost bings us back to
+`old_htop` and `old_hend` in the PCB. This almost brings us back to
 our original picture of a process as four memory areas:
 
 ----
@@ -790,7 +791,7 @@ When a process starts there is no old heap, but as soon as young data
 has matured to old data and there is a garbage collection, the old
 heap is allocated. The old heap is garbage collected when there
 is a _major collection_, also called a _full sweep_.
-See <ref linkend="ch.memory"/> for more
+See xref:CH-Memory[] for more
 details of how garbage collection works. In that chapter we will
 also look at how to track down and fix memory related problems.
 
@@ -821,7 +822,8 @@ safely write data. If a sending process can not get the lock it would
 write to the `m-buf` instead. When all data of a message has been
 copied to the `m-buf` the message is linked to the process through the
 mailbox. The linking (_LINK_MESSAGE_ in
-<filename>erl_message.h</filename>) appends the message to the receiver's
+link:https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_message.h[erl_message.h]
+ appends the message to the receiver's
 message queue.
 
 The garbage collector would then copy the messages onto the process'
@@ -1245,19 +1247,19 @@ an extra tuple and a cons, and
 might cause garbage collection to be triggered. Updating a key in the
 dictionary, which is in a bucket, causes the whole bucket (the whole
 list) to be reallocated to make sure we don't get pointers from the
-old heap to the new heap. (In <ref linkend="ch.memory"/> we will
+old heap to the new heap. (In xref:CH-Memory[] we will
 see the details of how garbage collection works.)
 
 === Dig In
 
-In this chapter we have looked at how a process in implemented. In
+In this chapter we have looked at how a process is implemented. In
 particular we looked at how the memory of a process is organized, how
 message passing works and the information in the PCB. We also looked
 at a number of tools for inspecting processes introspection, such as
 _erlang:process_info_, and the _hipe:show_*_ bifs.
 
 
-Use the functions `erlang:processes/0` and `erlang:process_info/1/2`
+Use the functions `erlang:processes/0` and `erlang:process_info/1,2`
 to inspect the processes in the system. Here are
 some functions to try:
 
