@@ -20,5 +20,4 @@ book.html
 chapters/contributors.txt
 xml/*.png
 xml/*.png.md5
-/*.png
-/*.png.md5
+site

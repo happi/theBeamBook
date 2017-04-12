@@ -36,7 +36,7 @@ adocs = book.asciidoc \
 
 DBLATEX_OPTS = -P latex.output.revhistory=0 -P doc.collab.show=0
 
-all: beam-book.pdf book.html
+all: beam-book.pdf index.html
 
 chapters/contributors.txt: .git
 	./bin/gitlog.sh $@
@@ -47,14 +47,8 @@ xml/beam-book-from-ab.xml:  $(adocs)
 beam-book.pdf: xml/beam-book-from-ab.xml
 	dblatex $(DBLATEX_OPTS) xml/beam-book-from-ab.xml -o $@
 
-book.html:
-	asciidoc --backend=html5 --doctype=book book.asciidoc
-
-# $(subst .asciidoc,.html, $(adocs)): %.html: %.asciidoc
-# 	asciidoc -a icons -a toc2 $<
-
-# index.html: *.asciidoc
-# 	asciidoc -o index.html -a icons -a toc2 book.asciidoc
+index.html:
+	asciidoc --backend=html5 --doctype=book -a icons -a toc2 -o site/index.html book.asciidoc
 
 code/book/ebin/generate_op_doc.beam: code/book/src/generate_op_doc.erl
 	erlc -o $(dir $@) $<
