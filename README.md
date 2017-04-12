@@ -37,7 +37,7 @@ which is needed to build the book from source is provided. To use it:
 
 ```shell
 docker pull robertoaloi/docker-thebeambook:latest
-docker run -v $PWD:/book robertoaloi/docker-thebeambook make
+docker run -v $PWD:/book -t robertoaloi/docker-thebeambook make
 ```
 
 ### Linux
