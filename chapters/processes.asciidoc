@@ -755,7 +755,7 @@ generational garbage collector. When there is no more
 space on the heap (or the stack, since they share the allocated memory
 block), the garbage collector kicks in to free up memory.
 
-The GC allocates a new memory area called _to space_.
+The GC allocates a new memory area called the _to space_.
 Then it goes through the stack to find all live roots and
 follows each root and copies the data on the heap to the new
 heap. Finally it also copies the stack to the new heap and frees up
@@ -1140,6 +1140,7 @@ the heap.
 If the allocation strategy is _off_heap_ the message
 will end up in an `m-buf` and linked from the external mailbox:
 
+[shaape]
 ----
                  P 1
  +---------------------------------+
