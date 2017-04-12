@@ -1,7 +1,7 @@
 [[CH-IO]]
 == IO, Ports and Networking (10p)
 
-Within Erlang all communication is done by asynchronous signaling.
+Within Erlang, all communication is done by asynchronous signaling.
 The communication between an Erlang node and the outside world is done
 through a _port_. A port is an interface between Erlang processes and
 an external resource. In early versions of Erlang a port behaved very
@@ -18,11 +18,10 @@ at how standard IO works on a higher level.
 
 * IO protocol
 * group leader
-* erlang:display -- a biff that sends directly to node's std out
+* erlang:display -- a BIF that sends directly to node's std out
 * io:format -- sends through io protocol and the group leader
 * Redirecting standard IO at startup (detached mode)
 * Standard in and out
-
 
 === Ports ===
 
@@ -32,12 +31,12 @@ a large extent pretend that everything in the world behaves like
 an Erlang process and communicate through message passing.
 
 Each port has an owner, more on this later, but all processes
-who knows about the port can send messages to the port.
+who know about the port can send messages to the port.
 In figure REF we see how a processes can communicate with the
 port and how the port is communicating to the world outside the
 Erlang node.
 
-
+[shaape]
 ----
 
   +-------------------+
@@ -94,7 +93,7 @@ programming languages. Since the external program is executed in its
 own OS process it will not bring down the Erlang node if it
 crashes. (It can of course use up all CPU or memory or do a number of
 other things to bring down the whole OS, but it is much safer than a
-linked in driver or a NIF.)
+linked in driver or a NIF).
 
 A driver port requires that a driver program has been loaded with
 ERTS. Such a port is started with either +{spawn, Command}+ or
@@ -105,15 +104,16 @@ OS process as the Erlang node and a crash in the driver will bring
 down the whole node. Details about how to write an Erlang driver in
 general can be found in xref:CH-C[].
 
-Erlang OTP comes with a number port drivers implementing the
+Erlang/OTP comes with a number port drivers implementing the
 predefined port types. There are the common drivers available on all
-platforms: tcp_inet, udp_inet, sctp_inet, efile, zlib_drv,
-ram_file_drv, binary_filer, tty_sl. These drivers are used to
+platforms: `tcp_inet`, `udp_inet`, `sctp_inet`, `efile`, `zlib_drv`,
+`ram_file_drv`, `binary_filer`, `tty_sl`. These drivers are used to
 implement e.g. file handling and sockets in Erlang. On Windows there
-is also a driver to access the registry: registry__drv__. And on most
+is also a driver to access the registry: `registry_drv`. And on most
 platforms there are example drivers to use when implementing your own
-driver like: multi and sig_drv.
+driver like: `multi_drv` and `sig_drv`.
 
+[shaape]
 ----
  +-----------------------------------------------------------------------------------------------------+
  |                               Entities on an Erlang Node                                            |
@@ -128,12 +128,12 @@ driver like: multi and sig_drv.
 
 
 // Mention that data to from the port are byte streams
-// Packet size 
+// Packet size
 // R16 truly asynchronous.
 
-// Replacing the standard IO, Poll. 
-// How ports are implemented. 
-// How ports communicate. 
+// Replacing the standard IO, Poll.
+// How ports are implemented.
+// How ports communicate.
 
 
 ===== Ports to file descriptors =====
@@ -173,7 +173,6 @@ linked in driver.
 // RPC
 
 === Sockets, UDP and TCP ===
-// Sockets. 
-// Getting info on ports and sockets. 
+// Sockets.
+// Getting info on ports and sockets.
 // Tweaking.
-
