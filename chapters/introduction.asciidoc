@@ -93,8 +93,31 @@ in the _Erlang solution stack_. In particular if you are running
 your code on top of ERTS you will need to know the components of
 the _ERTS Stack_.
 
-In xref:the_erts_stack[] you can see the ERTS Stack illustrated with
-two Erlang nodes running on one machine.
+In xref:the_erts_stack[] you can see the ERTS Stack
+illustrated with two Erlang nodes running on one machine.
+
+[[the_erts_stack]]
+.ERTS Stack
+[shaape]
+----
+
+  Node1     Node2
+
+ +------+  +------+
+ | APP  |  | APP  |
+ +------+  +------+
+ | OTP  |  | OTP  |
+ +------+  +------+
+ | BEAM |  | BEAM |
+ +------+  +------+
+ | ERTS |  | ERTS |
+ +------+  +------+
+ +----------------+
+ |       OS       |
+ +----------------+
+ |    HW or VM    |
+ +----------------+
+----
 
 At the bottom of the stack there is the hardware you are running
 on. The easiest way to improve the performance of your app is probably
@@ -155,28 +178,6 @@ xref:CH-Tracing[] there are some hints and some tools that can
 help you profile and optimize your application. In
 xref:CH-Debugger[] we will look at how to find the cause
 of crashing applications and how to find bugs in your application.
-
-[shaape]
-----
-
-  Node1     Node2
-
- +------+  +------+
- | APP  |  | APP  |
- +------+  +------+
- | OTP  |  | OTP  |
- +------+  +------+
- | BEAM |  | BEAM |
- +------+  +------+
- | ERTS |  | ERTS |
- +------+  +------+
- +----------------+
- |       OS       |
- +----------------+
- |    HW or VM    |
- +----------------+
-----
-
 
 
 For information on how to build and run an Erlang node
@@ -331,6 +332,8 @@ is that there is no operating system in the Erlang on Xen stack.
 Since Ling implements the generic instruction set of BEAM, it can reuse
 the BEAM compiler from the OTP layer to compile Erlang to Ling.
 
+[[erlang_on_xen]]
+.Erlang On Xen
 [shaape]
 ----
   Node1     Node2       Node2     Node3
@@ -364,6 +367,8 @@ to note here is that JVM has replaced BEAM as the virtual machine
 and that Erjang provides the services of ERTS by implementing them
 in Java on top of the VM.
 
+[[erlang_on_jvm]]
+.Erlang on the JVM
 [shaape]
 ----
   Node1     Node2       Node3     Node4

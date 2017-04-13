@@ -26,6 +26,8 @@ subtype for each size.)
 
 The Erlang Type Lattice
 
+[[erlang_type_lattice]]
+.Erlang Type Lattice
 [shaape]
 ----
 

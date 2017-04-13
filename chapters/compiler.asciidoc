@@ -60,7 +60,7 @@ The compiler is made up of a number of passes as illustrated in
 xref:fig_compiler_passes[Compiler Passes].
 
 [[fig_compiler_passes]]
-.Compiler Passes.
+.Compiler Passes
 [shaape]
 ----
 [] = Compiler options, () = files, {} = erlang terms, boxes = passes </title>
