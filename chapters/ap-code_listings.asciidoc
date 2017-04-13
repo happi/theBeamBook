@@ -29,6 +29,12 @@ include::../code/compiler_chapter/src/json_test.erl[]
 
 [source,erlang]
 ----
+include::../code/processes_chapter/src/msg.erl[]
+----
+
+
+[source,erlang]
+----
 include::../code/beam_chapter/src/stack_machine_compiler.erl[]
 ----
 

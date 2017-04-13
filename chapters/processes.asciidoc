@@ -956,7 +956,10 @@ As mentioned we can force the message to end up in the in queue by
 setting the flag _message_queue_data_. We can try this with the following
  program:
 
-<embed file= "code/msg.erl"/>
+[source,erlang]
+----
+include::../code/processes_chapter/src/msg.erl[]
+----
 
 With this program we can try sending a message on heap and off heap and
 look at the PCB after each send. With on heap we get the same result
