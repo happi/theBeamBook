@@ -348,19 +348,17 @@ or from the Erlang shell with:
 ----
 
 When the Observer is started it will show you a system overview,
-see the following screen shot.
+see the following screen shot:
 
-<figure id="fig-observer_system">
+image::../images/observer_system.png[]
 
-<imagedata fileref="images/observer_system.png"/>
-</figure>
 We will go over some of this information in detail later in
 this and the next chapter. For now we will just use the Observer to look
 at the running processes. First we take a look at the
 `Application` tab which shows the supervision
 tree of the running system:
 
-![](images/observer_applications.png)
+image::../images/observer_applications.png[]
 
 Here we get a graphical view of how the processes are linked. This is
 a very nice way to get an overview of how a system is structured.
@@ -370,7 +368,7 @@ floating in space connected to each other through links.
 To actually get some useful information about the processes
 we switch to the `Processes` tab:
 
-![](images/observer_processes.png)
+image::../images/observer_processes.png[]
 
 In this view we get basically the same information as with
 `i/0` in the shell. We see the pid, the registered name,
@@ -381,7 +379,7 @@ We can also look into a process by double clicking on its
 row, for example on the code server, to get the kind of
 information you can get with `process_info/2`:
 
-![](images/observer_code_server.png)
+image::../images/observer_code_server.png[]
 
 We will not go through what all this information means
 right now, but if you keep on reading all will eventually
