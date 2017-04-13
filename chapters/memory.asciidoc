@@ -11,6 +11,8 @@ compile on.
 
 A program's memory layout looks something like this:
 
+[[program_memory_layout]]
+.Program Memory Layout
 [shaape]
 ----
  high

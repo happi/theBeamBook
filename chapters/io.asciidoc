@@ -36,6 +36,8 @@ In figure REF we see how a processes can communicate with the
 port and how the port is communicating to the world outside the
 Erlang node.
 
+[[port_communication]]
+.Port Communication
 [shaape]
 ----
 
@@ -113,6 +115,8 @@ is also a driver to access the registry: `registry_drv`. And on most
 platforms there are example drivers to use when implementing your own
 driver like: `multi_drv` and `sig_drv`.
 
+[[entities_on_node]]
+.Entities on an Erlang Node
 [shaape]
 ----
  +-----------------------------------------------------------------------------------------------------+

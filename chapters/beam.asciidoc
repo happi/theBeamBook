@@ -118,7 +118,7 @@ call BEAM allocates a stack slot for it in the current stack frame and
 then moves the value to a Y register.
 
 [[x_and_y_regs_in_memory]]
-
+.X and Y Registers in Memory
 [shaape]
 ----
   hend ->  +----+    -

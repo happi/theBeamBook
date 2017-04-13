@@ -250,6 +250,8 @@ Machine. Events such as a timeout or a delivered
 message triggers transitions along the edges in the state machine.
 The _Process State Machine_ looks like this:
 
+[[process_state_machine]]
+.Process State Machine
 [shaape]
 ----
 
