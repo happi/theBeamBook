@@ -34,6 +34,7 @@ adocs = book.asciidoc \
 	code/memory_chapter/src/lb.erl \
 	code/memory_chapter/src/send.erl \
 	code/memory_chapter/src/share.erl \
+	code/processes_chapter/src/msg.erl \
 	images/observer_applications.png \
 	images/observer_code_server.png \
 	images/observer_load.jpg \
