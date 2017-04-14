@@ -62,7 +62,7 @@ arithmetically, i.e. by first converting them to the same precision.
 
 The same is true when comparing for equality, thus #{1 => 1.0} == #{1 => 1} but #{1.0 => 1} /= #{1 => 1}.
 
-In Erlang versions prior to 18 keys where also compared
+In Erlang versions prior to 18 keys were also compared
 arithmetically.
 
 Erlang is dynamically typed. That is, types will be checked at
@@ -209,9 +209,10 @@ lists of Unicode code points. For strings in latin-1 there is no
 difference since latin-1 is a subset of Unicode.
 // Describe Unicode code points better. Is the subset thing true?
 
-The string "Hello" might look like this in memory:
+The string "hello" might look like this in memory:
 
-.Representation of the string "Hello" on a 32 bit machine.
+.Representation of the string "hello" on a 32 bit machine.
+[shaape]
 ----
 
  hend ->     +-------- -------- -------- --------+
@@ -222,7 +223,7 @@ The string "Hello" might look like this in memory:
                                                                                   |
  htop ->     |                                   |                                |
          132 |00000000 00000000 00000000 01111001| 120 + list tag  -------------- | -+
-         128 |00000000 00000000 00000110 10001111| (H) 104 bsl 4 + small int tag <+  |
+         128 |00000000 00000000 00000110 10001111| (h) 104 bsl 4 + small int tag <+  |
          124 |00000000 00000000 00000000 01110001| 112 + list tag  ----------------- | -+
          120 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag <---+  | 
          116 |00000000 00000000 00000000 01110001| 112 + list tag  -------------------- | -+
@@ -268,6 +269,7 @@ element in the following words. The empty tuple +{}+ is stored just as
 the word 0 (header tag 0, tuple tag 0000, and arity 0).
 
 .Representation of the tuple {104,101,108,108,111} on a 32 bit machine.
+[shaape]
 ----
 
  hend ->     +-------- -------- -------- --------+
@@ -281,22 +283,22 @@ the word 0 (header tag 0, tuple tag 0000, and arity 0).
          144 |00000000 00000000 00000110 11001111| (l) 108 bsl 4 + small int tag  |
          140 |00000000 00000000 00000110 11001111| (l) 108 bsl 4 + small int tag  |
          136 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag  | 
-         132 |00000000 00000000 00000110 10001111| (H) 104 bsl 4 + small int tag  |
-         128 |00000000 00000000 00000000 10100000| 5 bsl 6 + tuple & header tag <-+
+         132 |00000000 00000000 00000110 10001111| (h) 104 bsl 4 + small int tag  |
+         128 |00000000 00000000 00000001 01000000| 5 bsl 6 + tuple & header tag <-+
              |                ...                |
  heap ->     +-----------------------------------+
 
 ----
 
-A _binary_ is an imutable array of bytes. There are four types of
+A _binary_ is an immutable array of bytes. There are four types of
 internal representations of _binaries_. The two types _heap binaries_
 and _refc binaries_ contains binary data. The other two types, _sub
-binaries_ and _match contexts_ (the BINARY_AGREGATE tag) are smaller
+binaries_ and _match contexts_ (the BINARY_AGGREGATE tag) are smaller
 references into one of the other two types.
 
 Binaries that are 64 bytes or less can be stored directly on the
 process heap as _heap binaries_. Larger binaries are reference
-counted and the paylod is stored outside of the process heap, a
+counted and the payload is stored outside of the process heap, a
 reference to the payload is stored on the process heap in an object
 called a _ProcBin_.
 
