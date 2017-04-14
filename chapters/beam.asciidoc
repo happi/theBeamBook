@@ -30,7 +30,7 @@ stack machine, the BEAM is a register machine loosely based on WAM
 first pushed to the working stack, then the instruction pops its
 arguments and then it pushes the result on the stack.
 
-Stack machines are quite popular among virtual machine- and
+Stack machines are quite popular among virtual machine and
 programming language implementers since they are quite easy to
 generate code for, and the code becomes very compact. The compiler
 does not need to do any register allocation, and most operations do
@@ -94,13 +94,13 @@ an exercise for the reader.
 
 Anyway, the BEAM is *not* a stack machine, it is a _register machine_.
 In a register machine instruction operands are stored in registers
-instead of the stack, and the result of an operation usually end up
+instead of the stack, and the result of an operation usually ends up
 in a specific register.
 
 Most register machines do still have a stack used for passing arguments
 to functions and saving return addresses. BEAM has both a stack and
 registers, but just as in WAM the stack slots are accessible through
-registers called Y-registers. BEAM also have a number of X-registers,
+registers called Y-registers. BEAM also has a number of X-registers,
 and a special register X0 (sometimes also called R0) which works as
 an accumulator where results are stored.
 
@@ -185,7 +185,7 @@ _{move,{x,1},{y,0}}_ (read as move x1 to y0 or in imperative style: y0
 The id function (at label f4) is then called by 
 _{call,1,{f,4}}_. (We will come back to what the argument "1" stands for later.)
 Then the result of the call (now in X0)
-need to be saved on the stack (Y0), but the argument _B_
+needs to be saved on the stack (Y0), but the argument _B_
 is saved in Y0 so the BEAM does a bit of shuffling:
 
 Except for the x and y registers, there are a number of special
@@ -598,7 +598,7 @@ this by keeping track of how long a process has been running. This is
 done by counting _reductions_. The term originaly comes from the
 mathematical term beta-reduction used in lambda calculus.
 
-The definition of a reduction in BEAM not very specific, but we can
+The definition of a reduction in BEAM is not very specific, but we can
 see it as a small piece of work, which shouldn't take _too long_.
 Each function call is counted as a reduction, and BEAM does a test
 upon entry to each function if the process has used up all its
