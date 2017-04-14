@@ -60,7 +60,7 @@ arithmetically, i.e. by first converting them to the same precision.
 
 The same is true when comparing for equality, thus #{1 => 1.0} == #{1 => 1} but #{1.0 => 1} /= #{1 => 1}.
 
-In Erlang versions prior to 18 keys where also compared
+In Erlang versions prior to 18 keys were also compared
 arithmetically.
 
 Erlang is dynamically typed. That is, types will be checked at
@@ -267,6 +267,7 @@ element in the following words. The empty tuple +{}+ is stored just as
 the word 0 (header tag 0, tuple tag 0000, and arity 0).
 
 .Representation of the tuple {104,101,108,108,111} on a 32 bit machine.
+[shaape]
 ----
 
  hend ->     +-------- -------- -------- --------+
@@ -287,15 +288,15 @@ the word 0 (header tag 0, tuple tag 0000, and arity 0).
 
 ----
 
-A _binary_ is an imutable array of bytes. There are four types of
+A _binary_ is an immutable array of bytes. There are four types of
 internal representations of _binaries_. The two types _heap binaries_
 and _refc binaries_ contains binary data. The other two types, _sub
-binaries_ and _match contexts_ (the BINARY_AGREGATE tag) are smaller
+binaries_ and _match contexts_ (the BINARY_AGGREGATE tag) are smaller
 references into one of the other two types.
 
 Binaries that are 64 bytes or less can be stored directly on the
 process heap as _heap binaries_. Larger binaries are reference
-counted and the paylod is stored outside of the process heap, a
+counted and the payload is stored outside of the process heap, a
 reference to the payload is stored on the process heap in an object
 called a _ProcBin_.
 
