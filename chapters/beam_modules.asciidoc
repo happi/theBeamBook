@@ -33,9 +33,10 @@ An IFF file looks like this:
 
 ----
 
-Beam files differ from standard IFF files, in that each chunk is aligned on 4-byte boundary (i.e. 32 bit word) instead of on a 2-byte boundary as in the IFF standard. To indicate that this isn&rsquo;t a standard IFF file the IFF header is tagged with &ldquo;FOR1&rdquo; instead of &ldquo;FORM&rdquo;. The IFF specification suggest this tag for future extensions.
+Beam files differ from standard IFF files, in that each chunk is aligned on 4-byte boundary (i.e. 32 bit word) instead of on a 2-byte boundary as in the IFF standard. To indicate that this is not a standard IFF file the IFF header is tagged with &ldquo;FOR1&rdquo; instead of &ldquo;FORM&rdquo;. The IFF specification suggest this tag for future extensions.
 
 The form type used by beam is &ldquo;BEAM&rdquo;. A beam file has the following layout: 
+
 ----
 {‘FOR1’:4
  SIZE:4
@@ -49,8 +50,6 @@ The form type used by beam is &ldquo;BEAM&rdquo;. A beam file has the following 
 }
 
 ----
-
-
 
 This file format prepends all areas with the size of the following area making it easy to parse the file directly while reading it from disk. To illustrate the structure and content of beam files, we will write a small program that extract all the chunks from a beam file. To make this program as simple and readable as possible we will not parse the file while reading, instead we load the whole file in memory as a binary, and then parse each chunk. The first step is to get a list of all chunks:
 
@@ -66,6 +65,7 @@ include::../code/beam_modules_chapter/src/beamfile1.erl[]
 
 
 A sample run might look like: 
+
 ----
 > beamfile:read("beamfile.beam").
 {848,
@@ -86,13 +86,14 @@ A sample run might look like:
 
 ----
 
- Here we can see the chunk names that beam uses.
+Here we can see the chunk names that beam uses.
 
 [[atom_table_chunk]]
 
 ==== Atom table chunk
 
 The chunk named Atom is mandatory and contains all atoms referred to by the module. The format of the atom chunk is: 
+
 ----
 {“Atom”:4
   CHUNKSIZE:4
@@ -123,6 +124,7 @@ include::../code/beam_modules_chapter/src/beamfile2.erl[]
 The chunk named &ldquo;ExpT&rdquo; (for EXPort Table) is mandatory and contains information about which functions are exported.
 
 The format of the chunk is: 
+
 ----
 {“ExpT”:4
   CHUNKSIZE:4
@@ -138,6 +140,7 @@ The format of the chunk is:
 
 
 We can extend our parse_chunk function by adding the following clause after the atom handling clause: 
+
 ----
 parse_chunks([{"ExpT", _Size,
              <<_Numberofentries:32/integer, Exports/binary>>}
@@ -164,6 +167,7 @@ parse_exports(<<>>) -> [].
 The chunk named &ldquo;ImpT&rdquo; (for IMPort Table) is mandatory and contains information about which functions are imported.
 
 The format of the chunk is: 
+
 ----
 {“ImpT”:4
   CHUNKSIZE:4
@@ -185,6 +189,7 @@ The code for parsing the import table is basically the same as that for parsing 
 ==== Code Chunk
 
 The chunk named &ldquo;Code&rdquo; contains the beam code for the module and is mandatory. The format of the chunk is: 
+
 ----
 {“Code”:4
   CHUNKSIZE:4
@@ -196,7 +201,6 @@ The chunk named &ldquo;Code&rdquo; contains the beam code for the module and is 
   [OPCODE:1]:(CHUNKSIZE-SUBSIZE)
   [4-BYTEPAD:1]:0..3
 }
-
 ----
 
 
@@ -208,6 +212,7 @@ The OPCODEMAX field indicates the highest number of any opcode used in the code.
 The field NUMBEROFLABELS contains the number of labels so that a loader can preallocate a label table of the right size. The field NUMBEROFFUNCTIONS contains the number of functions so that a loader can preallocate a functions table of the right size.
 
 We can parse out the code chunk by adding the following code to our program: 
+
 ----
 parse_chunks([{"Code", Size, <<SubSize:32/integer,Chunk/binary>>           
               } | Rest], Acc) ->
@@ -247,7 +252,6 @@ The chunk named &ldquo;StrT&rdquo; is mandatory and contains all constant string
 
 The format of the chunk is:
 
-
 ----
 {“StrT”:4
  CHUNKSIZE:4
@@ -256,8 +260,7 @@ The format of the chunk is:
 }
 ----
 
-The string chunk can be parsed easilly by just turning the string of bytes into a binary:
-
+The string chunk can be parsed easily by just turning the string of bytes into a binary:
 
 ----
 parse_chunks([{"StrT", _Size, <<Strings/binary>>} | Rest], Acc) -> 
@@ -358,6 +361,7 @@ The chunk named "LitT" is optional and contains compressed code literals. The fo
 The whole table is compressed with zlib:compress/1, and can be uncompressed with zlib_uncompress/1.
 
 We can parse the chunk like this
+
 ----
 parse_chunks([{"LitT", _ChunkSize,
               <<_CompressedTableSize:32, Compressed/binary>>}
@@ -395,6 +399,7 @@ The chunk named "Abst" is optional and may contain the code in abstract form. If
 ----
 
 We can parse the chunk like this
+
 ----
 parse_chunks([{"Abst", _ChunkSize, <<>>} | Rest], Acc) ->
     parse_chunks(Rest,Acc);
