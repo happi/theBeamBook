@@ -54,14 +54,16 @@ binding in the perl script, of the form:
  NAME=EXPR
 
 Like, e.g.:
+
 ----
 BEAM_FORMAT_NUMBER=0
 ----
 The Beam format number is the same as the +instructionset+ field in
 the external beam format. It is only bumped when a backwards
-icnompatible change to the instruction set is made.
+incompatible change to the instruction set is made.
 
 The main content of the file are the opcode definitions of the form:
+
 ----
 OPNUM: [-]NAME/ARITY
 ----
@@ -69,6 +71,7 @@ Where OPNUM and ARITY are integers, NAME is an identifier starting
 with a lowercase letter (a-z), and _:_, _-_, and _/_ are litterals.
 
 For example:
+
 ----
 1: label/1
 ----
@@ -89,18 +92,20 @@ in a human and machine readable format (actually as Erlang terms).
 
 Given the file beamexample1.erl:
 
-++++
+[source,erlang]
+----
 -module(beamexample1).
 
 -export([id/1]).
 
 id(I) when is_integer(I) -> I.
-++++
+----
 
 When compiled with +erlc -S beamexample.erl+ we get the following
 beamexmaple.S file:
 
-++++
+[source,erlang]
+----
 {module, beamexample1}.  %% version = 0
 
 {exports, [{id,1},{module_info,0},{module_info,1}]}.
@@ -138,7 +143,7 @@ beamexmaple.S file:
     {move,{atom,beamexample1},{x,0}}.
     {line,[]}.
     {call_ext_only,2,{extfunc,erlang,get_module_info,2}}.
-++++
+----
 
 In addition to the actual beam code for the integer identity
 function we also get some meta instructions.
@@ -241,19 +246,21 @@ and tearing down the stack frame for the current instruction.
 
 A function skeleton for a leaf function looks like this:
 
-++++
+[source,erlang]
+----
 {function, Name, Arity, StartLabel}.
   {label,L1}.
     {func_info,{atom,Module},{atom,Name},Arity}.
   {label,L2}.
     ...
     return.
-++++
+----
 
 
 A function skeleton for a non leaf function looks like this:
 
-++++
+[source,erlang]
+----
 {function, Name, Arity, StartLabel}.
   {label,L1}.
     {func_info,{atom,Module},{atom,Name},Arity}.
@@ -266,7 +273,7 @@ A function skeleton for a non leaf function looks like this:
 
     {deallocate,Need}.
     return.
-++++
+----
 
 The instruction +allocate StackNeed Live+ saves the continuation
 pointer (CP) and allocate space for +StackNeed+ extra words on the
@@ -276,7 +283,8 @@ registers. E.g. if +Live+ is 2 then registers X0 and X1 are saved.
 When allocating on the stack, the stack pointer (E) is decreased.
 
 .Allocate 1 0
-++++
+[shaape]
+----
        Before           After
          | xxx |            | xxx |
     E -> | xxx |            | xxx |
@@ -285,7 +293,7 @@ When allocating on the stack, the stack pointer (E) is decreased.
            ...                ...
  HTOP -> |     |    HTOP -> |     |
          | xxx |            | xxx |
-++++
+----
 
 For a full listing of all types of allocate and deallocate
 instructions see xref:AP-Instructions[].
