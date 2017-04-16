@@ -83,27 +83,27 @@ This combines a `move` from any location to `x(0)` and return into a single
 instruction called `move_return`. Let's break the tranformation apart to
 see what the different parts do.
 
-`move` is the instruction that the pattern first has to match. This can be either
+move:: is the instruction that the pattern first has to match. This can be either
 an generic instruction that the compiler has emitted, or a temporary instruction
 that ops.tab has emitted to help with transformations.
 
-`S` is a variable binding any type of value. Any value in the pattern (left hand side or +=>+)
-that is used in the generator (right hand side of +=>+) has to be bound to a variable.
+S:: is a variable binding any type of value. Any value in the pattern (left hand side or `=>`)
+that is used in the generator (right hand side of `=>`) has to be bound to a variable.
 
-`x==0` is a guard that says that we only apply the transformation if the target
+x==0:: is a guard that says that we only apply the transformation if the target
 location is an x register with the value 0. It is possible to chain multiple
 types and also bind a variable here. For instance `D=xy==0` would allow both
 x and y registers with a value of 0 and also bind the argument to the variable `D`.
 
-`|` signifies the end of this instruction and the beginning of another instruction
+|:: signifies the end of this instruction and the beginning of another instruction
 that is part of the same pattern.
 
-`return` is the second instruction to match in this pattern.
+return:: is the second instruction to match in this pattern.
 
-`+=>+` signifies the end of the pattern and the start of the code that is to be
+`=>`:: signifies the end of the pattern and the start of the code that is to be
 generated.
 
-`move_return S` is the name of the generated instruction together with the name of
+move_return S:: is the name of the generated instruction together with the name of
 the variable on the lhs. It is possible to generate multiple instructions as part of
 a transformation by using the `|` symbol.
 
@@ -125,25 +125,26 @@ move_return n
 This will generate three different instructions that will use the `MoveReturn` macro in
 beam_emu.c to do the work.
 
-`%macro: move_return` this tells ops.tab to generate the code for `move_return`. If there
+%macro: move_return:: this tells ops.tab to generate the code for `move_return`. If there
 is no `%macro` line, the instruction has to be implemented by hand in beam_emu.c. The code
 for the instruction will be places in `beam_hot.h` or `beam_cold.h` depending on if the
 `%hot` or `%cold` directive is active.
 
-`MoveReturn` tells the code generator to that the name of the c-macro in beam_emu.c to use
+MoveReturn:: tells the code generator to that the name of the c-macro in beam_emu.c to use
 is MoveReturn. This macro has to be implemented manually.
 
-`-nonext` tells the code generator that it should not generate a dispatch to the next
+-nonext:: tells the code generator that it should not generate a dispatch to the next
 instruction, the `MoveReturn` macro will take care of that.
 
-`move_return x` tells the code generator to generate a specific instruction for when the
+move_return x:: tells the code generator to generate a specific instruction for when the
 instruction argument is an x register. `c` for when it is a constant, `n` when it is `NIL`.
 No instructions are in this case generated for when the argument is a y register as the
 compiler will never generate such code.
 
 The resulting code in beam_hot.h will look like this:
 
-....
+[source, C]
+-----------------------------
 OpCase(move_return_c):
     {
     MoveReturn(Arg(0));
@@ -158,7 +159,7 @@ OpCase(move_return_x):
     {
     MoveReturn(xb(Arg(0)));
     }
-....
+-----------------------------
 
 All the implementor has to do is to define the MoveReturn macro in beam_emu.c and the instruction
 is complete.
