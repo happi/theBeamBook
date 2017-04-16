@@ -54,9 +54,10 @@ compiler back end +beam_opcodes.erl+.
 
 // Missing description about build specific options, i.e. the %unless construct
 
-The transformations in `ops.tab` are executed in the order that they are
-written in the file. So just like in Erlang pattern matching, the different
-rules are triggered from top to bottom.
+The transformations in
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab[`ops.tab`]
+are executed in the order that they are written in the file. So just like in
+Erlang pattern matching, the different rules are triggered from top to bottom.
 
 The types that `ops.tab` uses for arguments in instructions can be found in
 xref:AP-Instructions[].
@@ -99,13 +100,15 @@ return:: is the second instruction to match in this pattern.
 generated.
 
 move_return S:: is the name of the generated instruction together with the name of
-the variable on the lhs. It is possible to generate multiple instructions as part of
-a transformation by using the `|` symbol.
+the variable on the lhs. It is possible to generate
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L625[multiple instructions]
+as part of a transformation by using the `|` symbol.
 
 [[complex_example]]
 .A more complex example
 
-More complex translations can be done in `ops.tab`. For instance take the `select_val`
+More complex translations can be done in `ops.tab`. For instance take the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L127-L182[`select_val`]
 instruction. It will be translated by the loader into either a jump table, a linear
 search array or a binary search array depending on the input values.
 
@@ -122,11 +125,14 @@ values have to be of the same type and have the same value. Futhermore the `S=s`
 limits the type to a be a source register.
 Rest=*:: allows a variable number of arguments in the instruction and binds them to
 variable `Rest`.
-use_jump_tab(Size, Rest):: calls a C function in `beam_load.c` that decides whether the
-arguments in the `select_val` can be transformed into a jump table.
+use_jump_tab(Size, Rest):: calls a the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L2707[use_jump_tab]
+C function in `beam_load.c` that decides whether the arguments in the `select_val`
+can be transformed into a jump table.
 \:: signifies that the transformation rule continues on the next line.
-gen_jump_tab(S, Fail, Size, Rest):: calls another C function that takes care of generating
-the approprioate instruction.
+gen_jump_tab(S, Fail, Size, Rest):: calls the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L3692[gen_jump_tab]
+C function in `beam_load.c` that takes care of generating the approprioate instruction.
 
 ==== Specific instruction
 
@@ -140,8 +146,9 @@ move_return c
 move_return n
 ....
 
-This will generate three different instructions that will use the `MoveReturn` macro in
-`beam_emu.c` to do the work.
+This will generate three different instructions that will use the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L636[`MoveReturn`]
+macro in `beam_emu.c` to do the work.
 
 %macro: move_return:: this tells `ops.tab` to generate the code for `move_return`. If there
 is no `%macro` line, the instruction has to be implemented by hand in beam_emu.c. The code
@@ -184,7 +191,6 @@ the instruction is complete.
 
 [[macro_arguments]]
 .Macro flags
-
 
 The `%macro` rules can take multiple different flags to modify the code that
 gets generated.
@@ -235,7 +241,9 @@ also a small cost to unpack the instruction, which is why it is not enabled
 for all instructions.
 
 The example with the call cannot do any packing as `f` cannot be packed and only one
-other argument exists. So let's look at the put_list instruction as an example instead.
+other argument exists. So let's look at the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L539[put_list]
+instruction as an example instead.
 
 ....
 %macro:put_list PutList -pack
@@ -256,15 +264,18 @@ This packs the 3 arguments into 1 machine word, which halves the required memory
 for this instruction.
 
 -fail_action:: Include a fail action as an argument to the c-macro. Note that the
-`ClauseFail()` macro assumes the fail label is in the first argument of the
-instructions, so in order to use this in the above example we should transform
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L2996-L2998[`ClauseFail()`]
+macro assumes the fail label is in the first argument of the instructions,
+so in order to use this in the above example we should transform
 the `move_call x f` to `move_call f x`.
 
 `%macro move_call MoveCall -fail_action`
 [source, C]
 MoveCall(xb(Arg(0)), ClauseFail());
 
--gen_dest:: Include a store function as an argument to the c-macro.
+-gen_dest:: Include a
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L166-L174[store function]
+as an argument to the c-macro.
 
 `%macro move_call MoveCall -gen_dest`
 [source, C]
