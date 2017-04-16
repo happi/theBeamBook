@@ -67,4 +67,4 @@ genop.tab:
 	touch $@
 
 clean:
-	rm -f beam-book.pdf site/index.html
+	rm -f beam-book.pdf site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml
