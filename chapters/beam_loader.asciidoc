@@ -65,12 +65,7 @@ xref:AP-Instructions[].
 
 // This section should be expanded with explanations about
 // what goes on when a more complex tranformation is done.
-// for instance this select_val transform
-//
-// is_integer Fail=f S | select_val S=s Fail=f Size=u Rest=* | use_jump_tab(Size, Rest) => \
-//  gen_jump_tab(S, Fail, Size, Rest)
-//
-// also bif specific transformations should be mentioned.
+// * bif specific transformations should be mentioned.
 
 Most of the rules in ops.tab are transformations between different
 instructions. A simple transformation looks like this:
@@ -107,10 +102,34 @@ move_return S:: is the name of the generated instruction together with the name 
 the variable on the lhs. It is possible to generate multiple instructions as part of
 a transformation by using the `|` symbol.
 
-==== Specific instruction
+[[complex_example]]
+.A more complex example
 
-// This section should be expanded to include description of all the different options
-// that can be given to %macro, i.e. -pack, -fail_action, -gen_dest, -goto,
+
+More complex translations can be done in ops.tab. For instance take the select_val
+instruction. It will be translated by the loader into either a jump table, a linear
+search array or a binary search array depending on the input values.
+
+....
+is_integer Fail=f S | select_val S=s Fail=f Size=u Rest=* | \
+  use_jump_tab(Size, Rest) => gen_jump_tab(S, Fail, Size, Rest)
+....
+
+The above transformation creates a jump table if possible of the `select_val`.
+There are a bunch of new techniques used in the transformations.
+
+S:: S is used in both `is_integer` and `select_val`. This means that both the
+values have to be of the same type and have the same value. Futher more the `S=s` guard
+limits the type to a be a source register.
+Rest=*:: allows a variable number of arguments in the instruction and binds them to
+variable `Rest`.
+use_jump_tab(Size, Rest):: calls a C function in beam_load.c that decides whether the
+arguments in the `select_val` can be transformed into a jump table.
+\:: signifies that the transformation rule continues on the next line.
+gen_jump_tab(S, Fail, Size, Rest):: calls another C function that takes care of generating
+the approprioate instruction.
+
+==== Specific instruction
 
 When all transformations are done, we have to decide how the specifc instruction should
 look like. Let's continue to look at `move_return`:
