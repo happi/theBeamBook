@@ -40,7 +40,7 @@ Erlang node.
 .Port Communication
 [shaape]
 ----
-
+      Erlang Node
   +-------------------+
   |   __              |
   |  /  \   owner    __           _______
@@ -54,7 +54,8 @@ Erlang node.
   |   \__/            |
   |    P2             |
   +-------------------+
-      Erlang Node
+----
+
 
 Process P1 has opened a port (Port1) to a file, and is the owner of
 the port and can receive messages from the port. Process P2 also has a
@@ -62,7 +63,6 @@ handle to the port and can send messages to the port. The processes
 and the port resides in an Erlang node. The file lives in the file and
 operating system on the outside of the Erlang node.
 
-----
 
 If the port owner dies or is terminated the port is also killed.
 When a port terminates all external resources should also be cleaned

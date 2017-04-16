@@ -6,7 +6,7 @@ and when to run it. These decisions are made by the Scheduler.
 
 The scheduler is responsible for the real-time guarantees of the
 system. In a strict Computer Science definition of the word
-real-time, a real-time system have to be able to guarantee a response
+real-time, a real-time system has to be able to guarantee a response
 within a specified time. That is, there are real deadlines
 and each task has to complete before its deadline. In Erlang there are
 no such guarantees, a _timeout_ in Erlang is only guaranteed to *not*
@@ -57,7 +57,7 @@ iex(2)> :erlang.system_info :schedulers_online
 We can see this information in the Observer as shown
 in the figure below.
 
-If we spawn more processes than we have have schedulers and
+If we spawn more processes than schedulers we have and
 let them do some busy work we can see that there are a number
 of processes _running_ in parallel and some processes that
 are _runnable_ but not currently running. We can see this
@@ -132,7 +132,7 @@ function call. There are a few Built In Functions (BIFs) that still
 can take too long without yielding. Also, if you call C code in a
 badly implemented Native Implemented Function (NIF) you might block
 one scheduler for a long time.
-We will look at how to write well behaved NIFs in <ref linkend="ch.c"/>.)
+We will look at how to write well behaved NIFs in xref:CH-Ca[].
 
 Since there are no other loop constructs than recursion and
 list comprehensions,
@@ -193,20 +193,22 @@ left to execute in the (register mapped) variable `FCALLS` (see
 
 We can examine this value with `hipe_bifs:show_pcb/1`:
 
-+++++
-
+----
 iex(13)> :hipe_bifs.show_pcb self
-P: 0x00007efd7c2c0400
------------------------------------------------------------------
-Offset| Name          |              Value |             *Value |
-    0 | id            | 0x00000270000004e3 |                    |
-...
-  328 | rcount        | 0x0000000000000000 |                    |
-  336 | reds          | 0x000000000000a528 |                    |
-...
-  320 | fcalls        | 0x00000000000004a3 |                    |
+ P: 0x00007efd7c2c0400
+ -----------------------------------------------------------------
+ Offset| Name          |              Value |             *Value |
+     0 | id            | 0x00000270000004e3 |                    |
 
-+++++
+ ...
+
+   328 | rcount        | 0x0000000000000000 |                    |
+   336 | reds          | 0x000000000000a528 |                    |
+
+ ...
+
+   320 | fcalls        | 0x00000000000004a3 |                    |
+----
 
 The field `reds` keep track of the total number of reductions a
 process has done up until it was last suspended. By monitoring this
@@ -217,9 +219,9 @@ field) by calling `erlang:process_info/2` with the atom `reductions`
 as the second argument. You can also see this number in the process
 tab in the observer or with the i/0 command in the Erlang shell.
 
-As noted earlier, each time a process starts the field fcalls is set to
+As noted earlier, each time a process starts the field `fcalls` is set to
 the value of `CONTEXT_REDS` and for each function call the
-process executes fcalls is reduced by 1. When the process is
+process executes `fcalls` is reduced by 1. When the process is
 suspended the field reds is increased by the number of executed
 reductions. In some C like code something like:
  `p->reds += (CONTEXT_REDS - p->fcalls)`.
@@ -301,7 +303,7 @@ runnable.
 Whenever a process needs to do garbage collection, it will go into
 the _garbing_
 state until the GC is done. While it is doing GC
-is saves the old state in the field `gcstatus` and when it is done
+it saves the old state in the field `gcstatus` and when it is done
 it sets the state back to the old state using `gcstatus`.
 
 The suspended state is only supposed to be used for debugging
@@ -334,16 +336,16 @@ The main job of the scheduler is to keep track of work queues,
 that is, queues of processes and ports.
 
 There are two process states that the scheduler has to handle,
-_runable_, and _waiting_.
+_runnable_, and _waiting_.
 Processes waiting to receive a message are in
 the waiting state. When a waiting process receives a message the send
-operations triggers a move of the receiving process into the runable
-state. If the receive statement have a timeout the scheduler has to
-trigger the state transition to runable when the timeout triggers.
+operations triggers a move of the receiving process into the runnable
+state. If the receive statement has a timeout the scheduler has to
+trigger the state transition to runnable when the timeout triggers.
 We will cover this mechanism later in this chapter.
 
 ==== The Ready Queue
-Processes in the runable state are placed in a FIFO (first in first
+Processes in the runnable state are placed in a FIFO (first in first
 out) queue handled by the scheduler, called the _ready queue_. The
 queue is implemented by a first and a last pointer and by the next
 pointer in the PCB of each participating process.
@@ -399,8 +401,8 @@ are no processes in the max and the high priority queues will
 the scheduler pick the first process from the normal and low
 queue.
 
-When a normal processes is inserted into the queue it get a _schedule
-count_ of 1 and a low prio process get a schedule count of 8.
+When a normal process is inserted into the queue it gets a _schedule
+count_ of 1 and a low priority process gets a schedule count of 8.
 When a process is picked from the front of the
 queue its schedule count is reduced by one, if the count reaches zero
 the process is scheduled, otherwise it is inserted at the end of the
@@ -450,7 +452,7 @@ T the timer is inserted into the slot at +(tiw_pos+T)%TIW_SIZE+.
 ----
 
 The timer stored in the timing wheel is a pointer to an +ErlTimer+
-struct. See [erl_time.h](https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h). If several timers are
+struct. See link:https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h[erl_time.h]. If several timers are
 inserted into the same slot they are linked together in a linked list
 by the +prev+ and +next+ fields. The +count+ field is set to 
 +T/TIW_SIZE+ 
@@ -530,7 +532,7 @@ For example in Erlang versions prior to R16 the BIFs
 +binary_to_term/1+ and +term_to_binary/1+ where non yielding and only
 counted as one reduction. This meant that a process calling theses
 functions on large terms could starve other processes. This can even
-happen in a smp system because of the way processes are balanced
+happen in a SMP system because of the way processes are balanced
 between schedulers, which we will get to soon.
 
 While a process is running the emulator keeps the number of reductions

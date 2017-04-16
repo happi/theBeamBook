@@ -97,7 +97,7 @@ and high address at the bottom of the page.
 
 This means that a picture of a c-structure and a picture of a memory
 area will have their address positions on the page mirrored. This becomes
-somewhat confusing when we try to pictures structures and heaps in the
+somewhat confusing when we try to picture structures and heaps in the
 same picture.
 
 ****
@@ -137,12 +137,9 @@ how each setting impacts the performance of the allocator.
 
 The erts_alloc manual goes as far as to give the following warning:
 
-.Warning
 [quote, Ericsson AB, http://www.erlang.org/doc/man/erts_alloc.html]
 ____
-*Warning*
-
-Only use these flags if you are absolutely sure what you are
+WARNING: Only use these flags if you are absolutely sure what you are
 doing. Unsuitable settings may cause serious performance degradation
 and even a system crash at any time during operation.
 ____
@@ -175,8 +172,8 @@ allocations and deallocations of memory of a certain type.
 Each allocator is intended for a specific type of data and is
 often specialized for one size of data.
 
-Each memory allocator implements the allocator interface but
-can used different algorithms and settings for the actual
+Each memory allocator implements the allocator interface that
+can use different algorithms and settings for the actual
 memory allocation.
 
 The goal with having different allocators is to reduce
@@ -233,7 +230,7 @@ allocate memory from the operating system as needed.
 
 When memory is allocated from the OS sys_alloc can add (pad) a fixed
 number of kilobytes to the requested number. This can reduce the
-number system calls by over allocating memory. The default padding
+number of system calls by over allocating memory. The default padding
 is zero.
 
 When memory is freed, sys_alloc will keep some free memory allocated
@@ -282,7 +279,7 @@ The framework is implemented in _erl_alloc_util.[ch]_ and the different
 allocators used by ERTS are defined in erl_alloc.types in
 the directory "erts/emulator/beam/".
 
-In a smp system there is usually one allocator of each type per
+In a SMP system there is usually one allocator of each type per
 scheduler thread.
 
 The smallest unit of memory that an allocator work with is called a
@@ -427,7 +424,7 @@ allocator may start executing Erlang code before the block is freed.
 This means that you can not use a temporary allocation over a BIF
 or NIF trap (yield).
 
-In a default R16 smp system there is N+1 temp_alloc allocators where N
+In a default R16 SMP system there is N+1 temp_alloc allocators where N
 is the number of schedulers. The temp_alloc uses the "A fit" (+af+)
 strategy. Since the allocation pattern of the temp_alloc basically is
 that of a stack (mostly of size 0 or 1), this strategy works fine.
@@ -468,8 +465,8 @@ This allocator uses the _best fit_ allocation strategy by default.
 
 ==== The ETS allocator: ets_alloc
 
-The ETS allocator is used for most ets related data,
-except for some short lived or temporary data used by ets tables-
+The ETS allocator is used for most ETS related data,
+except for some short lived or temporary data used by ETS tables-
 
 ==== The driver allocator: driver_alloc
 
@@ -543,13 +540,13 @@ TODO
 
 === Process Memory
 
-As we saw in xref:CH-Processes[] a process i really just a number
+As we saw in xref:CH-Processes[] a process is really just a number
 of memory areas, in this chapter we will look a bit closer at how
 the stack, the heap and the mailbox are managed.
 
 The default size of the stack and heap is 233 words. This default
 size can be changed globally when starting Erlang through the
-+ +h + flag. You can also set the minimum heap size by when starting
++pass:[+h]+ flag. You can also set the minimum heap size when starting
 a process with +spawn_opt+ by setting +min_heap_size+.
 
 Erlang terms are tagged as we saw in xref:CH-TypeSystem[], and when
@@ -571,17 +568,18 @@ similar to:
 
 
 [[fig-list_layout]]
+[shaape]
 ----
          ADR                               BINARY  VALUE  +  DESCRIPTION
  hend ->     +-------- -------- -------- --------+
              |              ...                  |
              |              ...                  |
              |00000000 00000000 00000000 10000001| 128 + list tag  ---------------+
- stop ->;     |                                   |                                |
+ stop ->     |                                   |                                |
                                                                                   |
- htop ->;     |                                   |                                |
+ htop ->     |                                   |                                |
          132 |00000000 00000000 00000000 01111001| 120 + list tag  -------------- | -+
-         128 |00000000 00000000 00000110 10001111| (H) 104 bsl 4 + small int tag <+  |
+         128 |00000000 00000000 00000110 10001111| (h) 104 bsl 4 + small int tag <+  |
          124 |00000000 00000000 00000000 01110001| 112 + list tag  ----------------- | -+
          120 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag <---+  |
          116 |00000000 00000000 00000000 01110001| 112 + list tag  -------------------- | -+
@@ -618,7 +616,7 @@ This is nice, since it is cheap to do and uses very little space. But if
 you send the tuple to another process or do any other type of IO, or any
 operations which results in something called a _deep copy_, then the
 data structure is expanded. So if we send out tuple +T+ to another process
-P2 (+P2 ! T+) then the heap of T2 will look like in:
+P2 (+pass:[P2 ! T]+) then the heap of T2 will look like in:
 
 ----
  ..
@@ -627,6 +625,7 @@ P2 (+P2 ! T+) then the heap of T2 will look like in:
 You can quickly bring down your Erlang node by expanding a highly shared term,
 see <<listing-share,share.erl>>.
 
+[source,erlang]
 ----
 -module(share).
 
@@ -658,6 +657,7 @@ You can calculate the memory size of a shared term and the size of the
 expanded size of the term with the functions +erts_debug:size/1+ and
 +erts_debug:flat_size/1+.
 
+[source,erlang]
 ----
 > share:size().
 {{size,19386},{flat_size,94110}}
@@ -681,6 +681,7 @@ Given the code in <<listing-send,send.erl>> the state of the system could
 look like this just before the send in p1/1:
 
 
+[shaape]
 ----
 
     x0       |00000000 00000000 00000000 00100011| Pid 2
@@ -698,7 +699,7 @@ look like this just before the send in p1/1:
          140 |00000000 00000000 00000000 01000001| 128+CONS        ---------------+
          136 |00000000 00000000 00000000 10000000| 2+ARITYVAL             <---+   |
          132 |00000000 00000000 00000000 01111001| 120+CONS        -------------- | -+
-         128 |00000000 00000000 00000110 10001111| (H) 104 bsl 4 + small int tag <+  |
+         128 |00000000 00000000 00000110 10001111| (h) 104 bsl 4 + small int tag <+  |
          124 |00000000 00000000 00000000 01110001| 112+CONS        ----------------- | -+
          120 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag <---+  |
          116 |00000000 00000000 00000000 01110001| 112+CONS        -------------------- | -+
@@ -777,7 +778,7 @@ erl_heap_fragment:
 
 In either case a new mbox (+ErlMessage+) is allocated, a lock
  (+ERTS_PROC_LOCK_MSGQ+) is taken on the receiver and the message
- on the heap or the in the new heap fragment is linked into the mbox.
+ on the heap or in the new heap fragment is linked into the mbox.
 
 ----
  erl_mesg {
@@ -830,7 +831,7 @@ Having large binaries reference counted and not copied by send or
 garbage collection is a big win, but there is one problem
 with having a mixed environment of garbage collection and
 reference counting. In a pure reference counted implementation
-the reference count would be reduce as soon as a reference to
+the reference count would be reduced as soon as a reference to
 the object dies, and when the reference count reaches zero the
 object is freed. In the ERTS mixed environment a reference to a
 reference counted object does not die until a garbage collection
@@ -949,10 +950,10 @@ resulting in garbage. After the GC there should only be one string on
 the heap. That is, first we generate the term 
 +{["Hello","Hello"], "Hello"}+ (sharing the same string "Hello" in 
 all instances. Then we just keep the term +["Hello","Hello"]+ when
-triggering a gc.
+triggering a GC.
 
 NOTE: We will take the opportunity to go through how you, on a
-linux system, can used gdb to examine the behavior of ERTS.
+linux system, can use gdb to examine the behavior of ERTS.
 You can of course use the debugger of your choice. If you already know
 how to use gdb or if you have no interest in going into the debugger
 you can just ignore the meta text about how to inspect the system and
@@ -973,7 +974,7 @@ and prepare for a new call to the example (without hitting return):
 2> spawn(gc_example,example,[]).
 ----
 
-Then I use gdb to attach to my erlang node (os PID: 2955 in this case)
+Then I use gdb to attach to my erlang node (OS PID: 2955 in this case)
 ----
 $ gdb /home/happi/otp/lib/erlang/erts-6.0/bin/beam.smp 2955
 ----
@@ -1065,7 +1066,7 @@ of the list. The tuple is dead, that is, there are no references to
 it.
 
 The garbage collection starts by calculating the root set and by
-allocating a new heap (_to space_). By stepping into the gc code in the
+allocating a new heap (_to space_). By stepping into the GC code in the
 debugger you can see how this is done. I will not go through the
 details here. After a number of steps the execution will reach the
 point where all terms in the root set are copied to the new heap. This
@@ -1077,8 +1078,8 @@ containing the letter (integer) 'H'. When a cons cell is moved from
 the current heap, called _from space_, to _to space_ the value in the
 head (or car) is overwritten with a _moved cons_ tag (the value 0).
 
-After the first step where the root set is moved, the from space
-and the to space looks like this:
+After the first step where the root set is moved, the _from space_
+and the _to space_ looks like this:
 
 from space:
 
@@ -1112,16 +1113,16 @@ to space:
 
 ----
 
-In from space the head of the first cons cell has been overwritten
+In _from space_ the head of the first cons cell has been overwritten
 with 0 (looks like a tuple of size 0) and the tail has been overwritten
-with a forwarding pointer pointing to the new cons cell in the to space.
-In to space we now have the first cons cell with two
-backward pointers to the head and the tail of the cons in the from space.
+with a forwarding pointer pointing to the new cons cell in the _to space_.
+In _to space_ we now have the first cons cell with two
+backward pointers to the head and the tail of the cons in the _from space_.
 
 
-When the collector is done with the root set the to space contains
+When the collector is done with the root set the _to space_ contains
 backward pointers to all still live terms. At this point the collector
-starts sweeping the to space. It uses two pointers +n_hp+ pointing to
+starts sweeping the _to space_. It uses two pointers +n_hp+ pointing to
 the bottom of the unseen heap and +n_htop+ pointing to the top of the heap.
 
 ----
@@ -1132,7 +1133,7 @@ n_hp    0x00007f67371445b0 [0x00007f6737145909] cons -> 0x00007f6737145908
 
 
 The GC will then look at the value pointed to by +n_hp+, in this case a
-cons pointing back to the from space. So it moves that cons to the to
+cons pointing back to the _from space_. So it moves that cons to the to
 space, incrementing n_htop to make room for the new cons, and
 incrementing +n_hp+ to indicate that the first cons is seen.
 
@@ -1200,8 +1201,8 @@ SEEN    0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f67371445d0
 SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
 ----
 
-The next element in to space is the immediate 72, which is only
-stepped over (with +n_hp+++). Then there is another cons which is moved.
+The next element in _to space_ is the immediate 72, which is only
+stepped over (with `n_hp++`). Then there is another cons which is moved.
 
 The same thing then happens with the second cons.
 
@@ -1241,8 +1242,8 @@ SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
 
 Now we come to a cons that points to a cell that has already been moved.
 The GC sees the IS_MOVED_CONS tag at 0x00007f6737145908 and copies the
-destination of the moved cell from the tail (+*n_hp++ = ptr[1];+). This
-way sharing is preserved during GC. This step does not affect from space,
+destination of the moved cell from the tail (`*n_hp++ = ptr[1];`). This
+way sharing is preserved during GC. This step does not affect _from space_,
 but the backward pointer in to space is rewritten.
 
 ----
@@ -1326,9 +1327,9 @@ before.
 
 
 
-Generations...
+Generations..
 
-
+[shaape]
 ----
   hend ->  +----+
            |....|
