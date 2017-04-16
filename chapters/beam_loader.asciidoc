@@ -180,5 +180,100 @@ OpCase(move_return_x):
     }
 -----------------------------
 
-All the implementor has to do is to define the MoveReturn macro in beam_emu.c and the instruction
-is complete.
+All the implementor has to do is to define the MoveReturn macro in beam_emu.c and
+the instruction is complete.
+
+[[macro_arguments]]
+.Macro flags
+
+
+The `%macro` rules can take multiple different flags to modify the code that
+gets generated.
+
+The examples below assume that there is a specific instructions looking like this:
+
+....
+%macro move_call MoveCall
+move_call x f
+....
+
+without any flags to the `%macro` we the following code will be generated:
+
+[source, C]
+BeamInstr* next;
+PreFetch(2, next);
+MoveCall(Arg(0));
+NextPF(2, next);
+
+-nonext:: Don't emit a dispatch for this instructions. This is used for instructions
+that are known to not continue with the next instructions, i.e. return, call, jump.
+
+`%macro move_call MoveCall -nonext`
+[source, C]
+MoveCall(xb(Arg(0)));
+
+-arg_*:: Include the arguments of type * as arguments to the c-macro. Not all argument
+types are included by default in the c-macro. For instance the type `f` used for fail
+labels and local function calls is not included. So giving the option `-arg_f` will
+include that as an argument to the c-macro.
+
+`%macro move_call MoveCall -arg_f`
+[source, C]
+MoveCall(xb(Arg(0)), Arg(1));
+
+-size:: Include the size of the instruction as an argument to the c-macro.
+
+`%macro move_call MoveCall -size`
+[source, C]
+MoveCall(xb(Arg(0)), 2);
+
+-pack:: Pack any arguments if possible. This places multiple register arguments in
+the same word if possible. As register arguments can only be 0-1024, we only need
+10 bits to store them + 2 for tagging. So on a 32-bit system we can put 2 registers
+in one word, while on a 64-bit we can put 4 registers in one word. Packing instruction
+can greatly decrease the memory used for a single instruction. However there is
+also a small cost to unpack the instruction, which is why it is not enabled
+for all instructions.
+
+The example with the call cannot do any packing as `f` cannot be packed and only one
+other argument exists. So let's look at the put_list instruction as an example instead.
+
+....
+%macro:put_list PutList -pack
+put_list x x x
+....
+
+[source, C]
+BeamInstr tmp_packed1;
+BeamInstr* next;
+PreFetch(1, next);
+tmp_packed1 = Arg(0);
+PutList(xb(tmp_packed1&BEAM_TIGHT_MASK),
+        xb((tmp_packed1>>BEAM_TIGHT_SHIFT)&BEAM_TIGHT_MASK),
+        xb((tmp_packed1>>(2*BEAM_TIGHT_SHIFT))));
+NextPF(1, next);
+
+This packs the 3 arguments into 1 machine word, which halves the required memory
+for this instruction.
+
+-fail_action:: Include a fail action as an argument to the c-macro. Note that the
+`ClauseFail()` macro assumes the fail label is in the first argument of the
+instructions, so in order to use this in the above example we should transform
+the `move_call x f` to `move_call f x`.
+
+`%macro move_call MoveCall -fail_action`
+[source, C]
+MoveCall(xb(Arg(0)), ClauseFail());
+
+-gen_dest:: Include a store function as an argument to the c-macro.
+
+`%macro move_call MoveCall -gen_dest`
+[source, C]
+MoveCall(xb(Arg(0)), StoreSimpleDest);
+
+-goto:: Replace the normal next dispatch with a jump to a c-label inside beam_emu.c
+
+`%macro move_call MoveCall -goto:do_call`
+[source, C]
+MoveCall(xb(Arg(0)));
+goto do_call;
