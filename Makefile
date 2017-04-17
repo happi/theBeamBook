@@ -14,7 +14,7 @@ beam-book.pdf: xml/beam-book-from-ab.xml
 	dblatex $(DBLATEX_OPTS) xml/beam-book-from-ab.xml -o $@
 
 index.html:
-	asciidoctor -r asciidoctor-diagram --backend=html5 --doctype=book -a icons -a toc2 -o site/index.html book.asciidoc
+	asciidoctor -r asciidoctor-diagram --backend=html5 --doctype=book -a icons=font -a toc2 -o site/index.html book.asciidoc
 
 code/book/ebin/generate_op_doc.beam: code/book/src/generate_op_doc.erl
 	erlc -o $(dir $@) $<
