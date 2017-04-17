@@ -100,16 +100,16 @@ $ erl
 Erlang/OTP 19 [erts-8.2] [...]
 
 Eshell V8.2 (abort with ^G)
-1> l(redbug). % <1>
+1> l(redbug). <1>
 {module,redbug}
-2> redbug:start("lists:sort/1"). % <2>
+2> redbug:start("lists:sort/1"). <2>
 {30,1}
 3> lists:sort([3,2,1]).
 [1,2,3]
 
 % 15:20:20 <0.31.0>({erlang,apply,2}) <3>
 % lists:sort([3,2,1])
-redbug done, timeout - 1 % <4>
+redbug done, timeout - 1 <4>
 ----
 <1> First, we ensure that the `redbug` module is available and loaded.
 <2> We then start `redbug`. We are interested in the function
