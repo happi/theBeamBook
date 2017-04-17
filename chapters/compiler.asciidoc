@@ -79,7 +79,7 @@ xref:fig_compiler_passes[].
     +---------------+
             |
             v
-    +---------------+    +---------------+    
+    +---------------+    +---------------+
     |     Parse     | -> | user defined  |
     |   Transform   | <- | transformation|
     +---------------+    +---------------+
@@ -173,6 +173,10 @@ xref:fig_compiler_passes[].
             |
             v
          (.beam)</pre>
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 If you want to see a complete and up to date list of compiler passes

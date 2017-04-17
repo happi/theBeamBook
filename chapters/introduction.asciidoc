@@ -111,12 +111,15 @@ illustrated with two Erlang nodes running on one machine.
  | BEAM |  | BEAM |
  +------+  +------+
  | ERTS |  | ERTS |
- +------+  +------+
- +----------------+
+ +------+--+------+
  |       OS       |
  +----------------+
  |    HW or VM    |
  +----------------+
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 At the bottom of the stack there is the hardware you are running
@@ -346,14 +349,16 @@ the BEAM compiler from the OTP layer to compile Erlang to Ling.
  | Ling |  | Ling |   | BEAM |  | BEAM |
  +------+  +------+   +------+  +------+
  | EoX  |  | EoX  |   | ERTS |  | ERTS |
- +------+  +------+   +------+  +------+
- +----------------+   +----------------+
+ +------+--+------+   +------+--+------+
  |      XEN       |   |       OS       |
  +----------------+   +----------------+
  |      HW        |   |    HW or VM    |
  +----------------+   +----------------+
-----
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
+----
 
 ==== Erjang
 
@@ -381,15 +386,16 @@ in Java on top of the VM.
  |Erjang|  |Erjang|   | BEAM |  | BEAM |
  +------+  +------+   +------+  +------+
  | JVM  |  | JVM  |   | ERTS |  | ERTS |
- +------+  +------+   +------+  +------+
- +----------------+   +----------------+
+ +------+--+------+   +------+--+------+
  |      OS        |   |       OS       |
  +----------------+   +----------------+
- |  HW or VM      |   |    HW or VM    |
+ |    HW or VM    |   |    HW or VM    |
  +----------------+   +----------------+
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
-
 
 Now that you have a basic understanding of all the major pieces of
 ERTS, and the necessary vocabulary you can dive into the details of
