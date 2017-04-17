@@ -38,7 +38,7 @@ Erlang node.
 
 [[port_communication]]
 .Port Communication
-[shaape]
+[shaape, align="center"]
 ----
       Erlang Node
   +-------------------+
@@ -54,8 +54,11 @@ Erlang node.
   |   \__/            |
   |    P2             |
   +-------------------+
-----
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
+----
 
 Process P1 has opened a port (Port1) to a file, and is the owner of
 the port and can receive messages from the port. Process P2 also has a
@@ -117,7 +120,7 @@ driver like: `multi_drv` and `sig_drv`.
 
 [[entities_on_node]]
 .Entities on an Erlang Node
-[shaape]
+[shaape, align="center"]
 ----
  +-----------------------------------------------------------------------------------------------------+
  |                               Entities on an Erlang Node                                            |
@@ -128,6 +131,10 @@ driver like: `multi_drv` and `sig_drv`.
  |--------------------------------------------------+---------++------++----------+++-------+++--------|
  |                                                  | (Heart) || (ls) || tcp_inet ||| efile ||| ...    |
  +--------------------------------------------------+---------++------++----------+++-------+++--------+
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 

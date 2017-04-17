@@ -254,9 +254,8 @@ The _Process State Machine_ looks like this:
 
 [[process_state_machine]]
 .Process State Machine
-[shaape]
+[shaape, align="center"]
 ----
-
 
                                 +--------+
                                 |  free  |
@@ -287,8 +286,10 @@ The _Process State Machine_ looks like this:
           | +-------------------+   |suspend
           +-------------------------+
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
-
 
 The normal states for a process are _runnable_, _waiting_, and _running_.
 A running process is currently executing code in one of the schedulers.

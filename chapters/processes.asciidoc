@@ -418,7 +418,7 @@ See the following figure for an illustration of a process as memory:
 
 [[erlang_process_memory_1]]
 .Erlang Process Memory : Basic
-[shaape]
+[shaape, align="center"]
 ----
   +-------+  +-------+
   |  PCB  |  | Stack |
@@ -427,6 +427,10 @@ See the following figure for an illustration of a process as memory:
   +-------+  +-------+
   | M-box |  | Heap  |
   +-------+  +-------+
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 
@@ -698,7 +702,7 @@ fields from the PCB that controls the shape of the heap:
 
 [[erlang_process_heap]]
 .Erlang Process Heap
-[shaape]
+[shaape, align="center"]
 ----
 
   hend ->  +----+    -
@@ -709,6 +713,10 @@ fields from the PCB that controls the shape of the heap:
            |....|    v             v
   heap ->  +----+    -             -
           The Heap
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 But wait, how come we have a heap start and a heap end, but no start
@@ -719,7 +727,7 @@ heap and the stack are actually just one memory area:
 
 [[erlang_process_memory_2]]
 .Erlang Process Memory : Heap + Stack
-[shaape]
+[shaape, align="center"]
 ----
  +-------+  +-------+
  |  PCB  |  | Stack |
@@ -728,6 +736,10 @@ heap and the stack are actually just one memory area:
  +-------+  +-------+
  | M-box |  | Heap  |
  +-------+  +-------+
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 The stack grows towards lower memory addresses and the heap towards
@@ -736,7 +748,7 @@ by adding the stack top pointer to the picture:
 
 [[erlang_process_heap_and_stack]]
 .Erlang Process Heap and Stack
-[shaape]
+[shaape, align="center"]
 ----
   hend ->  +----+    -
            |....|    ^
@@ -748,6 +760,10 @@ by adding the stack top pointer to the picture:
            |....|    v             v
   heap ->  +----+    -             -
           The Heap
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 If the pointers `htop` and `stop` were to meet, the
@@ -797,7 +813,7 @@ our original picture of a process as four memory areas:
 
 [[erlang_process_memory_3]]
 .Erlang Process Memory : GC
-[shaape]
+[shaape, align="center"]
 ----
 
   +-------+               +-------+
@@ -808,6 +824,9 @@ our original picture of a process as four memory areas:
   | M-box |               | Heap  |  | Heap  |
   +-------+               +-------+  +-------+  - old_heap
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 When a process starts there is no old heap, but as soon as young data
@@ -897,7 +916,7 @@ mailboxes) and a varying number of heap fragments (`m-bufs`):
 
 [[erlang_process_memory_4]]
 .Erlang Process Memory : Messages
-[shaape]
+[shaape, align="center"]
 ----
 
  +-------+             +-------+
@@ -913,6 +932,9 @@ mailboxes) and a varying number of heap fragments (`m-bufs`):
  | m-buf |  | m-buf |  | m-buf |  | m-buf |
  +-------+  +-------+  +-------+  +-------+
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 Each mailbox consists of a length and two pointers, stored in the fields
@@ -1018,7 +1040,7 @@ consider messages sent between Erlang nodes. Imagine two processes
 
 [[erlang_message_passing_1]]
 .Erlang Message Passing Step 1
-[shaape]
+[shaape, align="center"]
 ----
                  P 1
  +---------------------------------+
@@ -1048,6 +1070,9 @@ consider messages sent between Erlang nodes. Imagine two processes
  | +-------+  +-------+  +-------+ |
  +---------------------------------+
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 Process `P1` will then take the following steps:
@@ -1065,7 +1090,7 @@ on the heap:
 
 [[erlang_message_passing_2]]
 .Erlang Message Passing Step 2
-[shaape]
+[shaape, align="center"]
 ----
                  P 1
  +---------------------------------+
@@ -1104,6 +1129,9 @@ on the heap:
  |              +-------------+    |
  +---------------------------------+
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 If `P1` can not get the `main lock` of P2 or there is not enough space
@@ -1112,7 +1140,7 @@ will end up in an `m-buf` but linked from the internal mailbox:
 
 [[erlang_message_passing_3]]
 .Erlang Message Passing Step 3
-[shaape]
+[shaape, align="center"]
 ----
                  P 1
  +---------------------------------+
@@ -1151,6 +1179,9 @@ will end up in an `m-buf` but linked from the internal mailbox:
  |         +------------------+    |
  +---------------------------------+
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 After a GC the message will be moved into
@@ -1161,7 +1192,7 @@ will end up in an `m-buf` and linked from the external mailbox:
 
 [[erlang_message_passing_4]]
 .Erlang Message Passing Step 4
-[shaape]
+[shaape, align="center"]
 ----
                  P 1
  +---------------------------------+
@@ -1200,6 +1231,9 @@ will end up in an `m-buf` and linked from the external mailbox:
  |                                 |
  +---------------------------------+
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 After a GC the message will still be in the `M-buf`. Not until
@@ -1263,7 +1297,7 @@ memory area, PD, the process dictionary:
 
 [[erlang_process_memory_5]]
 .Erlang Process Memory : Process Dictionary
-[shaape]
+[shaape, align="center"]
 ----
 
  +-------+             +-------+  +-------+
@@ -1279,6 +1313,9 @@ memory area, PD, the process dictionary:
  | m-buf |  | m-buf |  | m-buf |  | m-buf |
  +-------+  +-------+  +-------+  +-------+
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 With such a small array you are bound to get some collisions before the

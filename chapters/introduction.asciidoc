@@ -98,7 +98,7 @@ illustrated with two Erlang nodes running on one machine.
 
 [[the_erts_stack]]
 .ERTS Stack
-[shaape]
+[shaape, align="center"]
 ----
 
   Node1     Node2
@@ -116,6 +116,10 @@ illustrated with two Erlang nodes running on one machine.
  +----------------+
  |    HW or VM    |
  +----------------+
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
 
 At the bottom of the stack there is the hardware you are running
@@ -333,7 +337,7 @@ the BEAM compiler from the OTP layer to compile Erlang to Ling.
 
 [[erlang_on_xen]]
 .Erlang On Xen
-[shaape]
+[shaape, align="center"]
 ----
   Node1     Node2       Node2     Node3
 
@@ -345,14 +349,16 @@ the BEAM compiler from the OTP layer to compile Erlang to Ling.
  | Ling |  | Ling |   | BEAM |  | BEAM |
  +------+  +------+   +------+  +------+
  | EoX  |  | EoX  |   | ERTS |  | ERTS |
- +------+  +------+   +------+  +------+
- +----------------+   +----------------+
+ +------+--+------+   +------+--+------+
  |      XEN       |   |       OS       |
  +----------------+   +----------------+
  |      HW        |   |    HW or VM    |
  +----------------+   +----------------+
-----
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
+----
 
 ==== Erjang
 
@@ -368,7 +374,7 @@ in Java on top of the VM.
 
 [[erlang_on_jvm]]
 .Erlang on the JVM
-[shaape]
+[shaape, align="center"]
 ----
   Node1     Node2       Node3     Node4
 
@@ -387,8 +393,10 @@ in Java on top of the VM.
  |  HW or VM      |   |    HW or VM    |
  +----------------+   +----------------+
 
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Calibri 9", no-shadow]}
 ----
-
 
 Now that you have a basic understanding of all the major pieces of
 ERTS, and the necessary vocabulary you can dive into the details of
