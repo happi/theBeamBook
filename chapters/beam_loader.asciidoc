@@ -2,13 +2,8 @@
 == The BEAM Loader
 
 // Translation to internal format.
-//   Optimizations.
 //   Rewrites
-//   Peephole optimisztions
-//   pack engine?
 //
-// ops.tab format/syntax
-//  Catches
 // Linking and Exports
 
 === Transforming from Generic to Specific instructions
@@ -52,8 +47,6 @@ compiler back end +beam_opcodes.erl+.
 
 === Understanding ops.tab
 
-// Missing description about build specific options, i.e. the %unless construct
-
 The transformations in
 https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab[`ops.tab`]
 are executed in the order that they are written in the file. So just like in
@@ -63,10 +56,6 @@ The types that `ops.tab` uses for arguments in instructions can be found in
 xref:AP-Instructions[].
 
 ==== Transformations
-
-// This section should be expanded with explanations about
-// what goes on when a more complex tranformation is done.
-// * bif specific transformations should be mentioned.
 
 Most of the rules in `ops.tab` are transformations between different
 instructions. A simple transformation looks like this:
