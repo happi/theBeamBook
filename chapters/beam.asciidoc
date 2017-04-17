@@ -119,7 +119,7 @@ then moves the value to a Y register.
 
 [[x_and_y_regs_in_memory]]
 .X and Y Registers in Memory
-[shaape, align="center"]
+[shaape]
 ----
   hend ->  +----+    -
            |....|

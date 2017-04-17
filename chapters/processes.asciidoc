@@ -418,7 +418,7 @@ See the following figure for an illustration of a process as memory:
 
 [[erlang_process_memory_1]]
 .Erlang Process Memory : Basic
-[shaape, align="center"]
+[shaape]
 ----
   +-------+  +-------+
   |  PCB  |  | Stack |
@@ -702,7 +702,7 @@ fields from the PCB that controls the shape of the heap:
 
 [[erlang_process_heap]]
 .Erlang Process Heap
-[shaape, align="center"]
+[shaape]
 ----
 
   hend ->  +----+    -
@@ -727,7 +727,7 @@ heap and the stack are actually just one memory area:
 
 [[erlang_process_memory_2]]
 .Erlang Process Memory : Heap + Stack
-[shaape, align="center"]
+[shaape]
 ----
  +-------+  +-------+
  |  PCB  |  | Stack |
@@ -748,7 +748,7 @@ by adding the stack top pointer to the picture:
 
 [[erlang_process_heap_and_stack]]
 .Erlang Process Heap and Stack
-[shaape, align="center"]
+[shaape]
 ----
   hend ->  +----+    -
            |....|    ^
@@ -813,7 +813,7 @@ our original picture of a process as four memory areas:
 
 [[erlang_process_memory_3]]
 .Erlang Process Memory : GC
-[shaape, align="center"]
+[shaape]
 ----
 
   +-------+               +-------+
@@ -916,7 +916,7 @@ mailboxes) and a varying number of heap fragments (`m-bufs`):
 
 [[erlang_process_memory_4]]
 .Erlang Process Memory : Messages
-[shaape, align="center"]
+[shaape]
 ----
 
  +-------+             +-------+
@@ -1040,7 +1040,7 @@ consider messages sent between Erlang nodes. Imagine two processes
 
 [[erlang_message_passing_1]]
 .Erlang Message Passing Step 1
-[shaape, align="center"]
+[shaape]
 ----
                  P 1
  +---------------------------------+
@@ -1090,7 +1090,7 @@ on the heap:
 
 [[erlang_message_passing_2]]
 .Erlang Message Passing Step 2
-[shaape, align="center"]
+[shaape]
 ----
                  P 1
  +---------------------------------+
@@ -1140,7 +1140,7 @@ will end up in an `m-buf` but linked from the internal mailbox:
 
 [[erlang_message_passing_3]]
 .Erlang Message Passing Step 3
-[shaape, align="center"]
+[shaape]
 ----
                  P 1
  +---------------------------------+
@@ -1192,7 +1192,7 @@ will end up in an `m-buf` and linked from the external mailbox:
 
 [[erlang_message_passing_4]]
 .Erlang Message Passing Step 4
-[shaape, align="center"]
+[shaape]
 ----
                  P 1
  +---------------------------------+
@@ -1297,7 +1297,7 @@ memory area, PD, the process dictionary:
 
 [[erlang_process_memory_5]]
 .Erlang Process Memory : Process Dictionary
-[shaape, align="center"]
+[shaape]
 ----
 
  +-------+             +-------+  +-------+

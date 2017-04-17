@@ -38,7 +38,7 @@ Erlang node.
 
 [[port_communication]]
 .Port Communication
-[shaape, align="center"]
+[shaape]
 ----
       Erlang Node
   +-------------------+
@@ -120,7 +120,7 @@ driver like: `multi_drv` and `sig_drv`.
 
 [[entities_on_node]]
 .Entities on an Erlang Node
-[shaape, align="center"]
+[shaape]
 ----
  +-----------------------------------------------------------------------------------------------------+
  |                               Entities on an Erlang Node                                            |

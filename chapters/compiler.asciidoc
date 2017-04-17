@@ -61,7 +61,7 @@ xref:fig_compiler_passes[].
 
 [[fig_compiler_passes]]
 .Compiler Passes
-[shaape, align="center"]
+[shaape]
 ----
 [] = Compiler options, () = files, {} = erlang terms, boxes = passes
          (.erl)

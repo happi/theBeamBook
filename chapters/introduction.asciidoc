@@ -98,7 +98,7 @@ illustrated with two Erlang nodes running on one machine.
 
 [[the_erts_stack]]
 .ERTS Stack
-[shaape, align="center"]
+[shaape]
 ----
 
   Node1     Node2
@@ -337,7 +337,7 @@ the BEAM compiler from the OTP layer to compile Erlang to Ling.
 
 [[erlang_on_xen]]
 .Erlang On Xen
-[shaape, align="center"]
+[shaape]
 ----
   Node1     Node2       Node2     Node3
 
@@ -374,7 +374,7 @@ in Java on top of the VM.
 
 [[erlang_on_jvm]]
 .Erlang on the JVM
-[shaape, align="center"]
+[shaape]
 ----
   Node1     Node2       Node3     Node4
 

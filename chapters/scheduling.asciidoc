@@ -254,7 +254,7 @@ The _Process State Machine_ looks like this:
 
 [[process_state_machine]]
 .Process State Machine
-[shaape, align="center"]
+[shaape]
 ----
 
                                 +--------+

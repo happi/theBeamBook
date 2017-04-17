@@ -13,7 +13,7 @@ A program's memory layout looks something like this:
 
 [[program_memory_layout]]
 .Program Memory Layout
-[shaape, align="center"]
+[shaape]
 ----
  high
  addresses
@@ -310,7 +310,7 @@ of system flags below.
 Most allocators also have one "main multiblock carrier" which is never
 deallocated.
 
-[shaape, align="center"]
+[shaape]
 ----
  high
  addresses
@@ -574,7 +574,7 @@ similar to:
 
 
 [[fig-list_layout]]
-[shaape, align="center"]
+[shaape]
 ----
          ADR                               BINARY  VALUE  +  DESCRIPTION
  hend ->     +-------- -------- -------- --------+
@@ -690,7 +690,7 @@ Given the code in <<listing-send,send.erl>> the state of the system could
 look like this just before the send in p1/1:
 
 
-[shaape, align="center"]
+[shaape]
 ----
 
     x0       |00000000 00000000 00000000 00100011| Pid 2
@@ -1336,7 +1336,7 @@ before.
 
 Generations..
 
-[shaape, align="center"]
+[shaape]
 ----
   hend ->  +----+
            |....|

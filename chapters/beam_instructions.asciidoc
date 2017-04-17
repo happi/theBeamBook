@@ -283,7 +283,7 @@ registers. E.g. if +Live+ is 2 then registers X0 and X1 are saved.
 When allocating on the stack, the stack pointer (E) is decreased.
 
 .Allocate 1 0
-[shaape, align="center"]
+[shaape]
 ----
        Before           After
          | xxx |            | xxx |
