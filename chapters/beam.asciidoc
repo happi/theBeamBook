@@ -145,7 +145,7 @@ then moves the value to a Y register.
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 Let us compile the following program with the _'S'_ flag:

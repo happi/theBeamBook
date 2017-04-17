@@ -430,7 +430,7 @@ See the following figure for an illustration of a process as memory:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 
@@ -716,7 +716,7 @@ fields from the PCB that controls the shape of the heap:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 But wait, how come we have a heap start and a heap end, but no start
@@ -739,7 +739,7 @@ heap and the stack are actually just one memory area:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 The stack grows towards lower memory addresses and the heap towards
@@ -763,7 +763,7 @@ by adding the stack top pointer to the picture:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 If the pointers `htop` and `stop` were to meet, the
@@ -826,7 +826,7 @@ our original picture of a process as four memory areas:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 When a process starts there is no old heap, but as soon as young data
@@ -934,7 +934,7 @@ mailboxes) and a varying number of heap fragments (`m-bufs`):
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 Each mailbox consists of a length and two pointers, stored in the fields
@@ -1072,7 +1072,7 @@ consider messages sent between Erlang nodes. Imagine two processes
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 Process `P1` will then take the following steps:
@@ -1131,7 +1131,7 @@ on the heap:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 If `P1` can not get the `main lock` of P2 or there is not enough space
@@ -1181,7 +1181,7 @@ will end up in an `m-buf` but linked from the internal mailbox:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 After a GC the message will be moved into
@@ -1233,7 +1233,7 @@ will end up in an `m-buf` and linked from the external mailbox:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 After a GC the message will still be in the `M-buf`. Not until
@@ -1315,7 +1315,7 @@ memory area, PD, the process dictionary:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 With such a small array you are bound to get some collisions before the

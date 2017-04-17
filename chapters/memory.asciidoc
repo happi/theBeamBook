@@ -64,7 +64,7 @@ A program's memory layout looks something like this:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 
@@ -345,7 +345,7 @@ multiblock |     Block 2   |       | MSmmbcs kb
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 // Want most data un multiblock carriers mbc
@@ -599,7 +599,7 @@ similar to:
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 If you then create a tuple with two instances of the list, all that is repeated is
@@ -725,7 +725,7 @@ P2
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 Then P1 start sending the message M to P2. It (through the code in
@@ -1351,7 +1351,7 @@ Generations..
 
 options:
  - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Calibri 9", no-shadow]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
  +high_water, old_hend, old_htop, old_heap,
