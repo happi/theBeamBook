@@ -49,3 +49,241 @@ e.g. +erts/emulator/x86_64-unknown-linux-gnu/opt/smp/+).
 
 The same program (beam_makeops) also generates the Erlang code for the
 compiler back end +beam_opcodes.erl+.
+
+=== Understanding ops.tab
+
+// Missing description about build specific options, i.e. the %unless construct
+
+The transformations in
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab[`ops.tab`]
+are executed in the order that they are written in the file. So just like in
+Erlang pattern matching, the different rules are triggered from top to bottom.
+
+The types that `ops.tab` uses for arguments in instructions can be found in
+xref:AP-Instructions[].
+
+==== Transformations
+
+// This section should be expanded with explanations about
+// what goes on when a more complex tranformation is done.
+// * bif specific transformations should be mentioned.
+
+Most of the rules in `ops.tab` are transformations between different
+instructions. A simple transformation looks like this:
+
+....
+move S x==0 | return => move_return S
+....
+
+This combines a `move` from any location to `x(0)` and return into a single
+instruction called `move_return`. Let's break the tranformation apart to
+see what the different parts do.
+
+move:: is the instruction that the pattern first has to match. This can be either
+a generic instruction that the compiler has emitted, or a temporary instruction
+that `ops.tab` has emitted to help with transformations.
+
+S:: is a variable binding any type of value. Any value in the pattern (left hand side or `=>`)
+that is used in the generator (right hand side of `=>`) has to be bound to a variable.
+
+x==0:: is a guard that says that we only apply the transformation if the target
+location is an `x` register with the value `0`. It is possible to chain multiple
+types and also bind a variable here. For instance `D=xy==0` would allow both
+`x` and `y` registers with a value of `0` and also bind the argument to the variable `D`.
+
+|:: signifies the end of this instruction and the beginning of another instruction
+that is part of the same pattern.
+
+return:: is the second instruction to match in this pattern.
+
+`=>`:: signifies the end of the pattern and the start of the code that is to be
+generated.
+
+move_return S:: is the name of the generated instruction together with the name of
+the variable on the lhs. It is possible to generate
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L625[multiple instructions]
+as part of a transformation by using the `|` symbol.
+
+[[complex_example]]
+.A more complex example
+
+More complex translations can be done in `ops.tab`. For instance take the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L127-L182[`select_val`]
+instruction. It will be translated by the loader into either a jump table, a linear
+search array or a binary search array depending on the input values.
+
+....
+is_integer Fail=f S | select_val S=s Fail=f Size=u Rest=* | \
+  use_jump_tab(Size, Rest) => gen_jump_tab(S, Fail, Size, Rest)
+....
+
+The above transformation creates a jump table if possible of the `select_val`.
+There are a bunch of new techniques used in the transformations.
+
+S:: is used in both `is_integer` and `select_val`. This means that both the
+values have to be of the same type and have the same value. Futhermore the `S=s` guard
+limits the type to a be a source register.
+Rest=*:: allows a variable number of arguments in the instruction and binds them to
+variable `Rest`.
+use_jump_tab(Size, Rest):: calls a the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L2707[use_jump_tab]
+C function in `beam_load.c` that decides whether the arguments in the `select_val`
+can be transformed into a jump table.
+\:: signifies that the transformation rule continues on the next line.
+gen_jump_tab(S, Fail, Size, Rest):: calls the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L3692[gen_jump_tab]
+C function in `beam_load.c` that takes care of generating the approprioate instruction.
+
+==== Specific instruction
+
+When all transformations are done, we have to decide how the specifc instruction should
+look like. Let's continue to look at `move_return`:
+
+....
+%macro: move_return MoveReturn -nonext
+move_return x
+move_return c
+move_return n
+....
+
+This will generate three different instructions that will use the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L636[`MoveReturn`]
+macro in `beam_emu.c` to do the work.
+
+%macro: move_return:: this tells `ops.tab` to generate the code for `move_return`. If there
+is no `%macro` line, the instruction has to be implemented by hand in beam_emu.c. The code
+for the instruction will be places in `beam_hot.h` or `beam_cold.h` depending on if the
+`%hot` or `%cold` directive is active.
+
+MoveReturn:: tells the code generator to that the name of the c-macro in beam_emu.c to use
+is MoveReturn. This macro has to be implemented manually.
+
+-nonext:: tells the code generator that it should not generate a dispatch to the next
+instruction, the `MoveReturn` macro will take care of that.
+
+move_return x:: tells the code generator to generate a specific instruction for when the
+instruction argument is an x register. `c` for when it is a constant, `n` when it is `NIL`.
+No instructions are in this case generated for when the argument is a y register as the
+compiler will never generate such code.
+
+The resulting code in `beam_hot.h` will look like this:
+
+[source, C]
+-----------------------------
+OpCase(move_return_c):
+    {
+    MoveReturn(Arg(0));
+    }
+
+OpCase(move_return_n):
+    {
+    MoveReturn(NIL);
+    }
+
+OpCase(move_return_x):
+    {
+    MoveReturn(xb(Arg(0)));
+    }
+-----------------------------
+
+All the implementor has to do is to define the `MoveReturn` macro in `beam_emu.c` and
+the instruction is complete.
+
+[[macro_arguments]]
+.Macro flags
+
+The `%macro` rules can take multiple different flags to modify the code that
+gets generated.
+
+The examples below assume that there is a specific instructions looking like this:
+
+....
+%macro move_call MoveCall
+move_call x f
+....
+
+without any flags to the `%macro` we the following code will be generated:
+
+[source, C]
+BeamInstr* next;
+PreFetch(2, next);
+MoveCall(Arg(0));
+NextPF(2, next);
+
+-nonext:: Don't emit a dispatch for this instructions. This is used for instructions
+that are known to not continue with the next instructions, i.e. return, call, jump.
+
+`%macro move_call MoveCall -nonext`
+[source, C]
+MoveCall(xb(Arg(0)));
+
+-arg_*:: Include the arguments of type * as arguments to the c-macro. Not all argument
+types are included by default in the c-macro. For instance the type `f` used for fail
+labels and local function calls is not included. So giving the option `-arg_f` will
+include that as an argument to the c-macro.
+
+`%macro move_call MoveCall -arg_f`
+[source, C]
+MoveCall(xb(Arg(0)), Arg(1));
+
+-size:: Include the size of the instruction as an argument to the c-macro.
+
+`%macro move_call MoveCall -size`
+[source, C]
+MoveCall(xb(Arg(0)), 2);
+
+-pack:: Pack any arguments if possible. This places multiple register arguments in
+the same word if possible. As register arguments can only be 0-1024, we only need
+10 bits to store them + 2 for tagging. So on a 32-bit system we can put 2 registers
+in one word, while on a 64-bit we can put 4 registers in one word. Packing instruction
+can greatly decrease the memory used for a single instruction. However there is
+also a small cost to unpack the instruction, which is why it is not enabled
+for all instructions.
+
+The example with the call cannot do any packing as `f` cannot be packed and only one
+other argument exists. So let's look at the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L539[put_list]
+instruction as an example instead.
+
+....
+%macro:put_list PutList -pack
+put_list x x x
+....
+
+[source, C]
+BeamInstr tmp_packed1;
+BeamInstr* next;
+PreFetch(1, next);
+tmp_packed1 = Arg(0);
+PutList(xb(tmp_packed1&BEAM_TIGHT_MASK),
+        xb((tmp_packed1>>BEAM_TIGHT_SHIFT)&BEAM_TIGHT_MASK),
+        xb((tmp_packed1>>(2*BEAM_TIGHT_SHIFT))));
+NextPF(1, next);
+
+This packs the 3 arguments into 1 machine word, which halves the required memory
+for this instruction.
+
+-fail_action:: Include a fail action as an argument to the c-macro. Note that the
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L2996-L2998[`ClauseFail()`]
+macro assumes the fail label is in the first argument of the instructions,
+so in order to use this in the above example we should transform
+the `move_call x f` to `move_call f x`.
+
+`%macro move_call MoveCall -fail_action`
+[source, C]
+MoveCall(xb(Arg(0)), ClauseFail());
+
+-gen_dest:: Include a
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L166-L174[store function]
+as an argument to the c-macro.
+
+`%macro move_call MoveCall -gen_dest`
+[source, C]
+MoveCall(xb(Arg(0)), StoreSimpleDest);
+
+-goto:: Replace the normal next dispatch with a jump to a c-label inside beam_emu.c
+
+`%macro move_call MoveCall -goto:do_call`
+[source, C]
+MoveCall(xb(Arg(0)));
+goto do_call;
