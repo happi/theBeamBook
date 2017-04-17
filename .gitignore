@@ -22,3 +22,4 @@ xml/*.png
 xml/*.png.md5
 site
 .asciidoctor
+.DS_Store
