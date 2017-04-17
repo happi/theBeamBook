@@ -2,7 +2,7 @@ ABFLAGS = --backend=docbook --doctype=book
 
 DBLATEX_OPTS = -P latex.output.revhistory=0 -P doc.collab.show=0
 
-all: beam-book.pdf index.html
+all: chapters/contributors.txt beam-book.pdf index.html
 
 chapters/contributors.txt: .git
 	./bin/gitlog.sh $@
