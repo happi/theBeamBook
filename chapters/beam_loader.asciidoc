@@ -199,6 +199,12 @@ PreFetch(2, next);
 MoveCall(Arg(0));
 NextPF(2, next);
 
+[NOTE]
+The https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L519-L523[PreFetch and NextPF]
+macros make sure to load the address to jump to next before the instruction is executed.
+This trick increases performance on all architectures by a variying amount depending on
+cache architecture and super scalar properties of the CPU.
+
 -nonext:: Don't emit a dispatch for this instructions. This is used for instructions
 that are known to not continue with the next instructions, i.e. return, call, jump.
 
