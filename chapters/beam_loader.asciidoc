@@ -282,3 +282,75 @@ MoveCall(xb(Arg(0)), StoreSimpleDest);
 [source, C]
 MoveCall(xb(Arg(0)));
 goto do_call;
+
+=== Optimizations
+
+The loader performs many peephole optimizations when loading the code. The most important
+ones are instruction combining and instruction specialization.
+
+Instruction combining is the joining of two or more smaller instructions into one larger
+instruction. This can lead to a large speed up of the code if the instructions are known
+to follow each other most of the time. The speed up is achieved because there is no longer
+any need to do a dispatch inbetween the instructions, and also the C compiler gets more
+information to work with when it is optimizing that instruction. When to do instruction
+combining is a trade-off where one has to consider the impact the increased size of the
+main emulator loop has vs the gain when the instruction is executed.
+
+Instruction specialization removes the need to decode the arguments in an instruction.
+So instead of having one `move_sd` instruction, `move_xx`, `move_xy` etc are generated
+with the arguments already decoded. This reduces the decode cost of the instructions,
+but again it is a tradeoff vs emulator code size.
+
+==== select_val optimizations
+
+The `select_val` instruction is emitted by the compiler to do control flow handling
+of many functions or case clauses. For instance:
+
+[source, erlang]
+select(1) -> 3;
+select(2) -> 3;
+select(_) -> error.
+
+compiles to:
+
+[source, erlang]
+{function, select, 1, 2}.
+  {label,1}.
+    {line,[{location,"select.erl",5}]}.
+    {func_info,{atom,select},{atom,select},1}.
+  {label,2}.
+    {test,is_integer,{f,4},[{x,0}]}.
+    {select_val,{x,0},{f,4},{list,[{integer,2},{f,3},{integer,1},{f,3}]}}.
+  {label,3}.
+    {move,{integer,3},{x,0}}.
+    return.
+  {label,4}.
+    {move,{atom,error},{x,0}}.
+    return.
+
+The values in the condition are only allowed to be either integers
+or atoms. If the value is of any other type the compiler will not emit a
+`select_val` instruction. The loader uses a couple of hearistics to figure
+out what type algorithm to use when doing the `select_val`.
+
+jump_on_val:: Create a jump table and use the value as the index. This if very
+efficient and happens when a group of close together integers are used as the
+value to select on. If not all values are present, the jump table is padded with
+extra fail label slots.
+
+select_val2:: Used when only two values are to be selected upon and they to not
+fit in a jump table.
+
+select_val_lins:: Do a linear search of the sorted atoms or integers. This is
+used when a small amount of atoms or integers are to be selected from.
+
+select_val_bins:: Do a binary search of the sorted atoms or integers.
+
+==== pre-hashing of literals
+
+When a literal is loaded and used as an argument to any of the bifs or instructions
+that need a hashed value of the literal, instead of hashing the literal value
+every time, the hash is created by the loader and used by the instructions.
+
+Examples of code using this technique is maps instructions and also the process
+dictionary bifs.
