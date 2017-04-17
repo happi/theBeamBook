@@ -111,8 +111,7 @@ illustrated with two Erlang nodes running on one machine.
  | BEAM |  | BEAM |
  +------+  +------+
  | ERTS |  | ERTS |
- +------+  +------+
- +----------------+
+ +------+--+------+
  |       OS       |
  +----------------+
  |    HW or VM    |
