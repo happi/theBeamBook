@@ -121,7 +121,7 @@ The above transformation creates a jump table if possible of the `select_val`.
 There are a bunch of new techniques used in the transformations.
 
 S:: is used in both `is_integer` and `select_val`. This means that both the
-values have to be of the same type and have the same value. Futhermore the `S=s` guard
+values have to be of the same type and have the same value. Furthermore the `S=s` guard
 limits the type to a be a source register.
 Rest=*:: allows a variable number of arguments in the instruction and binds them to
 variable `Rest`.
@@ -132,7 +132,7 @@ can be transformed into a jump table.
 \:: signifies that the transformation rule continues on the next line.
 gen_jump_tab(S, Fail, Size, Rest):: calls the
 https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L3692[gen_jump_tab]
-C function in `beam_load.c` that takes care of generating the approprioate instruction.
+C function in `beam_load.c` that takes care of generating the appropriate instruction.
 
 ==== Specific instruction
 
