@@ -1,12 +1,13 @@
-[[CH-Debugging]] = Debugging
+[[CH-Debugging]]
+= Debugging
 
-CAUTION: This chapter is still a stub and it's being heavily worked
-         on. If planning a major addition to this chapter, please
-         synchronize with the authors to avoid conflicts or duplicated
-         efforts. You are still welcome to submit your feedback using
-         a GitHub Issue. You can use the same mechanism to suggest
-         sections that you believe should be included in this chapter,
-         too.
+[WARNING]
+This chapter is still a stub and it's being heavily worked
+on. If planning a major addition to this chapter, please synchronize
+with the authors to avoid conflicts or duplicated efforts. You are
+still welcome to submit your feedback using a GitHub Issue. You can
+use the same mechanism to suggest sections that you believe should be
+included in this chapter, too.
 
 == Preliminary Outline
 
