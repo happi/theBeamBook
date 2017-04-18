@@ -76,24 +76,68 @@ detailed descriptions of each component in the following chapters.
 
 ==== The Erlang Node (ERTS)
 
-An Erlang node (((node))) is a running instance of ERTS (((ERTS))) (or
-possibly another implementation of Erlang (see
-xref:Other_Erlang_Implementations[])).
-In OO terminology one could say that an Erlang node is an object
-of the Erlang Runtime System class.
+When you start an Elixir or Erlang application or system, what you
+really start is an Erlang node(((node))). The node runs the Erlang
+RunTime System and the virtual machine BEAM.  (or possibly another
+implementation of Erlang (see xref:Other_Erlang_Implementations[])).
 
-All execution of Erlang code is done within a node. An erlang node
-corresponds to an OS process and you can have several Erlang nodes
+Your application code will run in an Erlang node, and all the layers
+of the node will affect the performance of your application. We will
+look at the stack of layers that makes up a node. This will help you
+understand you options for running your system in different
+environments.
+
+In OO terminology one could say that an Erlang node is an object of
+the Erlang Runtime System class. The equivalent in the Java world is a
+JVM instance.
+
+All execution of Elixir/Erlang code is done within a node. An Erlang node
+runs in one OS process, and you can have several Erlang nodes
 running on one machine.
 
-Your Erlang program (or application) will run in one or more Erlang
-nodes, and the performance of your program will depend not only on
-your application code but also on all the layers below your code
-in the _Erlang solution stack_. In particular if you are running
-your code on top of ERTS you will need to know the components of
-the _ERTS Stack_.
 
-In xref:the_erts_stack[] you can see the ERTS Stack
+To be completely correct according to the Erlang OTP documentation a
+node is actually an executing runtime system that has been given a
+name. That is, if you start Elixir without giving a name through one
+of the command line switches `--name NAME@HOST` or `--sname NAME` (or
+`-name` and `-sname` for an Erlang runtime.)  you will have a runtime
+but not a node. In such a system the function `Node.alive?` 
+(or in Erlang `is_alive()`) returns false.
+
+[source,iex]
+----
+$ iex
+Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
+              [async-threads:10] [hipe] [kernel-poll:false]
+
+Interactive Elixir (1.4.0) - press Ctrl+C to exit (type h() ENTER for help)
+iex(1)> Node.alive?
+false
+iex(2)>
+----
+
+The runtime system itself is not that strict in its use
+of the terminology. You can ask for the name of the node even
+if you didn't give it a name. In Elixir you use the function
+`Node.list` with the argument `:this`, and in Erlang you
+call `nodes(this).`:
+
+[source,iex]
+----
+iex(2)> Node.list :this
+[:nonode@nohost]
+iex(3)>
+----
+
+In this book we will use the term node for any running instance
+of the runtime whether it is given a name or not.
+
+==== Layers in the Execution Environment
+
+Your program (application) will run in one or more nodes, and the
+performance of your program will depend not only on your application
+code but also on all the layers below your code in the _ERTS
+stack_. In xref:the_erts_stack[] you can see the ERTS Stack
 illustrated with two Erlang nodes running on one machine.
 
 [[the_erts_stack]]
@@ -122,58 +166,92 @@ options:
  - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
+If you are using Elixir there is yet another layer to the stack.
+
+[[the_elixir_stack]]
+.Elixir Stack
+[shaape]
+----
+   Node1     Node2
+
+ +------+  +------+
+ | APP  |  | APP  |
+ +------+  +------+
+ |Elixir|  |Elixir|
+ +------+  +------+
+ | OTP  |  | OTP  |
+ +------+  +------+
+ | BEAM |  | BEAM |
+ +------+  +------+
+ | ERTS |  | ERTS |
+ +------+  +------+
+ +----------------+
+ |       OS       |
+ +----------------+
+ |    HW or VM    |
+ +----------------+
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
+----
+
+
+Let's look at each layer of the stack and see how you can tune them
+to your application's need.
+
 At the bottom of the stack there is the hardware you are running
 on. The easiest way to improve the performance of your app is probably
-to run it on better hardware. If economical or physical constraints
-won't let you upgrade your hardware you can start exploring higher
-levels of the stack. The two most important choices for your hardware
+to run it on better hardware. You might need to start exploring higher
+levels of the stack if economical or physical constraints or
+environmental concerns won't let you upgrade your hardware.
+
+The two most important choices for your hardware
 is whether it is multicore and whether it is 32-bit or 64-bit. You
 need different builds of ERTS depending on whether you want to use
-multicore or not and whether you want to use 32-bit or 64-bit. (See
-xref:CH-BuildingERTS[] for information on how to build different
-versions of ERTS).  This book will not go into any details about
-hardware but will talk a bit about multicore and NUMA architectures
-in xref:CH-Scheduling[] and xref:CH-Memory[].
+multicore or not and whether you want to use 32-bit or 64-bit.
 
 The second layer in the stack is the OS level. ERTS runs on most
-versions of Windows and most POSIX "compliant" OS:es, including Linux,
-VxWorks, Solaris, and Mac OS X. Today most of the development of ERTS
-is done on Linux and OS X, and you can expect the best performance on
-these platforms. However, Ericsson have been using Solaris internally
-in many projects and ERTS has been tuned for Solaris for many years.
-Depending on your use case you might actually get better performance on
-a Solaris system. The OS choice is usually not based on performance
-requirements, but is restricted by other demands. If you are building
-an embedded application you might be restricted to Raspbian or VxWorks,
-and if you are for some reason building an end user or client
-application you might have to use Windows. The Windows port of ERTS
-has so far not had the highest priority and might not be the best
-choice from a performance or maintenance perspective. If you want to
-use a 64-bit ERTS you of course need to have both a 64-bit machine and
-a 64-bit OS. This book will not cover many OS specific questions.
+versions of Windows and most POSIX "compliant" operating systems,
+including Linux, VxWorks, Solaris, and Mac OS X. Today most of the
+development of ERTS is done on Linux and OS X, and you can expect the
+best performance on these platforms. However, Ericsson have been using
+Solaris internally in many projects and ERTS have been tuned for
+Solaris for many years.  Depending on your use case you might actually
+get the best performance on a Solaris system. The OS choice is usually
+not based on performance requirements, but is restricted by other
+factors. If you are building an embedded application you might be
+restricted to Rasbian or VxWork, and if you for some reason are
+building an end user or client application you might have to use
+Windows. The Windows port of ERTS has so far not had the highest
+priority and might not be the best choice from a performance or
+maintenance perspective. If you want to use a 64-bit ERTS you of
+course need to have both a 64-bit machine and a 64-bit OS. We will not
+cover many OS specific questions in this book, and most examples will
+be assuming that you run on Linux.
 
 The third layer in the stack is the Erlang Runtime System. In our case
-this will be ERTS. This and the next layer, the Erlang Virtual Machine
-(BEAM), is what this book is all about. In the rest of xref:P-ERTS[]
-you will see how these layers work and are implemented, and in
-xref:P-Running[] you will see how you can tune ERTS to give your
-application optimal performance.
+this will be ERTS. This and the fourth layer, the Erlang Virtual Machine
+(BEAM), is what this book is all about.
 
-The fifth layer, OTP(((OTP))), supplies the Erlang standard
-libraries. OTP originally stood for "Open Telecom Platform" and was a
-number of Erlang libraries supplying building blocks (such as
-+supervisor+, +gen_server+ and +gen_ftp+) for building robust
-applications (such as telephony exchanges). Early on, the libraries
-and the meaning of OTP got intermingled with all the other standard
-libraries shipped with ERTS. Nowadays most people use OTP together
-with Erlang in "Erlang/OTP" as the name for ERTS and all Erlang
-libraries shipped by Ericsson. Knowing these standard libraries
-and how and when to use them can greatly improve the performance
-of your application. This book will not go into any details about
-the standard libraries and OTP, since there are other books that
-cover these aspects.
+The fifth layer, OTP(((OTP))), supplies the Erlang standard libraries. OTP
+originally stood for "Open Telecom Platform" and was a number of
+Erlang libraries supplying building blocks (such as `supervisor`,
+`gen_server` and `gen_ftp`) for building robust applications (such as
+telephony exchanges).  Early on, the libraries and the meaning of OTP
+got intermingled with all the other standard libraries shipped with
+ERTS. Nowadays most people use OTP together with Erlang in
+"Erlang/OTP" as the name for ERTS and all Erlang libraries shipped by
+Ericsson. Knowing these standard libraries and how and when to use
+them can greatly improve the performance of your application. This
+book will not go into any details of the standard libraries and
+OTP, there are many other books that cover these aspects.
 
-Finally, the sixth layer (APP) is your application which can use all
+If you are running an Elixir program the sixth layer provides
+the Elixir environment and the Elixir libraries.
+
+Finally, the seventh layer (APP) is your application, and
+any third party libraries you use. The application can use all
 the functionality provided by the underlying layers. Apart from
 upgrading your hardware this is probably the place where you most
 easily can improve your application's performance. In
@@ -182,11 +260,54 @@ help you profile and optimize your application. In
 xref:CH-Debugging[] we will look at how to find the cause
 of crashing applications and how to find bugs in your application.
 
-
 For information on how to build and run an Erlang node
 see xref:CH-BuildingERTS[], and read the rest of the book to
 learn all about the components of an Erlang node.
- 
+
+==== Distribution
+
+
+One of the key insights by the Erlang language designers was that in
+order to build a system that works 24/7 you need to be able to handle
+hardware failure. Therefore you need to distribute your system over at
+least two physical machines. You do this by starting a node on
+each machine and then you can connect the nodes to each other so
+that processes can communicate with each other across the nodes
+just as if they where running in the same node.
+
+[[a_distributed_application]]
+.Distributed Applications
+[shaape]
+----
+   Node1     Node2      Node3     Node4
+
+ +------+  +------+   +------+  +------+
+ | APP  |  | APP  |   | APP  |  | APP  |
+ +------+  +------+   +------+  +------+
+ |Elixir|  |Elixir|   |Elixir|  |Elixir|
+ +------+  +------+   +------+  +------+
+ | OTP  |  | OTP  |   | OTP  |  | OTP  |
+ +------+  +------+   +------+  +------+
+ | BEAM |  | BEAM |   | BEAM |  | BEAM |
+ +------+  +------+   +------+  +------+
+ | ERTS |  | ERTS |   | ERTS |  | ERTS |
+ +------+  +------+   +------+  +------+
+ +----------------+   +----------------+
+ |       OS       |   |       OS       |
+ +----------------+   +----------------+
+ |    HW or VM    |   |    HW or VM    |
+ +----------------+   +----------------+
+ +-------------------------------------+
+ |               Network               |
+ +-------------------------------------+
+
+options:
+ - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
+ - ".*": {text : ["Monospace 10", no-shadow]}
+
+----
+
+
 ==== The Erlang Compiler
 
 The Erlang Compiler is responsible for compiling Erlang source code,

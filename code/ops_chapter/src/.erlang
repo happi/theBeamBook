@@ -1,0 +1,3 @@
+code:load_abs("/home/happi/.config/erlang/user_default").
+
+io:format("ERTS is starting in ~s~n",[os:cmd("pwd")]).
