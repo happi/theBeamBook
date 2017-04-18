@@ -1,5 +1,5 @@
 [[AP-Instructions]]
-== Appendix A: BEAM Instructions
+== BEAM Instructions
 
 Here we will go through most of the instructions in the BEAM
 generic instruction set in detail. In the next section we list

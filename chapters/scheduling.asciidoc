@@ -132,7 +132,7 @@ function call. There are a few Built In Functions (BIFs) that still
 can take too long without yielding. Also, if you call C code in a
 badly implemented Native Implemented Function (NIF) you might block
 one scheduler for a long time.
-We will look at how to write well behaved NIFs in xref:CH-Ca[].
+We will look at how to write well behaved NIFs in xref:CH-C[].
 
 Since there are no other loop constructs than recursion and
 list comprehensions,
