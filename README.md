@@ -65,6 +65,7 @@ make
 1. Add `/Library/TeX/texbin` to your `PATH`.
 1. `easy_install dblatex`
 1. Install [asciidoc](http://asciidoc.org/INSTALL.html)
+1. Install [asciidoctor-diagram](http://asciidoctor.org/docs/asciidoctor-diagram/)
 1. Install [shaape](https://github.com/christiangoltz/shaape)
 1. Install [source-highlight](https://www.gnu.org/software/src-highlite/)
 1. Install [wget](https://www.gnu.org/software/wget/)
@@ -80,6 +81,7 @@ make
 1. `pip install shaape`
 1. `brew install source-highlight`
 1. `brew install wget`
+1. `gem install asciidoctor-diagram`
 1. `make`
 
 ## License
