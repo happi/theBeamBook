@@ -104,7 +104,6 @@ of the command line switches `--name NAME@HOST` or `--sname NAME` (or
 but not a node. In such a system the function `Node.alive?` 
 (or in Erlang `is_alive()`) returns false.
 
-[source,iex]
 ----
 $ iex
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
@@ -122,7 +121,6 @@ if you didn't give it a name. In Elixir you use the function
 `Node.list` with the argument `:this`, and in Erlang you
 call `nodes(this).`:
 
-[source,iex]
 ----
 iex(2)> Node.list :this
 [:nonode@nohost]

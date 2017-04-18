@@ -69,7 +69,6 @@ need to run the command on one of the nodes.
 
 
 
-[source,iex]
 ----
 iex(node2@GDC08)1> Node.connect :node1@GDC08
 true
