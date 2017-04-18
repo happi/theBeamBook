@@ -132,7 +132,7 @@ function call. There are a few Built In Functions (BIFs) that still
 can take too long without yielding. Also, if you call C code in a
 badly implemented Native Implemented Function (NIF) you might block
 one scheduler for a long time.
-We will look at how to write well behaved NIFs in xref:CH-Ca[].
+We will look at how to write well behaved NIFs in xref:CH-C[].
 
 Since there are no other loop constructs than recursion and
 list comprehensions,
@@ -428,10 +428,10 @@ it will not trigger before the set time, it might be some time after
 the intended time before the process is scheduled and get to execute.
 
 Timers are handled in the VM by a _timing wheel_. That is, an array of
-time slots which wraps around. The timing
-wheel is a global resource and there might be contention for the write
-lock to the timing wheel if you have many processes inserting timers
-into the wheel.
+time slots which wraps around. Prior to Erlang 18 the timing wheel was
+a global resource and there could be some contention for the write
+lock if you had many processes inserting timers into the wheel. Make
+sure you are using a later version of Erlang if you use many timers.
 
 The default size (+TIW_SIZE+) of the timing wheel is 65536 slots (or
 8192 slots if you have built the system for a small memory
