@@ -1,6 +1,5 @@
-
 [[AP-listings]]
-== Appendix B: Full Code Listings
+== Full Code Listings
 
 [source,erlang]
 ----
@@ -80,6 +79,15 @@ Load Balancer.
 ----
 include::../code/memory_chapter/src/lb.erl[]
 ----
+
+[[listing-show]]
+show.
+
+[source,erlang]
+----
+include::../code/type_system_chapter/src/show.erl[]
+----
+
 
 // [[listing-lbS]]
 // [source,beam]

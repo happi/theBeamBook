@@ -124,4 +124,11 @@ Now you are ready to build and install Erlang:
 > make install
 > export PATH=$HOME/otp/install/bin/:$PATH
 > export ROOTDIR=$HOME/otp/install/
+
 ----
+
+=== Building with Kerl
+
+An easier way to build especially if you want to have
+several different builds available to experiment with
+is to build with Kerl.
