@@ -3,7 +3,7 @@
 # The BEAM Book
 
 This is an attempt to document the internals of the Erlang Runtime
-System and the Erlang virtual machine the BEAM.
+System and the Erlang virtual machine known as the BEAM.
 
 You can read or download the book as a PDF from the [latest
 stable release](https://github.com/happi/theBeamBook/releases/latest)
@@ -15,11 +15,10 @@ open the file [book.asciidoc](book.asciidoc).
 
 ## Contributing
 
-The plan is to make this book project into a collaborate effort so
+The plan is to make this book project into a collaboration effort so
 that we can get a complete documentation of the Erlang Runtime system
 as soon as possible. Please feel free to contribute since this work is
-far from done, and it will probably never be done since there is
-continuous development of the Erlang runtime system.
+far from done.
 
 You can contribute by raising an issue, comment on open issues
 or create a branch with a fix or an addition.
@@ -40,7 +39,7 @@ and plain errors.
 4. Done (for OTP version X), if things changes in later versions of
 Erlang OTP the chapter will need an update.
 
-(Not all chapters are yet marked in this way)
+(Not all chapters are yet marked in this way.)
 
 ### Style guide
 
@@ -57,7 +56,7 @@ We will try to come up with specific guides for which AsciiDoc
 constructs to use and add them here as we discover what works
 and what doesn't work.
 
-#### The AsciiDoc dialect to use
+[comment]: # (#### The AsciiDoc dialect to use)
 
 #### Comments in Asciidoc
 Each chapter should begin with a comment about the status of
@@ -66,24 +65,47 @@ the chapter. This should be one of 'Placeholder', 'First Draft',
 There can also be a link to an issue describing what is needed
 to bring the chapter to the next level.
 
-A comment in the code start with '//'.
+A comment in the code starts with '//'.
 
-#### Callouts
+[comment]: # (#### Callouts)
+[comment]: # (What type of callout to use and for what (note, warning erc.))
 
-// What type of callout to use and for what (note, warning erc.)
 #### Linking to OTP/Erlang source code
 
-//How to link to the OTP code
+When refereing to the source code of Erlang/OTP please add
+a link to a tagged version (not to master) of the code on github,
+as in:
+
+----
+link:https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h[erl_time.h]
+----
 
 #### Directory structure and build
 
-// Where to place files (code, screenshots, diagrams, etc) and how to handle them (Makefile, code listing appendix)
+Try to keep the root directory clean.
+
+Put each chapter in a separate .asciidoc file in the chapters directory.
+Use underscore "_" to separate words in chapter names but try to use
+just one word file names for the chpaters.
+
+Put code used in a chapter in code/CHAPTERNAME_chapter/src, and add an
+include of the code in ap-code_listings.asciidoc.
+
+Put images in the images directory.
 
 #### How to tag chapters, sections, figures
 
-Chapter tags start with 'CH-'. Words in a tag is separated by
+The following is not yet done consistently so please feel
+free to contribute by fixing tags in the current version.
+
+Chapter tags should start with 'CH-'. Words in a tag is separated by
 underscore '_'.
 
+Section tags should start with 'SEC-'.
+
+Figure tags should start with 'FIG-'.
+
+Code listing tags (in the appendix) should start with 'LISTING-'.
 
 ### Process
 
@@ -155,7 +177,7 @@ work at https://github.com/happi/theBeamBook.
 A complete copy of the license can be found [here](LICENSE).
 
 
-# A short history of the book
+# A short and personal history of the book
 
 I, Erik Stenman (Happi), started writing this book back in 2013.
 At first I was thinking of self publishing the book on my blog,
@@ -167,7 +189,7 @@ outline to their build process. My original plan was for a very long
 and thorough book, which the editor felt would get few readers. I
 started cutting my content and tried to write more of a tutorial than
 a manual. Unfortunately progress was slow and pre-sales was even
-slower and the publisher canceled the book in 2015.
+slower and the publisher cancelled the book in 2015.
 
 I managed to get a new deal with Pragmatic and started converting my
 content to their build system and rewriting the book according to the
