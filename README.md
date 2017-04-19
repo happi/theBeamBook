@@ -56,7 +56,7 @@ We will try to come up with specific guides for which AsciiDoc
 constructs to use and add them here as we discover what works
 and what doesn't work.
 
-[comment]: # (#### The AsciiDoc dialect to use)
+<!-- #### The AsciiDoc dialect to use -->
 
 #### Comments in Asciidoc
 Each chapter should begin with a comment about the status of
@@ -67,8 +67,10 @@ to bring the chapter to the next level.
 
 A comment in the code starts with '//'.
 
-[comment]: # (#### Callouts)
-[comment]: # (What type of callout to use and for what (note, warning erc.))
+<!-- #### Callouts
+     What type of callout to use and for what (note, warning erc.)
+
+-->
 
 #### Linking to OTP/Erlang source code
 
@@ -77,7 +79,7 @@ a link to a tagged version (not to master) of the code on github,
 as in:
 
 ----
-link:https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h[erl_time.h]
+ link:https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h[erl_time.h]
 ----
 
 #### Directory structure and build
