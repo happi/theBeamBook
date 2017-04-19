@@ -79,7 +79,9 @@ a link to a tagged version (not to master) of the code on github,
 as in:
 
 ----
+<pre>
  link:https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h[erl_time.h]
+</pre>
 ----
 
 #### Directory structure and build
