@@ -675,7 +675,7 @@ The field `id` contains the process ID (or PID).
 The process ID is an Erlang term and hence tagged (See xref:CH-TypeSystem[]). This means
 that the 4 least significant bits are a tag (0011). In the
 code section there is a module for inspecting Erlang terms
-(see xref:listing-show[<filename>show.erl</filename>]) which we will cover in
+(see xref:listing-show[show.erl]) which we will cover in
 the chapter on types. We can use it now to to examine the
 type of a tagged word though.
 

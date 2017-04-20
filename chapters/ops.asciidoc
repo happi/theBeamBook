@@ -51,7 +51,7 @@ Eshell V8.1  (abort with ^G)
 
 Then we start an Elixir node called `node2`:
 
-[sources, iex]
+[source, bash]
 ----
 $ iex --sname node2
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]

@@ -52,7 +52,7 @@ include::chapters/ops.asciidoc[]
 
 include::chapters/tweak.asciidoc[]
 
-[appendix]
+[[appendix]]
 = Appendices
 // include::chapters/index.asciidoc[]
 
