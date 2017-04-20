@@ -59,7 +59,7 @@ what each component is. The rest of this introductory chapter should
 give you enough basic understanding and vocabulary to be able to jump
 between the rest of the chapters in part one in any order you like.
 
-However, if you have the time
+However, if you have the time,
 read the book in
 order the first time. Words that are specific to Erlang and ERTS or
 used in a specific way in this book are usually explained at their
@@ -326,7 +326,7 @@ Erlang Node.
 
 ****
 *BEAM:* The name BEAM originally stood for Bogdan's Erlang Abstract
- Machine, but now a days most people refer to it as Bj&ouml;rn's
+ Machine, but nowadays most people refer to it as Bj&ouml;rn's
 Erlang Abstract machine, after the current maintainer. 
  
 ****

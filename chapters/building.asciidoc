@@ -6,11 +6,11 @@ Erlang/OTP to suite your needs. We will use an Ubuntu Linux for most
 of the examples. If you are using a different OS you can find detailed
 instructions on how to build for that OS in the documentation in the
 source code (in HOWTO/INSTALL.md), or on the web
-[INSTALL.html.](http://www.erlang.org/doc/installation_guide/INSTALL.html)
+http://www.erlang.org/doc/installation_guide/INSTALL.html[INSTALL.html].
 
 There are basically two ways to build the runtime system, the traditional
 way with autoconf, configure and make or with the help of
-[kerl.](https://github.com/spawngrid/kerl)
+https://github.com/spawngrid/kerl[kerl].
 
 I recommend that you first give the traditional way a try, that way
 you will get a better understanding of what happens when you
@@ -87,7 +87,7 @@ interfering with any pre built and system wide installations.
 
 === Getting the source
 There are two main ways of getting the source. You can download a
-tarball from [erlang.org](http://www.erlang.org/download.html) or you
+tarball from http://www.erlang.org/download.html[erlang.org] or you
 can check out the source code directly from Github.
 
 If you want to quickly download a stable version of the source try:
