@@ -87,25 +87,24 @@ Here we can see the chunk names that beam uses.
 
 ==== Atom table chunk
 
-The chunk named Atom is mandatory and contains all atoms referred to by the module. The format of the atom chunk is: 
+The chunk named +Atom+ is mandatory and contains all atoms referred to by the module. The format of the atom chunk (omitting its mandatory chunk header and the padding) is:
+
+[source,erlang]
+----
+AtomChunk = <<
+  ChunkName:4/unit:8 = "Atom",
+  ChunkSize:32/big,
+  NumberOfAtoms:32/big,
+  [<<AtomLength:8, AtomName:AtomLength/unit:8>> || repeat NumberOfAtoms],
+  Padding4:0..3/unit:8
+>>
 
 ----
-{“Atom”:4
-  CHUNKSIZE:4
-  NUMBEROFATOMS:4
-  [{LENGTH:1,
-    ATOM:LENGTH}]:NUMBEROFATOMS
-  [4-BYTEPAD:1]:0..3
-}
-
-----
 
 
-
-_NOTE:_ There is a further constraint that the module name must be stored as the first atom in the table.
+NOTE: Module name is always stored as the first atom in the table (atom index 0).
 
 Let us add a decoder for the atom chunk to our Beam file reader:
-
 
 [source,erlang]
 ----
@@ -116,23 +115,26 @@ include::../code/beam_modules_chapter/src/beamfile2.erl[]
 
 ==== Export table chunk
 
-The chunk named &ldquo;ExpT&rdquo; (for EXPort Table) is mandatory and contains information about which functions are exported.
+The chunk named +ExpT+ (for EXPort Table) is mandatory and contains information about which functions are exported.
 
-The format of the chunk is: 
+The format of the chunk (omitting its mandatory chunk header and the padding) is:
+
+[source,erlang]
+----
+ExportChunk = <<
+  ChunkName:4/unit:8 = "ExpT",
+  ChunkSize:32/big,
+  ExportCount:32/big,
+  [ << FunctionName:32/big,
+       Arity:32/big,
+       Label:32/big
+    >> || repeat ExportCount ],
+  Padding4:0..3/unit:8
+>>
 
 ----
-{“ExpT”:4
-  CHUNKSIZE:4
-  NUMBEROFENTRIES:4
-  [{FUNCTION:4,
-    ARITY:4,
-    LABEL:4
-   }]:NUMBEROFENTRIES
-}
 
-----
-
-
++FunctionName+ is the index in the atom table.
 
 We can extend our parse_chunk function by adding the following clause after the atom handling clause: 
 
