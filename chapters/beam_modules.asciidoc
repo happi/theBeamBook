@@ -6,7 +6,8 @@
 
 === Modules
 
-What is a module. How is code loaded. How does hot code loading work. How does the purging work. How does the code server work. How does dynamic code loading work, the code search path. Handling code in a distributed system. (Overlap with chapter 10, have to see what goes where.) Parameterized modules. How p-mods are implemented. The trick with p-mod calls. Here follows an excerpt from the current draft:
+.%% TODO
+NOTE: What is a module. How is code loaded. How does hot code loading work. How does the purging work. How does the code server work. How does dynamic code loading work, the code search path. Handling code in a distributed system. (Overlap with chapter 10, have to see what goes where.) Parameterized modules. How p-mods are implemented. The trick with p-mod calls. Here follows an excerpt from the current draft:
 
 [[BEAM_files]]
 
@@ -16,38 +17,32 @@ The definite source of information about the beam file format is obviously the s
 
 The beam file format is based on the interchange file format (EA IFF)#, with two small changes. We will get to those shortly. An IFF file starts with a header followed by a number of &ldquo;chunks&rdquo;. There are a number of standard chunk types in the IFF specification dealing mainly with images and music. But the IFF standard also lets you specify your own named chunks, and this is what BEAM does.
 
-An IFF file looks like this:
+NOTE: Beam files differ from standard IFF files, in that each chunk is aligned on 4-byte boundary (i.e. 32 bit word) instead of on a 2-byte boundary as in the IFF standard. To indicate that this is not a standard IFF file the IFF header is tagged with &ldquo;FOR1&rdquo; instead of &ldquo;FORM&rdquo;. The IFF specification suggests this tag for future extensions.
 
+Beam uses form type &ldquo;BEAM&rdquo;. A beam file header has the following layout:
 
+[source,erlang]
 ----
-{‘FORM’:4
- SIZE:4
- FORMTYPE:4
- [{CHUNKNAME:4
-   CHUNKSIZE:4
-   [CHUNKDATA:1]:CHUNKSIZE
-   [2-BYTEPAD:1]:0..1
-  }
- ]:SIZE-4
-}
+BEAMHeader = <<
+  IffHeader:4/unit:8 = "FOR1",
+  Size:32/big,                  // big endian, how many more bytes are there
+  FormType:4/unit:8 = "BEAM"
+>>
 
 ----
 
-Beam files differ from standard IFF files, in that each chunk is aligned on 4-byte boundary (i.e. 32 bit word) instead of on a 2-byte boundary as in the IFF standard. To indicate that this is not a standard IFF file the IFF header is tagged with &ldquo;FOR1&rdquo; instead of &ldquo;FORM&rdquo;. The IFF specification suggest this tag for future extensions.
+After the header multiple chunks can be found. Size of each chunk is aligned to the multiple of 4 and each chunk has its own header (below).
 
-The form type used by beam is &ldquo;BEAM&rdquo;. A beam file has the following layout: 
+NOTE: The alignment is important for some platforms, where unaligned memory byte access would create a hardware exception (named SIGBUS in Linux). This can turn out to be a performance hit or the exception could crash the VM.
 
+[source,erlang]
 ----
-{‘FOR1’:4
- SIZE:4
- ‘BEAM’:4
- [{CHUNKNAME:4
-  CHUNKSIZE:4
-  [CHUNKDATA:1]:CHUNKSIZE
-  [4-BYTEPAD:1]:0..3
-  }
- ]:SIZE-4
-}
+BEAMChunk = <<
+  ChunkName:4/unit:8,           // "Code", "Atom", "StrT", "LitT", ...
+  ChunkSize:32/big,
+  ChunkData:ChunkSize/unit:8,   // data format is defined by ChunkName
+  Padding4:0..3/unit:8
+>>
 
 ----
 
