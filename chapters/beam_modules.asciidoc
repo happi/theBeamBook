@@ -134,7 +134,7 @@ ExportChunk = <<
 
 ----
 
-+FunctionName+ is the index in the atom table.
+`FunctionName` is the index in the atom table.
 
 We can extend our parse_chunk function by adding the following clause after the atom handling clause: 
 
@@ -486,7 +486,7 @@ TODO
 
 [[SEC-BeamModulesCTE]]
 
-=== Compact Term Encoding
+==== Compact Term Encoding
 
 Let's look at the algorithm, used by `beam_asm:encode`. BEAM files use a special encoding to store simple terms in BEAM file in a space-efficient way. It is different from memory term layout, used by the VM.
 
@@ -551,7 +551,7 @@ If the following value is greater than 8 bytes, then all bits 3-4-5-6-7 will be 
 1 1 1 1 1 | Tag    ||  (Size-9)               ||
 ----
 
-==== Tag Types
+===== Tag Types
 
 When reading compact term format, the resulting integer may be interpreted differently based on what is the value of `Tag`.
 
