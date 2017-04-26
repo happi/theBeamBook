@@ -492,19 +492,19 @@ Let's look at the algorithm, used by `beam_asm:encode`. BEAM files use a special
 
 TIP: `Beam_asm` is a module in the `compiler` application, part of the Erlang distribution, it is used to assemble binary content of beam modules.
 
-The reason behind this complicated design is to try and fit as many type and value data into the first byte as possible to make code section more compact. After decoding all encoded values become full size machine words or terms.
+The reason behind this complicated design is to try and fit as much type and value data into the first byte as possible to make code section more compact. After decoding all encoded values become full size machine words or terms.
 
 [shaape]
 ----
 7 6 5 4 3 | 2 1 0
 ----------+-------+
-          | 0 0 0 | Literal
-          | 0 0 1 | Integer
-          | 0 1 0 | Atom
-          | 0 1 1 | X Register
-          | 1 0 0 | Y Register
-          | 1 0 1 | Label
-          | 1 1 0 | Character
+          | 0 0 0 | Literal         (tag_u in beam_opcodes.hrl)
+          | 0 0 1 | Integer         (tag_i)
+          | 0 1 0 | Atom            (tag_a)
+          | 0 1 1 | X Register      (tag_x)
+          | 1 0 0 | Y Register      (tag_y)
+          | 1 0 1 | Label           (tag_f)
+          | 1 1 0 | Character       (tag_h)
 0 0 0 1 0 | 1 1 1 | Extended - Float
 0 0 1 0 0 | 1 1 1 | Extended - List
 0 0 1 1 0 | 1 1 1 | Extended - Floating point register
@@ -513,9 +513,9 @@ The reason behind this complicated design is to try and fit as many type and val
 
 ----
 
-It uses first 3 bits of a first byte as a tag to specify the type of the following value. If the bits were all 1 (special value 7), then few more bits are used.
+It uses first 3 bits of a first byte to store the tag which defines the type of the following value. If the bits were all 1 (special value 7 or ?tag_z from `beam_opcodes.hrl`), then few more bits are used.
 
-For values under 16 the value is placed entirely into bits 4-5-6-7 having bit 3 set to 0:
+For values under 16, the value is placed entirely into bits 4-5-6-7 having bit 3 set to 0:
 
 [shaape]
 ----
@@ -524,7 +524,7 @@ For values under 16 the value is placed entirely into bits 4-5-6-7 having bit 3 
 Value   | 0 | Tag
 ----
 
-For values under 16#800 (2048) bit 3 is set to 1, marks that 1 continuation byte will be used and 3 most significant bits of the value will extend into this byte’s bits 5-6-7:
+For values under 2048 (16#800) bit 3 is set to 1, marks that 1 continuation byte will be used and 3 most significant bits of the value will extend into this byte’s bits 5-6-7:
 
 [shaape]
 ----
@@ -542,7 +542,7 @@ Larger and negative values are first converted to bytes. Then if the value takes
 Bytes-2 | 1 1 | Tag
 ----
 
-If the following value is greater than 8 bytes, then all bits 3-4-5-6-7 will be set to 1, followed by a nested encoded unsigned `?tag_u` value of (Bytes-9):8, and then the data:
+If the following value is greater than 8 bytes, then all bits 3-4-5-6-7 will be set to 1, followed by a nested encoded unsigned literal (macro `?tag_u` in `beam_opcodes.hrl`) value of (Bytes-9):8, and then the data:
 
 [shaape]
 ----
