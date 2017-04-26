@@ -87,7 +87,7 @@ Here we can see the chunk names that beam uses.
 
 ==== Atom table chunk
 
-The chunk named +Atom+ is mandatory and contains all atoms referred to by the module. The format of the atom chunk (omitting its mandatory chunk header and the padding) is:
+The chunk named `Atom` is mandatory and contains all atoms referred to by the module. The format of the atom chunk is:
 
 [source,erlang]
 ----
@@ -115,9 +115,9 @@ include::../code/beam_modules_chapter/src/beamfile2.erl[]
 
 ==== Export table chunk
 
-The chunk named +ExpT+ (for EXPort Table) is mandatory and contains information about which functions are exported.
+The chunk named `ExpT` (for EXPort Table) is mandatory and contains information about which functions are exported.
 
-The format of the chunk (omitting its mandatory chunk header and the padding) is:
+The format of the export chunk is:
 
 [source,erlang]
 ----
@@ -161,52 +161,75 @@ parse_exports(<<>>) -> [].
 
 ==== Import table chunk
 
-The chunk named &ldquo;ImpT&rdquo; (for IMPort Table) is mandatory and contains information about which functions are imported.
+The chunk named `ImpT` (for IMPort Table) is mandatory and contains information about which functions are imported.
 
 The format of the chunk is: 
 
+[source,erlang]
 ----
-{“ImpT”:4
-  CHUNKSIZE:4
-  NUMBEROFENTRIES:4
-  [{FUNCTION:4,
-    ARITY:4,
-    LABEL:4
-   }]:NUMBEROFENTRIES
-}
+ImportChunk = <<
+  ChunkName:4/unit:8 = "ImpT",
+  ChunkSize:32/big,
+  ImportCount:32/big,
+  [ << ModuleName:32/big,
+       FunctionName:32/big,
+       Arity:32/big
+    >> || repeat ImportCount ],
+  Padding4:0..3/unit:8
+>>
 
 ----
 
+Here `ModuleName` and `FunctionName` are indexes in the atom table.
 
-
-The code for parsing the import table is basically the same as that for parsing the export table, and we can actually use the same function to parse entries in both tables. See the full code at the end of the chapter.
+NOTE: The code for parsing the import table is similar to that which parses the export table, but not exactly: both are triplets of 32-bit integers, just their meaning is different. See the full code at the end of the chapter.
 
 [[code_chunk]]
 
 ==== Code Chunk
 
-The chunk named &ldquo;Code&rdquo; contains the beam code for the module and is mandatory. The format of the chunk is: 
+The chunk named `Code` contains the beam code for the module and is mandatory. The format of the chunk is:
+
+[source,erlang]
+----
+ImportChunk = <<
+  ChunkName:4/unit:8 = "Code",
+  ChunkSize:32/big,
+  SubSize:32/big,
+  InstructionSet:32/big,        % Must match code version in the emulator
+  OpcodeMax:32/big,
+  LabelCount:32/big,
+  FunctionCount:32/big,
+  Code:(ChunkSize-SubSize)/binary,  % all remaining data
+  Padding4:0..3/unit:8
+>>
 
 ----
-{“Code”:4
-  CHUNKSIZE:4
-  SUBSIZE:4
-  INSTRUCTIONSET:4
-  OPCODEMAX:4
-  NUMBEROFLABELS:4
-  NUMBEROFFUNCTIONS:4
-  [OPCODE:1]:(CHUNKSIZE-SUBSIZE)
-  [4-BYTEPAD:1]:0..3
-}
+
+
+The field `SubSize` stores the number of words before the code starts. This makes it possible to add new information fields in the code chunk without breaking older loaders.
+
+The `InstructionSet` field indicates which version of the instruction set the file uses. The version number is increased if any instruction is changed in an incompatible way.
+
+The `OpcodeMax` field indicates the highest number of any opcode used in the code. New instructions can be added to the system in a way such that older loaders still can load a newer file as long as the instructions used in the file are within the range the loader knows about.
+
+The field `LabelCount` contains the number of labels so that a loader can preallocate a label table of the right size in one call. The field `FunctionCount` contains the number of functions so that the functions table could also be preallocated efficiently.
+
+The `Code` field contains instructions, chained together, where each instruction has the following format:
+
+[source,erlang]
+----
+Instruction = <<
+  InstructionCode:8,
+  [beam_asm:encode(Argument) || repeat Arity]
+>>
 ----
 
+Here `Arity` is hardcoded in the table, which is generated from ops.tab by genop script when the emulator is built from source.
 
+The encoding produced by `beam_asm:encode` is explained below in the  <<SEC-BeamModulesCTE,Compact Term Encoding>> section.
 
-The field SUBSIZE stores the number of words before the code starts. This makes it possible to add new information fields in the code chunk without breaking older loaders. The INSTRUCTIONSET field indicates which version of the instruction set the file uses. The version number is increased if any instruction is changed in an incompatible way.
-
-The OPCODEMAX field indicates the highest number of any opcode used in the code. New instructions can be added to the system in a way such that older loaders still can load a newer file as long as the instructions used in the file are within the range the loader knows about.
-
-The field NUMBEROFLABELS contains the number of labels so that a loader can preallocate a label table of the right size. The field NUMBEROFFUNCTIONS contains the number of functions so that a loader can preallocate a functions table of the right size.
+===== Parsing the CODE Chunk
 
 We can parse out the code chunk by adding the following code to our program: 
 
@@ -428,3 +451,85 @@ This chunk type is now obsolete.
 ==== Bringing it all Together
 
 TODO
+
+
+[[SEC-BeamModulesCTE]]
+
+=== Compact Term Encoding
+
+Let's look at the algorithm, used by `beam_asm:encode`. BEAM files use a special encoding to store simple terms in BEAM file in a space-efficient way. It is different from memory term layout, used by the VM.
+
+TIP: `Beam_asm` is a module in the `compiler` application, part of the Erlang distribution, it is used to assemble binary content of beam modules.
+
+The reason behind this complicated design is to try and fit as many type and value data into the first byte as possible to make code section more compact. After decoding all encoded values become full size machine words or terms.
+
+[shaape]
+----
+7 6 5 4 3 | 2 1 0
+----------+-------+
+          | 0 0 0 | Literal
+          | 0 0 1 | Integer
+          | 0 1 0 | Atom
+          | 0 1 1 | X Register
+          | 1 0 0 | Y Register
+          | 1 0 1 | Label
+          | 1 1 0 | Character
+0 0 0 1 0 | 1 1 1 | Extended - Float
+0 0 1 0 0 | 1 1 1 | Extended - List
+0 0 1 1 0 | 1 1 1 | Extended - Floating point register
+0 1 0 0 0 | 1 1 1 | Extended - Allocation list
+0 1 0 1 0 | 1 1 1 | Extended - Literal
+
+----
+
+It uses first 3 bits of a first byte as a tag to specify the type of the following value. If the bits were all 1 (special value 7), then few more bits are used.
+
+For values under 16 the value is placed entirely into bits 4-5-6-7 having bit 3 set to 0:
+
+[shaape]
+----
+7 6 5 4 | 3 | 2 1 0
+--------+---+------
+Value   | 0 | Tag
+----
+
+For values under 16#800 (2048) bit 3 is set to 1, marks that 1 continuation byte will be used and 3 most significant bits of the value will extend into this byte’s bits 5-6-7:
+
+[shaape]
+----
+7 6 5 | 4 3 | 2 1 0
+------+-----+------
+Value | 0 1 | Tag
+----
+
+Larger and negative values are first converted to bytes. Then if the value takes 2..8 bytes, bits 3-4 will be set to 1, and bits 5-6-7 will contain the (Bytes-2) size for the value, which follows:
+
+[shaape]
+----
+7  6  5 | 4 3 | 2 1 0
+--------+-----+------
+Bytes-2 | 1 1 | Tag
+----
+
+If the following value is greater than 8 bytes, then all bits 3-4-5-6-7 will be set to 1, followed by a nested encoded unsigned `?tag_u` value of (Bytes-9):8, and then the data:
+
+[shaape]
+----
+7 6 5 4 3 | 2 1 0  ||  Followed by a          ||
+----------+------  ||  nested encoded literal || Data . . .
+1 1 1 1 1 | Tag    ||  (Size-9)               ||
+----
+
+==== Tag Types
+
+When reading compact term format, the resulting integer may be interpreted differently based on what is the value of `Tag`.
+
+* For literals the value is index into the literal table.
+* For atoms, the value is atom index MINUS one. If the value is 0, it means `NIL` (empty list) instead.
+* For labels 0 means invalid value.
+* If tag is character, the value is unsigned unicode codepoint.
+* Tag Extended List contains pairs of terms. Read `Size`, create tuple of `Size` and then read `Size/2` pairs into it. Each pair is `Value` and `Label`. `Value` is a term to compare against and `Label` is where to jump on match. This is used in `select_val` instruction.
+
+
+
+Refer to `beam_asm:encode/2` in the compiler application for details about how this is encoded. Tag values are presented in this section, but also can be found in `compiler/src/beam_opcodes.hrl`.
