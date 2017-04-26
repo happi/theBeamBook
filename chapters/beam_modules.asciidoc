@@ -138,6 +138,7 @@ ExportChunk = <<
 
 We can extend our parse_chunk function by adding the following clause after the atom handling clause: 
 
+[source,erlang]
 ----
 parse_chunks([{"ExpT", _Size,
              <<_Numberofentries:32/integer, Exports/binary>>}
@@ -229,10 +230,9 @@ Here `Arity` is hardcoded in the table, which is generated from ops.tab by genop
 
 The encoding produced by `beam_asm:encode` is explained below in the  <<SEC-BeamModulesCTE,Compact Term Encoding>> section.
 
-===== Parsing the CODE Chunk
+We can parse out the code chunk by adding the following code to our program:
 
-We can parse out the code chunk by adding the following code to our program: 
-
+[source,erlang]
 ----
 parse_chunks([{"Code", Size, <<SubSize:32/integer,Chunk/binary>>           
               } | Rest], Acc) ->
@@ -268,16 +268,19 @@ We will learn how to decode the beam instructions in a later chapter, aptly name
 
 ==== String table chunk
 
-The chunk named &ldquo;StrT&rdquo; is mandatory and contains all constant string literals in the module as one long string. If there are no string literals the chunks should still be present but empty and of size 0.
+The chunk named `StrT` is mandatory and contains all constant string literals in the module as one long string. If there are no string literals the chunks should still be present but empty and of size 0.
 
 The format of the chunk is:
 
+[source,erlang]
 ----
-{“StrT”:4
- CHUNKSIZE:4
- [STRINGBYTE]:CHUNKSIZE
- [4-BYTEPAD:1]:0..3
-}
+StringChunk = <<
+  ChunkName:4/unit:8 = "StrT",
+  ChunkSize:32/big,
+  Data:ChunkSize/binary,
+  Padding4:0..3/unit:8
+>>
+
 ----
 
 The string chunk can be parsed easily by just turning the string of bytes into a binary:
@@ -290,22 +293,27 @@ parse_chunks([{"StrT", _Size, <<Strings/binary>>} | Rest], Acc) ->
 
 ==== Attributes Chunk
 
-The chunk named "Attr" is optional, but some OTP tools expect the attributes to be present. The releashandler expect the "vsn" attribute to be present. You can get the version attribute from a file with: beam_lib:version(Filename), this function assumes that there is an attribute chunk with a "vsn" attribute present.
+The chunk named `Attr` is optional, but some OTP tools expect the attributes to be present. The releashandler expect the "vsn" attribute to be present. You can get the version attribute from a file with: beam_lib:version(Filename), this function assumes that there is an attribute chunk with a "vsn" attribute present.
 
 The format of the chunk is:
 
 
+[source,erlang]
 ----
-{"Attr":4
-  CHUNKSIZE:4
-  ATTRIBUTES:CHUNKSIZE
-  [4-BYTEPAD]:0..3
-}
+AttributesChunk = <<
+  ChunkName:4/unit:8 = "Attr",
+  ChunkSize:32/big,
+  Attributes:ChunkSize/binary,
+  Padding4:0..3/unit:8
+>>
+
 ----
+
 
 We can parse the attribute chunk like this:
 
 
+[source,erlang]
 ----
 parse_chunks([{"Attr", Size, Chunk} | Rest], Acc) ->
     <<Bin:Size/binary, _Pad/binary>> = Chunk,
@@ -316,22 +324,26 @@ parse_chunks([{"Attr", Size, Chunk} | Rest], Acc) ->
 
 ==== Compilation Information Chunk
 
-The chunk named "CInf" is optional, but some OTP tools expect the information to be present. 
+The chunk named `CInf` is optional, but some OTP tools expect the information to be present.
 
 The format of the chunk is:
 
 
+[source,erlang]
 ----
-{"CInf":4
-  CHUNKSIZE:4
-  INFORMATION:CHUNKSIZE
-  [4-BYTEPAD]:0..3
-}
+CompilationInfoChunk = <<
+  ChunkName:4/unit:8 = "CInf",
+  ChunkSize:32/big,
+  Data:ChunkSize/binary,
+  Padding4:0..3/unit:8
+>>
+
 ----
 
 We can parse the compilation information chunk like this:
 
 
+[source,erlang]
 ----
 parse_chunks([{"CInf", Size, Chunk} | Rest], Acc) ->
     <<Bin:Size/binary, _Pad/binary>> = Chunk,
@@ -342,46 +354,60 @@ parse_chunks([{"CInf", Size, Chunk} | Rest], Acc) ->
 
 ==== Local Function Table Chunk
 
-The chunk named "LocT" is optional and intended for cross reference tools. 
+The chunk named `LocT` is optional and intended for cross reference tools.
 
 The format is the same as that of the export table:
 
 
+[source,erlang]
 ----
-{"LocT":4
-  CHUNKSIZE:4
-  NUMBEROFENTRIES:4
-  [{FUNCTION:4,
-    ARITY:4,
-    LABEL:4
-   }]:NUMBEROFENTRIES
-}
+LocalFunTableChunk = <<
+  ChunkName:4/unit:8 = "LocT",
+  ChunkSize:32/big,
+  FunctionCount:32/big,
+  [ << FunctionName:32/big,
+       Arity:32/big,
+       Label:32/big
+    >> || repeat FunctionCount ],
+  Padding4:0..3/unit:8
+>>
+
 ----
 
-The code for parsing the local function table is basically the same as that for parsing the export and the import table, and we can actually use the same function to parse entries in all tables. See the full code at the end of the chapter.
+NOTE: The code for parsing the local function table is basically the same as that for parsing the export and the import table, and we can actually use the same function to parse entries in all tables. See the full code at the end of the chapter.
 
 
 ==== Literal Table Chunk
 
-The chunk named "LitT" is optional and contains compressed code literals. The format of the chunk is:
+The chunk named `LitT` is optional and contains all literal values from the module source in compressed form, which are not immediate values. The format of the chunk is:
 
+
+[source,erlang]
+----
+LiteralTableChunk = <<
+  ChunkName:4/unit:8 = "LitT",
+  ChunkSize:32/big,
+  UncompressedSize:32/big,      % It is nice to know the size to allocate some memory
+  CompressedLiterals:ChunkSize/binary,
+  Padding4:0..3/unit:8
+>>
 
 ----
-{"LitT":4
-  CHUNKSIZE:4
-  COMPRESSEDTABLESIZE:4
-  <NUMBEROFLITERALS:4,
-    [{SIZE:4
-      LITERAL:SIZE
-     }]:NUMBEROFLITERALS
-   }>:COMPRESSEDTABLESIZE
-}
+
+Where the `CompressedLiterals` must have exactly `UncompressedSize` bytes. Each literal in the table is encoded with the External Term Format (`erlang:term_to_binary`). The format of `CompressedLiterals` is the following:
+
+----
+CompressedLiterals = <<
+  Count:32/big,
+  [ <<Size:32/big, Literal:binary>>  || repeat Count ]
+>>
 ----
 
-The whole table is compressed with zlib:compress/1, and can be uncompressed with zlib_uncompress/1.
+The whole table is compressed with `zlib:compress/1` (deflate algorithm), and can be uncompressed with `zlib:uncompress/1` (inflate algorithm).
 
-We can parse the chunk like this
+We can parse the chunk like this:
 
+[source,erlang]
 ----
 parse_chunks([{"LitT", _ChunkSize,
               <<_CompressedTableSize:32, Compressed/binary>>}
@@ -394,6 +420,8 @@ parse_chunks([{"LitT", _ChunkSize,
 
 
 ...
+
+[source,erlang]
 ----
 parse_literals(<<Size:32,Literal:Size/binary,Tail/binary>>) ->
     [binary_to_term(Literal) | parse_literals(Tail)];
@@ -407,19 +435,22 @@ parse_literals(<<>>) -> [].
 
 ==== Abstract Code Chunk
 
-The chunk named "Abst" is optional and may contain the code in abstract form. If you give the flag debug_info to the compiler it will store the abstract syntax tree for the module in this chunk. OTP tools like the debugger and Xref need the abstract form. The format of the chunk is:
+The chunk named `Abst` is optional and may contain the code in abstract form. If you give the flag `debug_info` to the compiler it will store the abstract syntax tree for the module in this chunk. OTP tools like the debugger and Xref need the abstract form. The format of the chunk is:
 
-
+[source,erlang]
 ----
-{"Abst":4
-  CHUNKSIZE:4
-  [ABSTRACTCODE]:CHUNKSIZE
-  [4-BYTEPAD:1]:0..3
-}
+AbstractCodeChunk = <<
+  ChunkName:4/unit:8 = "Abst",
+  ChunkSize:32/big,
+  AbstractCode:ChunkSize/binary,
+  Padding4:0..3/unit:8
+>>
+
 ----
 
 We can parse the chunk like this
 
+[source,erlang]
 ----
 parse_chunks([{"Abst", _ChunkSize, <<>>} | Rest], Acc) ->
     parse_chunks(Rest,Acc);
