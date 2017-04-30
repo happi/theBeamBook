@@ -1,28 +1,19 @@
 [[AP-Instructions]]
 == BEAM Instructions
 
-Here we will go through most of the instructions in the BEAM
-generic instruction set in detail. In the next section we list
-all instructions with a brief explanation generated from the
-documentaion in the code (see +lib/compiler/src/genop.tab+).
+Here we will go through most of the instructions in the BEAM generic instruction set in detail. In the next section we list all instructions with a brief explanation generated from the documentaion in the code (see `lib/compiler/src/genop.tab`).
 
 === Functions and Labels
 
 ==== label Lbl
 
-Instruction number 1 in the generic instruction set is not really an
-instruction at all. It is just a module local label giving a name, or
-actually a number to the current position in the code.
+Instruction number 1 in the generic instruction set is not really an instruction at all. It is just a module local label giving a name, or actually a number to the current position in the code.
 
-Each label potentially marks the beginning of a basic block since
-it is a potential destination of a jump.
+Each label potentially marks the beginning of a basic block since it is a potential destination of a jump.
 
 ==== func_info Module Function Arity
 
-The code for each function starts with a func_info instruction.
-This instruction is used for generating a function clause error,
-and the execution of the code in the function actually starts
-at the label following the func_info instruction.
+The code for each function starts with a `func_info` instruction. This instruction is used for generating a function clause error, and the execution of the code in the function actually starts at the label following the func_info instruction.
 
 Imagine a function with a guard:
 
@@ -45,157 +36,111 @@ The Beam code for this function might look like:
 
 ------------------------------------------
 
-Here the meta information +{function, id, 1, 4}+ tells us that
-execution of the id/1 function will start at label 4. At label 4 we do
-an +is_integer+ on x0 and if we fail we jump to label 3 (f3) which
-points to the func_info instruction, which will generate a _function
-clause_ exception. Otherwise we just fall through and return the
-argument (x0).
+Here the meta information `{function, id, 1, 4}` tells us that execution of the id/1 function will start at label 4. At label 4 we do an `is_integer` on x0 and if we fail we jump to label 3 (f3) which points to the func_info instruction, which will generate a _function clause_ exception. Otherwise we just fall through and return the argument (x0).
+
+NOTE: Function info instruction points to an `Export` record (defined in `erts/emulator/beam/export.h`) and located somewhere else in memory. The few dedicated words of memory inside that record are used by the tracing mechanism to place a special trace instruction which will trigger for each entry/return from the function by all processes.
 
 === Test instructions
 
 ==== Type tests
 
-The type test instructions (+is_\* Lbl Argument+) checks whether the
-argument is of the given type and if not jumps to the label Lbl.
-The beam disassembler wraps all these instructions in a  +test+
-instruction. E.g.:
+The type test instructions (`is_\* Lbl Argument`) checks whether the argument is of the given type and if not jumps to the label Lbl. The beam disassembler wraps all these instructions in a  `test` instruction. E.g.:
 
 [source,erlang]
 ------------------------------------------
     {test,is_integer,{f,3},[{x,0}]}.
 ------------------------------------------
 
-The current type test instructions are is_integer, is_float,
-is_number, is_atom, is_pid, is_reference, is_port, is_nil, is_binary,
-is_list, is_nonempty_list, is_function, is_function2, is_boolean,
-is_bitstr, and is_tuple.
+The current type test instructions are `is_integer`, `is_float`, `is_number`, `is_atom`, `is_pid`, `is_reference`, `is_port`, `is_nil`, `is_binary`, `is_list`, `is_nonempty_list`, `is_function`, `is_function2`, `is_boolean`, `is_bitstr`, and `is_tuple`.
 
-And then there is also one type test instruction of Arity 3:
-+test_arity Lbl Arg Arity+. This instruction tests that
-the arity of the argument (assumed to be a tuple) is of +Arity+.
-This instruction is usually preceded by an +is_tuple+
-instruction.
+And then there is also one type test instruction of Arity 3: `test_arity Lbl Arg Arity`. This instruction tests that the arity of the argument (assumed to be a tuple) is of `Arity`. This instruction is usually preceded by an `is_tuple` instruction.
 
 ==== Comparisons
 
-The comparison instructions (+is_\* Lbl Arg1 Arg2+) compares the
-two arguments according to the instructions and jumps to Lbl if the
-comparison fails.
+The comparison instructions (`is_\* Lbl Arg1 Arg2`) compares the two arguments according to the instructions and jumps to `Lbl` if the comparison fails.
 
-The comparison instructions are: : is_lt,  is_ge,  is_eq,  is_ne,
-is_eq_exact, and  is_ne_exact.
+The comparison instructions are: `is_lt`,  `is_ge`,  `is_eq`,  `is_ne`, `is_eq_exact`, and `is_ne_exact`.
 
-Remember that all Erlang terms are ordered so these instructions can
-compare any two terms. You can for example test if the atom +self+
-is less than the pid  returned by +self()+. (It is.)
+Remember that all Erlang terms are ordered so these instructions can compare any two terms. You can for example test if the atom `self` is less than the pid  returned by `self()`. (It is.)
 
-Note that for numbers the comparison is done on the Erlang type
-_number_, see xref:CH-TypeSystem[]. That is, for a mixed float and
-integer comparison the number of lower precision is converted to the
-other type before comparison. For example on my system 1 and 0.1
-compares as equal, as well as 9999999999999999 and 1.0e16.
-Comparing floating point numbers is always risk and best avoided,
-the result may wary depending on the underlying hardware.
+Note that for numbers the comparison is done on the Erlang type _number_, see xref:CH-TypeSystem[]. That is, for a mixed float and integer comparison the number of lower precision is converted to the other type before comparison. For example on my system 1 and 0.1 compares as equal, as well as 9999999999999999 and 1.0e16. Comparing floating point numbers is always risk and best avoided, the result may wary depending on the underlying hardware.
 
-If you want to make sure that the integer 1 and the floating point
-number 1.0 are compared different you can use is_eq_exact and
-is_ne_exact. This corresponds to the Erlang operators +=:=+ and
-+=/=+.
+If you want to make sure that the integer 1 and the floating point number 1.0 are compared different you can use is_eq_exact and is_ne_exact. This corresponds to the Erlang operators `=:=` and `=/=`.
+
+
 
 === Function Calls
 
-In this chapter we will summarize what the different call instructions
-does. For a thorough description of how function calls work see
-xref:CH-Calls[].
+In this chapter we will summarize what the different call instructions does. For a thorough description of how function calls work see xref:CH-Calls[].
+
 
 ==== call Arity Label
 
-Does a call to the function of arity +Arity+ in the same
-module at label +Label+. First count down the reductions and
-if needed do a context switch.
+Does a call to the function of arity `Arity` in the same module at label `Label`. First count down the reductions and if needed do a context switch. Current code address before the call is saved into CP.
 
-For all local calls the label is the second label of the
-function where the code starts. It is assumed that the preceding
-instruction at that label is +func_info+ in order to get the MFA if a
-context switch is needed.
+For all local calls the label is the second label of the function where the code starts. It is assumed that the preceding instruction at that label is `func_info` in order to get the MFA if a context switch is needed.
+
 
 ==== call_last Arity Label
 
-Do a tail recursive call the function of arity +Arity+ in the same
-module at label +Label+. First count down the reductions and if needed
-do a context switch.
+Do a tail recursive call the function of arity `Arity` in the same module at label `Label`. First count down the reductions and if needed do a context switch. The CP is not updated with the return address.
 
 
 ==== call_only Arity Label Deallocate
 
-Deallocate +Deallocate+ words of stack, then do a tail recursive call
-to the function of arity +Arity+ in the same module at label +Label+ First
-count down the reductions and if needed do a context switch.
+Deallocate `Deallocate` words of stack, then do a tail recursive call to the function of arity `Arity` in the same module at label `Label` First count down the reductions and if needed do a context switch. The CP is not updated with the return address.
+
 
 ==== call_ext Arity Destination
 
-Does an external call to the function of arity +Arity+ given by
- Destination. Destination is usually of the form +{extfunc, Module,
- Function, Arity}+. First count down the reductions and if needed do a
- context switch.
+Does an external call to the function of arity `Arity` given by Destination. Destination in assembly is usually written as `{extfunc, Module, Function, Arity}`, this is then added to imports section of the module. First count down the reductions and if needed do a context switch. CP will be updated with the return address.
+
 
 ==== call_ext_only Arity Destination
 
-Does a tail recursive external call to the function of arity +Arity+ given by
- Destination. Destination is usually of the form +{extfunc, Module,
- Function, Arity}+. First count down the reductions and if needed do a
- context switch.
+Does a tail recursive external call to the function of arity `Arity` given by Destination. Destination in assembly is usually written as `{extfunc, Module, Function, Arity}`. First count down the reductions and if needed do a context switch. The CP is not updated with the return address.
 
 
 ==== call_ext_last Arity Destination Deallocate
 
-Deallocate +Deallocate+ words of stack, then do a tail recursive
-external call to the function of arity +Arity+ given by
-Destination. Destination is usually of the form +{extfunc, Module,
-Function, Arity}+. First count down the reductions and if needed do a
-context switch.
+Deallocate `Deallocate` words of stack, then do a tail recursive external call to the function of arity `Arity` given by Destination. Destination in assembly is usually written as `{extfunc, Module, Function, Arity}`. First count down the reductions and if needed do a context switch. The CP is not updated with the return address.
 
 
-==== +bif0 Bif Reg+, +bif1 Lbl Bif Arg Reg+, +bif2 Lbl Bif Arg1 Arg2 Reg+
+==== bif0 Bif Reg, bif[1,2] Lbl Bif [Arg,...] Reg
 
-Call the bif +Bif+ with the given arguments, and store the result in
-+Reg+. If the bif fails jump to +Lbl+. No zero arity bif can fail an
-thus those calls doesn't take a fail label.
+Call the bif `Bif` with the given arguments, and store the result in `Reg`. If the bif fails, jump to `Lbl`. Zero arity bif cannot fail and thus `bif0` doesn't take a fail label.
 
-// Bif called by these instructions may not allocate on the heap nor
-// trigger a garbage collection.
+TIP: Bif called by these instructions may not allocate on the heap nor trigger a garbage collection. Otherwise see: `gc_bif`.
 
-==== +gc_bif1-3 Lbl Live Bif Arg1-3 Reg+
 
-Call the bif  +Bif+ with the given arguments,  and store the result in Reg.
-If the bif fails jump to Lbl.
-Store the arguments in x(Live),  x(Live+1) and x(live+2).
+==== gc_bif[1-3] Lbl Live Bif [Arg, ...] Reg
 
-==== +call_fun Arity+
+Call the bif `Bif` with the given arguments, and store the result in `Reg`. If the bif fails, jump to `Lbl`. Arguments will be stored in `x(Live)`,  `x(Live+1)` and `x(Live+2)`.
 
-The instruction +call_fun+ assumes that the arguments are placed in
-the argument registers and that the fun (the pointer to the closure)
-is placed in the last argument register.
+TIP: Because this instruction has argument `Live`, it gives us enough information to be able to trigger the garbage collection.
 
-That is, for a zero arity call, the closure is in x0. For a arity 1 call
-x0 contains the argument and x1 contains the closure.
+
+==== call_fun Arity
+
+The instruction `call_fun` assumes that the arguments are placed in the first `Arity` argument registers and that the fun (the pointer to the closure) is placed in the register following the last argument `x[Arity+1]`.
+
+That is, for a zero arity call, the closure is placed in `x[0]`. For a arity 1 call `x[0]` contains the argument and `x[1]` contains the closure and so on.
+
+NOTE: Raises `badarity` if the arity doesn't match the function object. Raises `badfun` if a non-function is passed.
 
 ==== apply/1
 
 TODO
 
+
 ==== apply_last/2
 
 TODO
 
+
 === Stack (and Heap) Management
 
-The stack and the heap of an Erlang process on Beam share the same memory
-area see xref:CH-Processes[] and xref:CH-Memory[] for a full discussion.
-The stack grows toward lower addresses and the heap toward higher addresses.
-Beam will do a garbage collection if more space than what is available is
-needed on either the stack or the heap.
+The stack and the heap of an Erlang process on Beam share the same memory area see xref:CH-Processes[] and xref:CH-Memory[] for a full discussion. The stack grows toward lower addresses and the heap toward higher addresses. Beam will do a garbage collection if more space than what is available is needed on either the stack or the heap.
 
 **************************
 
@@ -208,10 +153,7 @@ needed on either the stack or the heap.
 **************************
 
 
-These instructions are also used by non leaf functions for setting up
-and tearing down the stack frame for the current instruction. That is,
-on entry to the function the _continuation pointer_ (CP) is saved on
-the stack, and on exit it is read back from the stack.
+These instructions are also used by non leaf functions for setting up and tearing down the stack frame for the current instruction. That is, on entry to the function the _continuation pointer_ (CP) is saved on the stack, and on exit it is read back from the stack.
 
 A function skeleton for a leaf function looks like this:
 
@@ -244,12 +186,9 @@ A function skeleton for a non leaf function looks like this:
 
 
 
-==== +allocate StackNeed Live+
+==== allocate StackNeed Live
 
-Save the continuation pointer (CP) and allocate space for +StackNeed+
-extra words on the stack. If a GC is needed during allocation save
-+Live+ number of X registers. E.g. if +Live+ is 2 then registers X0
-and X1 are saved.
+Save the continuation pointer (CP) and allocate space for `StackNeed` extra words on the stack. If during allocation we run out of memory, call the GC and then first `Live` x registers will form a part of the root set. E.g. if `Live` is 2 then GC will save registers X0 and X1, rest are unused and will be freed.
 
 When allocating on the stack, the stack pointer (E) is decreased.
 
@@ -267,20 +206,18 @@ When allocating on the stack, the stack pointer (E) is decreased.
 ----
 ====
 
-==== +allocate_heap StackNeed HeapNeed Live+
 
-Save the continuation pointer (CP) and allocate space for +StackNeed+
-extra words on the stack. Ensure that there also is space for HeapNeed
-words on the heap. If a GC is needed during allocation save +Live+
-number of X registers.
+==== allocate_heap StackNeed HeapNeed Live
 
-Note that the heap pointer (HTOP) is not changed until the actual heap
-allocation takes place.
+Save the continuation pointer (CP) and allocate space for `StackNeed` extra words on the stack. Ensure that there also is space for `HeapNeed` words on the heap. If during allocation we run out of memory, call the GC with `Live` amount of X registers to preserve.
 
-==== +allocate_zero StackNeed Live+
+NOTE: The heap pointer (HTOP) is not changed until the actual heap allocation takes place.
+
+
+==== allocate_zero StackNeed Live
 
 This instruction works the same way as allocate, but it also clears
-out the allocated stack slots with NIL.
+out the allocated stack slots with `NIL`.
 
 .allocate_zero 1 0
 ====
@@ -296,36 +233,39 @@ out the allocated stack slots with NIL.
 ----
 ====
 
-==== +allocate_heap_zero StackNeed HeapNeed Live+
 
-The allocate_heap_zero instruction works as the allocate_heap
-instruction, but it also clears out the allocated stack slots
-with NIL.
+==== allocate_heap_zero StackNeed HeapNeed Live
 
-==== +test_heap HeapNeed Live+
+The allocate_heap_zero instruction works as the `allocate_heap` instruction, but it also clears out the allocated stack slots with `NIL`.
 
-The test_heap instruction ensures there is space for HeapNeed words on
-the heap. If a GC is needed save Live number of X registers.
 
-==== +init N+
+==== test_heap HeapNeed Live
 
-The init instruction clears N stack words. By writing NIL to them.
+The test_heap instruction ensures there is space for `HeapNeed` words on the heap. If during allocation we run out of memory, call the GC with `Live` amount of X registers to preserve.
 
-==== +deallocate N+
 
-The deallocate instruction is the opposite of the allocate instruction,
-it restores the continuation pointer and deallocates N+1 stack words.
+==== init N
 
-==== +return+
-The return instructions jumps to the address in the continuation pointer (CP).
+The init instruction clears N stack words above the CP pointer by writing `NIL` to them.
 
-==== +trim N Remaining+
-Removes N words of stack usage, while keeping the continuation pointer
-on the top of the stack. (The argument Remaining is to the best of my
-knowledge unused.)
 
+==== deallocate N
+
+The `deallocate` instruction is the opposite of the `allocate`. It restores the CP (continuation pointer) and deallocates `N+1` stack words.
+
+
+==== return
+
+The return instructions jumps to the address in the continuation pointer (CP). The value of CP is set to `0` in C.
+
+
+==== trim N Remaining
+
+Pops the CP into a temporary variable, frees `N` words of stack, and places the CP back onto the top of the stack. (The argument `Remaining` is to the best of my knowledge unused.)
+
+.Trim 2
+====
 ----
-Trim 2
        Before           After
          | ??? |            | ??? |
          | xxx |       E -> | CP  |
@@ -336,123 +276,180 @@ Trim 2
  HTOP -> |     |    HTOP -> |     |
          | xxx |            | xxx |
 ----
+====
 
 
-=== Moving, extracting, modifying.
+
+=== Moving, extracting, modifying data
+
 ==== move Source Destination
 
-Move the source Source (a litteral or a register) to the destination
-register Destination.
+Moves the value of the source `Source` (this can be a literal or a register) to the destination register `Destination`.
 
 ==== get_list Source Head Tail
 
-Get the head and tail (or car and cdr) parts of a list (a cons cell) from
-Source and put them into the registers Head and Tail.
+This is a deconstruct operation for a list cell. Get the head and tail (or car and cdr) parts of a list (a cons cell), specified by `Source` and place them into the registers `Head` and `Tail`.
 
 ==== get_tuple_element Source Element Destination
 
-Get element number Element from the tuple in Source and put it in the
-destination register Destination.
+This is an array indexed read operation. Get element with position `Element` from the `Source` tuple and place it into the `Destination` register.
+
 
 ==== set_tuple_element NewElement Tuple Position
 
-Update the element at postition Position of the tuple Tuple with the
-new element NewElement.
+This is a destructive array indexed update operation. Update the element of the `Tuple` at `Position` with the new `NewElement`.
+
+
 
 === Building terms.
 
-==== put_list/3
-TODO
-==== put_tuple/2
-TODO
-==== put/1
 
-====  make_fun2/1
-TODO
+==== put_list Head Tail Destination
+
+Constructs a new list (cons) cell on the heap (2 words) and places its address into the `Destination` register. First element of list cell is set to the value of `Head`, second element is set to the value of `Tail`.
+
+
+==== put_tuple Size Destination
+
+Constructs an empty tuple on the heap (`Size+1` words) and places its address into the `Destination` register. No elements are set at this moment. `Put_tuple` instruction is always followed by multiple `put` instructions which destructively set its elements one by one.
+
+
+==== put Value
+
+Places destructively a `Value` into the next element of a tuple, which was created by a preceding `put_tuple` instruction. Write address is maintained and incremented internally by the VM. Multiple `put` instructions are used to set contents for any new tuple.
+
+
+====  make_fun2 LambdaIndex
+
+Creates a function object defined by an index in the Lambda table of the module. A lambda table defines the entry point (a label or export entry), arity and how many frozen variables to take. Frozen variable values are copied from the current execution context (X registers) and stored into the function object.
+
+
 
 === Binary Syntax
+
 ==== bs_put_integer/5
 TODO
+
 ====  bs_put_binary/5
 TODO
+
 ====  bs_put_float/5
 TODO
+
 ====  bs_put_string/2
 TODO
+
 ==== bs_init2/6
 TODO
+
 ==== bs_add/5
 TODO
+
 ==== bs_start_match2/5
 TODO
+
 ==== bs_get_integer2/7
 TODO
+
 ==== bs_get_float2/7
 TODO
+
 ==== bs_get_binary2/7
 TODO
+
 ==== bs_skip_bits2/5
 TODO
+
 ==== bs_test_tail2/3
 TODO
+
 ==== bs_save2/2
 TODO
+
 ==== bs_restore2/2
 TODO
+
 ==== bs_context_to_binary/1
 TODO
+
 ==== bs_test_unit/3
 TODO
+
 ==== bs_match_string/4
 TODO
+
 ==== bs_init_writable/0
 TODO
+
 ==== bs_append/8
 TODO
+
 ==== bs_private_append/6
 TODO
+
 ==== bs_init_bits/6
 TODO
+
 ==== bs_get_utf8/5
 TODO
+
 ==== bs_skip_utf8/4
 TODO
+
 ==== bs_get_utf16/5
 TODO
+
 ==== bs_skip_utf16/4
 TODO
+
 ==== bs_get_utf32/5
 TODO
+
 ==== bs_skip_utf32/4
 TODO
+
 ==== bs_utf8_size/3
 TODO
+
 ==== bs_put_utf8/3
 TODO
+
 ==== bs_utf16_size/3
 TODO
+
 ==== bs_put_utf16/3
 TODO
+
 ==== bs_put_utf32/3
 TODO
 
+
 === Floating Point Arithmetic
+
 ==== fclearerror/0
 TODO
+
 ==== fcheckerror/1
 TODO
+
 ==== fmove/2
 TODO
+
 ==== fconv/2
 TODO
+
 ==== fadd/4
 TODO
+
 ==== fsub/4
 TODO
+
 ==== fmul/4
 TODO
+
 ==== fdiv/4
 TODO
+
 ==== fnegate/3
 TODO
 
@@ -461,27 +458,41 @@ TODO
 
 ==== select_val
 TODO
+
 ==== select_arity_val
 TODO
+
 ==== jump
 TODO
+
+
 === Exception handling
+
 ==== catch/2
 TODO
+
 ==== catch_end/1
 TODO
+
 ==== badmatch/1
 TODO
+
 ==== if_end/0
 TODO
+
 ==== case_end/1
 TODO
 
+
+
 === Meta instructions
+
 ==== on_load
 TODO
+
 ==== line
 TODO
+
 
 
 include::opcodes_doc.asciidoc[]
@@ -493,9 +504,9 @@ Argument types
 |==================================================
 |Type | Explanation
 |t|	A term, e.g. +[{foo,bar}]+
-|I|	An integer e.g. +42+
-|x|	A register, e.g. +5+
-|y|	A stack slot, e.g. +1+
+|I|	An integer e.g. `42`
+|x|	A register, e.g. `5`
+|y|	A stack slot, e.g. `1`
 |c|	A constant (atom,nil,small int) // Pid?
 |a|	An atom, e.g. 'foo'
 |f|	A label, i.e. a code address
