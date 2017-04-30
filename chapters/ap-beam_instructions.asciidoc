@@ -524,230 +524,230 @@ List of all BEAM Instructions
 [options="header"]
 |===========
 |Instruction        | Arguments | Explanation 
-|allocate           | t t       | 
-|allocate_heap      |t I t      | 
-|deallocate         |I | 
-|init               |y | 
-|init2              |y y | 
-|init3              |y y y | 
-|i_trim             |I | 
-|test_heap          |I t | 
-|allocate_zero      |t t | 
-|allocate_heap_zero | t I t | 
-|i_select_val | r f I | 
-|i_select_val | x f I | 
-|i_select_val | y f I | 
-|i_select_val2 | r f c f c f | 
-|i_select_val2 | x f c f c f | 
-|i_select_val2 | y f c f c f | 
-|i_jump_on_val | rxy f I I | 
-|i_jump_on_val_zero | rxy f I | 
-|i_select_tuple_arity | r f I | 
-|i_select_tuple_arity | x f I | 
-|i_select_tuple_arity | y f I | 
-|i_select_tuple_arity2 | r f A f A f | 
-|i_select_tuple_arity2 | x f A f A f | 
-|i_select_tuple_arity2 | y f A f A f | 
-|i_func_info | I a a I | 
-|return             |          | 
-|get_list           | rxy rxy rxy | 
-|catch              | y f | 
-|catch_end          | y | 
-|try_end | y | 
-|try_case_end | s | 
-|set_tuple_element | s d P | 
-|i_get_tuple_element | rxy P rxy | 
-|is_number | f rxy | 
-|jump | f | 
-|case_end | rxy | 
-|badmatch | rxy | 
-|if_end             |              | 
-|raise | s s | 
-|badarg | j | 
-|system_limit | j | 
-|move_jump | f ncxy | 
-|move_x1 | c | 
-|move_x2 | c | 
-|move2 | x y x y | 
-|move2 | y x y x | 
-|move2 | x x x x | 
-|move | rxync rxy | 
-|recv_mark | f | 
-|i_recv_set | f | 
-|remove_message | | 
-|timeout | |
-|timeout_locked | | 
-|i_loop_rec | f r | 
-|loop_rec_end | f | 
-|wait | f | 
-|wait_locked | f | 
-|wait_unlocked | f | 
-|i_wait_timeout | f I | 
-|i_wait_timeout | f s | 
-|i_wait_timeout_locked | f I | 
-|i_wait_timeout_locked | f s | 
-|i_wait_error | |
-|i_wait_error_locked | | 
-|send |  |
-|i_is_eq_exact_immed | f rxy c | 
-|i_is_ne_exact_immed | f rxy c | 
-|i_is_eq_exact_literal | f rxy c | 
-|i_is_ne_exact_literal | f rxy c | 
-|i_is_eq_exact | f | 
-|i_is_ne_exact | f | 
-|i_is_lt | f | 
-|i_is_ge | f | 
-|i_is_eq | f | 
-|i_is_ne | f | 
-|i_put_tuple | rxy I | 
-|put_list | s s d | 
-|i_fetch | s s | 
-|move_return | xcn r | 
-|move_deallocate_return | xycn r Q | 
-|deallocate_return | Q | 
-|test_heap_1_put_list | I y | 
-|is_tuple_of_arity | f rxy A | 
-|is_tuple | f rxy | 
-|test_arity | f rxy A | 
-|extract_next_element | xy | 
-|extract_next_element2 | xy | 
-|extract_next_element3 | xy | 
-|is_integer_allocate | f rx I I | 
-|is_integer | f rxy | 
-|is_list | f rxy | 
-|is_nonempty_list_allocate | f rx I t | 
-|is_nonempty_list_test_heap | f r I t | 
-|is_nonempty_list | f rxy | 
-|is_atom | f rxy | 
-|is_float | f rxy | 
-|is_nil | f rxy | 
-|is_bitstring | f rxy | 
-|is_reference | f rxy | 
-|is_pid | f rxy | 
-|is_port | f rxy | 
-|is_boolean | f rxy | 
-|is_function2 | f s s | 
-|allocate_init | t I y | 
-|i_apply | | 
-|i_apply_last | P | 
-|i_apply_only |   | 
-|apply | I | 
-|apply_last | I P | 
-|i_apply_fun |  |
-|i_apply_fun_last | P | 
-|i_apply_fun_only |   | 
-|i_hibernate |  |
-|call_bif0 | e | 
-|call_bif1 | e | 
-|call_bif2 | e | 
-|call_bif3 | e | 
-|i_get | s d | 
-|self | rxy | 
-|node | rxy | 
-|i_fast_element | rxy j I d | 
-|i_element | rxy j s d | 
-|bif1 | f b s d | 
-|bif1_body | b s d | 
-|i_bif2 | f b d | 
-|i_bif2_body | b d | 
-|i_move_call | c r f | 
-|i_move_call_last | f P c r | 
-|i_move_call_only | f c r | 
-|move_call | xy r f | 
-|move_call_last | xy r f Q | 
-|move_call_only | x r f | 
-|i_call | f | 
-|i_call_last | f P | 
-|i_call_only | f | 
-|i_call_ext | e | 
-|i_call_ext_last | e P | 
-|i_call_ext_only | e | 
-|i_move_call_ext | c r e | 
-|i_move_call_ext_last | e P c r | 
-|i_move_call_ext_only | e c r | 
-|i_call_fun | I | 
-|i_call_fun_last | I P | 
-|i_make_fun | I t | 
-|is_function | f rxy | 
-|i_bs_start_match2 | rxy f I I d | 
-|i_bs_save2 | rx I | 
-|i_bs_restore2 | rx I | 
-|i_bs_match_string | rx f I I | 
-|i_bs_get_integer_small_imm | rx I f I d | 
-|i_bs_get_integer_imm | rx I I f I d | 
-|i_bs_get_integer | f I I d | 
-|i_bs_get_integer_8 | rx f d | 
-|i_bs_get_integer_16 | rx f d | 
-|i_bs_get_integer_32 | rx f I d | 
-|i_bs_get_binary_imm2 | f rx I I I d | 
-|i_bs_get_binary2 | f rx I s I d | 
-|i_bs_get_binary_all2 | f rx I I d | 
-|i_bs_get_binary_all_reuse | rx f I | 
-|i_bs_get_float2 | f rx I s I d | 
-|i_bs_skip_bits2_imm2 | f rx I | 
-|i_bs_skip_bits2 | f rx rxy I | 
-|i_bs_skip_bits_all2 | f rx I | 
-|bs_test_zero_tail2 | f rx | 
-|bs_test_tail_imm2 | f rx I | 
-|bs_test_unit | f rx I | 
-|bs_test_unit8 | f rx | 
-|bs_context_to_binary | rxy | 
-|i_bs_get_utf8 | rx f d | 
-|i_bs_get_utf16 | rx f I d | 
-|i_bs_validate_unicode_retract | j | 
-|i_bs_init_fail | rxy j I d | 
-|i_bs_init_fail_heap | I j I d | 
-|i_bs_init | I I d | 
-|i_bs_init_heap | I I I d | 
-|i_bs_init_heap_bin | I I d | 
-|i_bs_init_heap_bin_heap | I I I d | 
-|i_bs_init_bits_fail | rxy j I d | 
-|i_bs_init_bits_fail_heap | I j I d | 
-|i_bs_init_bits | I I d | 
-|i_bs_init_bits_heap | I I I d | 
-|i_bs_add | j I d | 
-|i_bs_init_writable | |
-|i_bs_append | j I I I d | 
-|i_bs_private_append | j I d | 
-|i_new_bs_put_integer | j s I s | 
-|i_new_bs_put_integer_imm | j I I s | 
-|i_bs_utf8_size | s d | 
-|i_bs_utf16_size | s d | 
-|i_bs_put_utf8 | j s | 
-|i_bs_put_utf16 | j I s | 
-|i_bs_validate_unicode | j s | 
-|i_new_bs_put_float | j s I s | 
-|i_new_bs_put_float_imm | j I I s | 
-|i_new_bs_put_binary | j s I s | 
-|i_new_bs_put_binary_imm | j I s | 
-|i_new_bs_put_binary_all | j s I | 
-|bs_put_string | I I | 
-|fmove | qdl ld | 
-|fconv | d l | 
-|i_fadd | l l l | 
-|i_fsub | l l l | 
-|i_fmul | l l l | 
-|i_fdiv | l l l | 
-|i_fnegate | l l l | 
-|i_fcheckerror | |
-|fclearerror |  |
-|i_increment | rxy I I d | 
-|i_plus | j I d | 
-|i_minus | j I d | 
-|i_times | j I d | 
-|i_m_div | j I d | 
-|i_int_div | j I d | 
-|i_rem | j I d | 
-|i_bsl | j I d | 
-|i_bsr | j I d | 
-|i_band | j I d | 
-|i_bor | j I d | 
-|i_bxor | j I d | 
-|i_int_bnot | j s I d | 
-|i_gc_bif1 | j I s I d | 
-|i_gc_bif2 | j I I d | 
-|i_gc_bif3 | j I s I d | 
-|int_code_end | |
-|label | L | 
-|line | I | 
+|allocate           | t t       | Allocate some words on stack
+|allocate_heap      | t I t     | Allocate some words on the heap
+|allocate_heap_zero | t I t     | Allocate some heap and set the words to NIL
+|allocate_init      | t I y     |
+|allocate_zero      | t t       | Allocate some stack and set the words to NIL
+|apply              | I         |
+|apply_last         | I P       |
+|badarg             | j         | Create a `badarg` error
+|badmatch           | rxy       | Create a `badmatch` error
+|bif1               | f b s d   |
+|bif1_body          | b s d     |
+|bs_context_to_binary | rxy     |
+|bs_put_string      | I I       |
+|bs_test_tail_imm2  | f rx I    |
+|bs_test_unit       | f rx I    |
+|bs_test_unit8      | f rx      |
+|bs_test_zero_tail2 | f rx      |
+|call_bif0          | e         |
+|call_bif1          | e         |
+|call_bif2          | e         |
+|call_bif3          | e         |
+|case_end           | rxy       | Create a `case_clause` error
+|catch              | y f       |
+|catch_end          | y         |
+|deallocate         |I          | Free some words from stack and pop CP
+|deallocate_return  | Q         |
+|extract_next_element | xy      |
+|extract_next_element2 | xy     |
+|extract_next_element3 | xy     |
+|fclearerror        |           |
+|fconv              | d l       |
+|fmove              | qdl ld    |
+|get_list           | rxy rxy rxy | Deconstruct a list cell into the head and the tail
+|i_apply            |           |
+|i_apply_fun        |           |
+|i_apply_fun_last   | P         |
+|i_apply_fun_only   |           |
+|i_apply_last       | P         |
+|i_apply_only       |           |
+|i_band             | j I d     |
+|i_bif2             | f b d     |
+|i_bif2_body        | b d       |
+|i_bor              | j I d     |
+|i_bs_add           | j I d     |
+|i_bs_append        | j I I I d |
+|i_bs_get_binary2   | f rx I s I d      |
+|i_bs_get_binary_all2   | f rx I I d    |
+|i_bs_get_binary_all_reuse | rx f I     |
+|i_bs_get_binary_imm2   | f rx I I I d  |
+|i_bs_get_float2        | f rx I s I d  |
+|i_bs_get_integer       | f I I d       |
+|i_bs_get_integer_16    | rx f d        |
+|i_bs_get_integer_32    | rx f I d      |
+|i_bs_get_integer_8     | rx f d        |
+|i_bs_get_integer_imm   | rx I I f I d  |
+|i_bs_get_integer_small_imm | rx I f I d |
+|i_bs_get_utf16     | rx f I d  |
+|i_bs_get_utf8      | rx f d    |
+|i_bs_init          | I I d     |
+|i_bs_init_bits     | I I d     |
+|i_bs_init_bits_fail | rxy j I d    |
+|i_bs_init_bits_fail_heap | I j I d |
+|i_bs_init_bits_heap | I I I d      |
+|i_bs_init_fail     | rxy j I d     |
+|i_bs_init_fail_heap | I j I d      |
+|i_bs_init_heap     | I I I d       |
+|i_bs_init_heap_bin | I I d         |
+|i_bs_init_heap_bin_heap | I I I d  |
+|i_bs_init_writable |               |
+|i_bs_match_string  | rx f I I      |
+|i_bs_private_append | j I d        |
+|i_bs_put_utf16     | j I s         |
+|i_bs_put_utf8      | j s           |
+|i_bs_restore2      | rx I          |
+|i_bs_save2         | rx I          |
+|i_bs_skip_bits2    | f rx rxy I    |
+|i_bs_skip_bits2_imm2 | f rx I      |
+|i_bs_skip_bits_all2 | f rx I       |
+|i_bs_start_match2  | rxy f I I d   |
+|i_bs_utf16_size    | s d           |
+|i_bs_utf8_size     | s d           |
+|i_bs_validate_unicode | j s        |
+|i_bs_validate_unicode_retract | j  |
+|i_bsl              | j I d     |
+|i_bsr              | j I d     |
+|i_bxor             | j I d     |
+|i_call             | f         |
+|i_call_ext         | e         |
+|i_call_ext_last    | e P       |
+|i_call_ext_only    | e         |
+|i_call_fun         | I         |
+|i_call_fun_last    | I P       |
+|i_call_last        | f P       |
+|i_call_only        | f         |
+|i_element          | rxy j s d |
+|i_fadd             | l l l     |
+|i_fast_element     | rxy j I d |
+|i_fcheckerror      |           |
+|i_fdiv             | l l l     |
+|i_fetch            | s s       |
+|i_fmul             | l l l     |
+|i_fnegate          | l l l     |
+|i_fsub             | l l l     |
+|i_func_info        | I a a I   | Create a `function_clause` error
+|i_gc_bif1          | j I s I d |
+|i_gc_bif2          | j I I d   |
+|i_gc_bif3          | j I s I d |
+|i_get              | s d       |
+|i_get_tuple_element | rxy P rxy |
+|i_hibernate        |           |
+|i_increment        | rxy I I d |
+|i_int_bnot         | j s I d   |
+|i_int_div          | j I d     |
+|i_is_eq            | f         |
+|i_is_eq_exact      | f         |
+|i_is_eq_exact_immed | f rxy c  |
+|i_is_eq_exact_literal | f rxy c |
+|i_is_ge            | f         |
+|i_is_lt            | f         |
+|i_is_ne            | f         |
+|i_is_ne_exact      | f         |
+|i_is_ne_exact_immed | f rxy c      |
+|i_is_ne_exact_literal | f rxy c    |
+|i_jump_on_val      |     rxy f I I |
+|i_jump_on_val_zero | rxy f I   |
+|i_loop_rec         | f r       |
+|i_m_div            | j I d     |
+|i_make_fun         | I t       |
+|i_minus            | j I d     |
+|i_move_call        | c r f     |
+|i_move_call_ext    | c r e     |
+|i_move_call_ext_last | e P c r |
+|i_move_call_ext_only | e c r   |
+|i_move_call_last   | f P c r   |
+|i_move_call_only   | f c r     |
+|i_new_bs_put_binary    | j s I s   |
+|i_new_bs_put_binary_all | j s I    |
+|i_new_bs_put_binary_imm | j I s    |
+|i_new_bs_put_float     | j s I s   |
+|i_new_bs_put_float_imm | j I I s   |
+|i_new_bs_put_integer   | j s I s   |
+|i_new_bs_put_integer_imm | j I I s |
+|i_plus             | j I d     |
+|i_put_tuple        | rxy I     |
+|i_recv_set         | f         |
+|i_rem              | j I d     |
+|i_select_tuple_arity | r f I   |
+|i_select_tuple_arity | x f I   |
+|i_select_tuple_arity | y f I   |
+|i_select_tuple_arity2 | r f A f A f |
+|i_select_tuple_arity2 | x f A f A f |
+|i_select_tuple_arity2 | y f A f A f |
+|i_select_val       | r f I     | Compare value to a list of pairs `{Value, Label}` and jump when a match is found, otherwise jump to `f`
+|i_select_val       | x f I     |
+|i_select_val       | y f I     |
+|i_select_val2      | r f c f c f |
+|i_select_val2      | x f c f c f |
+|i_select_val2      | y f c f c f |
+|i_times            | j I d     |
+|i_trim             |I          |
+|i_wait_error       |           |
+|i_wait_error_locked |          |
+|i_wait_timeout     | f I       |
+|i_wait_timeout     | f s       |
+|i_wait_timeout_locked | f I    |
+|i_wait_timeout_locked | f s    |
+|if_end             |           | Create an `if_clause` error
+|init               |y          | Set some words on stack to NIL
+|init2              |y y        |
+|init3              |y y y      |
+|int_code_end       |           |
+|is_atom            | f rxy     |
+|is_bitstring       | f rxy     |
+|is_boolean         | f rxy     |
+|is_float           | f rxy     |
+|is_function        | f rxy     |
+|is_function2       | f s s     |
+|is_integer         | f rxy     |
+|is_integer_allocate  | f rx I I |
+|is_list            | f rxy     |
+|is_nil             | f rxy     |
+|is_nonempty_list   | f rxy     |
+|is_nonempty_list_allocate | f rx I t |
+|is_nonempty_list_test_heap | f r I t |
+|is_number          | f rxy     | Check if the value is an integer or a float, else jump to `f`
+|is_pid             | f rxy     |
+|is_port            | f rxy     |
+|is_reference       | f rxy     |
+|is_tuple           | f rxy     |
+|is_tuple_of_arity  | f rxy A   |
+|jump               | f         | Jump to `f`
+|label              | L         | Marks a location in code, removed at the load time
+|line               | I         | Marks a location in source file, removed at the load time
+|loop_rec_end       | f         |
+|move               | rxync rxy | Moves a value or a register into another register
+|move2              | x x x x   |
+|move2              | x y x y   |
+|move2              | y x y x   |
+|move_call          | xy r f    |
+|move_call_last     | xy r f Q  |
+|move_call_only     | x r f     |
+|move_deallocate_return | xycn r Q |
+|move_jump          | f ncxy    |
+|move_return        | xcn r     |
+|move_x1            | c         |
+|move_x2            | c         |
+|node               | rxy       | Get current node name
+|put_list           | s s d     | Construct a list cell from a head and a tail
+|raise              | s s       | Raise an exception of given type
+|recv_mark          | f         |
+|remove_message     |           |
+|return             |           | Jump to the address in CP, set CP to 0
+|self               | rxy       |
+|send               |           |
+|set_tuple_element  | s d P     | Destructively update a tuple element by index
+|system_limit       | j         |
+|test_arity         | f rxy A   |
+|test_heap          |I t        | Check the heap space availability
+|test_heap_1_put_list | I y     |
+|timeout            |           |
+|timeout_locked     |           |
+|try_case_end       | s         |
+|try_end            | y         |
+|wait               | f         |
+|wait_locked        | f         |
+|wait_unlocked      | f         |
 |============================= 
