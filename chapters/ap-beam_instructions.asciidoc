@@ -503,20 +503,20 @@ Argument types
 [options="header"]
 |==================================================
 |Type | Explanation
-|t|	A term, e.g. +[{foo,bar}]+
-|I|	An integer e.g. `42`
-|x|	A register, e.g. `5`
-|y|	A stack slot, e.g. `1`
-|c|	A constant (atom,nil,small int) // Pid?
-|a|	An atom, e.g. 'foo'
-|f|	A label, i.e. a code address
-|s|	Either a literal, a register or a stack slot
+|a|	An immediate atom value, e.g. 'foo'
+|c|	An immediate constant value (atom, nil, small int) // Pid?
 |d|	Either a register or a stack slot
-|r|	A register R0
-|P|	A positive (unsigned) integer literal
-|j|	An optional code label
 |e|	A reference to an export table entry
+|f|	A label, i.e. a code address
+|I|	An integer e.g. `42`
+|j|	An optional code label
 |l|	A floating-point register
+|P|	A positive (unsigned) integer literal
+|r|	A register R0 (`x[0]`)
+|s|	Either a literal, a register or a stack slot
+|t|	A term, e.g. `[{foo, bar}]`
+|x|	A register, e.g. `5` for `{x, 5}`
+|y|	A stack slot, e.g. `1` for `{y, 1}`
 |==================================================
 
 List of all BEAM Instructions
