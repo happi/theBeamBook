@@ -327,7 +327,7 @@ Erlang Node.
 ****
 *BEAM:* The name BEAM originally stood for Bogdan's Erlang Abstract
  Machine, but nowadays most people refer to it as Bj&ouml;rn's
-Erlang Abstract machine, after the current maintainer. 
+Erlang Abstract Machine, after the current maintainer.
  
 ****
 
