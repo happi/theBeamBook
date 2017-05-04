@@ -355,7 +355,7 @@ image::../images/observer_system.png[]
 We will go over some of this information in detail later in
 this and the next chapter. For now we will just use the Observer to look
 at the running processes. First we take a look at the
-`Application` tab which shows the supervision
+`Applications` tab which shows the supervision
 tree of the running system:
 
 image::../images/observer_applications.png[]
