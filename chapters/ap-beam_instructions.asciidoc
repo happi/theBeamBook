@@ -500,7 +500,7 @@ include::opcodes_doc.asciidoc[]
 === Specific Instructions
 
 Argument types 
-[options="header"]
+[options="header,autowidth"]
 |==================================================
 |Type | Explanation
 |a|	An immediate atom value, e.g. 'foo'
@@ -521,7 +521,7 @@ Argument types
 
 List of all BEAM Instructions
 
-[options="header"]
+[options="header,autowidth"]
 |===========
 |Instruction        | Arguments | Explanation 
 |allocate           | t t       | Allocate some words on stack
@@ -529,11 +529,11 @@ List of all BEAM Instructions
 |allocate_heap_zero | t I t     | Allocate some heap and set the words to NIL
 |allocate_init      | t I y     |
 |allocate_zero      | t t       | Allocate some stack and set the words to NIL
-|apply              | I         |
-|apply_last         | I P       |
+|apply              | I         | Apply function object (in x[Arity]) with args (in x[0..Arity-1])
+|apply_last         | I P       | Same as `apply` but does not save the CP and `deallocates` P words
 |badarg             | j         | Create a `badarg` error
 |badmatch           | rxy       | Create a `badmatch` error
-|bif1               | f b s d   |
+|bif1               | f b s d   | Calls a bif with 1 argument, on fail jumps to `f`
 |bif1_body          | b s d     |
 |bs_context_to_binary | rxy     |
 |bs_put_string      | I I       |
@@ -730,13 +730,13 @@ List of all BEAM Instructions
 |move_return        | xcn r     |
 |move_x1            | c         |
 |move_x2            | c         |
-|node               | rxy       | Get current node name
+|node               | rxy       | Get `rxy` to the atom, current node name
 |put_list           | s s d     | Construct a list cell from a head and a tail
 |raise              | s s       | Raise an exception of given type
 |recv_mark          | f         |
 |remove_message     |           |
 |return             |           | Jump to the address in CP, set CP to 0
-|self               | rxy       |
+|self               | rxy       | Set `rxy` to the pid of the current process
 |send               |           |
 |set_tuple_element  | s d P     | Destructively update a tuple element by index
 |system_limit       | j         |
