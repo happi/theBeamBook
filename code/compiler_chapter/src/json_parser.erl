@@ -29,7 +29,7 @@ json_code([])                     -> [];
 json_code([?JSON(Json)|MoreCode]) -> [parse_json(Json) | json_code(MoreCode)];
 json_code(Code)                   -> Code.
 
-%% Json Object -> [{}] | [{Lable, Term}]
+%% Json Object -> [{}] | [{Label, Term}]
 parse_json({tuple,Line,[]})            -> {cons, Line, {tuple, Line, []}};
 parse_json({tuple,Line,Fields})        -> parse_json_fields(Fields,Line);
 %% Json Array -> List
@@ -55,11 +55,11 @@ parse_json({op, Line, '-', {Type, _, N}}) when Type =:= integer
                                           {Type, Line, -N}.
 %% parse_json(Code)                  -> io:format("Code: ~p~n",[Code]), Code.
 
--define(FIELD(Lable, Code), {remote, L, {string, _, Label}, Code}).
+-define(FIELD(Label, Code), {remote, L, {string, _, Label}, Code}).
 
 parse_json_fields([], L) -> {nil, L};
 %% Label : Json-Term  --> [{<<Label>>, Term} | Rest]
-parse_json_fields([?FIELD(Lable, Code) | Rest], _) ->
+parse_json_fields([?FIELD(Label, Code) | Rest], _) ->
     cons(tuple(str_to_bin(Label, L), parse_json(Code), L)
          , parse_json_fields(Rest, L)
          , L).
