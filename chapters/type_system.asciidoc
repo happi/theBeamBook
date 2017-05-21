@@ -63,7 +63,7 @@ where all integers are considered smaller than all floats. If all the
 keys are the same then each value pair (in key order) is compared
 arithmetically, i.e. by first converting them to the same precision.
 
-The same is true when comparing for equality, thus #{1 => 1.0} == #{1 => 1} but #{1.0 => 1} /= #{1 => 1}.
+The same is true when comparing for equality, thus +#{1 => 1.0} == #{1 => 1} but #{1.0 => 1} /= #{1 => 1}+.
 
 In Erlang versions prior to 18 keys were also compared
 arithmetically.
@@ -142,7 +142,7 @@ space) and are stored on the heap, as boxed objects.
 
 By having all four tag bits as ones for small integers the emulator
 can make an efficient test when doing integer arithmetic to see if
-both arguments are immediates. (+is_both_small(x,y)+ is defined as 
+both arguments are immediates. (+is_both_small(x,y)+ is defined as
 +(x & y & 1111) == 1111+).
 
 The Immediate 2 tag is further divided like this:
@@ -201,7 +201,7 @@ word is filled with ones.
 ==== Tags for Boxed Terms
 
 Erlang terms stored on the heap uses several machine words. Lists, or
-cons cells, are just two consecutive words on the heap. The head and
+cons cells, are just two consecutive words on the heap: the head and
 the tail (or car and cdr as they are called in lisp and some places in
 the ERTS code).
 
@@ -228,7 +228,7 @@ The string "hello" might look like this in memory:
          132 |00000000 00000000 00000000 01111001| 120 + list tag  -------------- | -+
          128 |00000000 00000000 00000110 10001111| (h) 104 bsl 4 + small int tag <+  |
          124 |00000000 00000000 00000000 01110001| 112 + list tag  ----------------- | -+
-         120 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag <---+  | 
+         120 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag <---+  |
          116 |00000000 00000000 00000000 01110001| 112 + list tag  -------------------- | -+
          112 |00000000 00000000 00000110 11001111| (l) 108 bsl 4 + small int tag <------+  |
          108 |00000000 00000000 00000000 01110001|  96 + list tag  ----------------------- | -+
@@ -288,7 +288,7 @@ the word 0 (header tag 0, tuple tag 0000, and arity 0).
          150 |00000000 00000000 00000110 11111111| (o) 111 bsl 4 + small int tag  |
          144 |00000000 00000000 00000110 11001111| (l) 108 bsl 4 + small int tag  |
          140 |00000000 00000000 00000110 11001111| (l) 108 bsl 4 + small int tag  |
-         136 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag  | 
+         136 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag  |
          132 |00000000 00000000 00000110 10001111| (h) 104 bsl 4 + small int tag  |
          128 |00000000 00000000 00000001 01000000| 5 bsl 6 + tuple & header tag <-+
              |                ...                |
@@ -325,7 +325,7 @@ numbers).
 TODO: Describe bignum encoding. (And arithmetic ?)
 
 A reference is a _"unique"_ term often used to tag messages in order
-to basically implement a channel over a process mailbox. A references
+to basically implement a channel over a process mailbox. A reference
 is implemented as an 82 bit counter. After 9671406556917033397649407
 calls to +make_ref+ the counter will wrap and start over with ref 0
 again. You need a really fast machine to do that many calls to
@@ -341,7 +341,7 @@ heap.
 .Representation of a ref in a 32-bit (or half-word) system.
 ----
 
-    |00000000 00000000 00000000 11010000| Arity 3 + ref tag 
+    |00000000 00000000 00000000 11010000| Arity 3 + ref tag
     |00000000 000000rr rrrrrrrr rrrrrrrr| Data0
     |rrrrrrrr rrrrrrrr rrrrrrrr rrrrrrrr| Data1
     |rrrrrrrr rrrrrrrr rrrrrrrr rrrrrrrr| Data2
@@ -362,8 +362,3 @@ The reference number is (Data2 bsl 50) + (Data1 bsl 18) + Data0.
 
  Outro/conclusion
 ****
-
-
-
-
-
