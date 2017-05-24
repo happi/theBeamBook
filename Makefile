@@ -7,7 +7,7 @@ all: chapters/contributors.txt beam-book.pdf index.html
 chapters/contributors.txt: .git
 	./bin/gitlog.sh $@
 
-xml/beam-book-from-ab.xml:
+xml/beam-book-from-ab.xml:  chapters/opcodes_doc.asciidoc
 	asciidoc $(ABFLAGS) -o $@ book.asciidoc
 
 beam-book.pdf: xml/beam-book-from-ab.xml
