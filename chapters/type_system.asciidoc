@@ -200,7 +200,7 @@ word is filled with ones.
 
 ==== Tags for Boxed Terms
 
-Erlang terms stored on the heap uses several machine words. Lists, or
+Erlang terms stored on the heap use several machine words. Lists, or
 cons cells, are just two consecutive words on the heap: the head and
 the tail (or car and cdr as they are called in lisp and some places in
 the ERTS code).

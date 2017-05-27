@@ -226,7 +226,7 @@ suspended the field reds is increased by the number of executed
 reductions. In some C like code something like:
  `p->reds += (CONTEXT_REDS - p->fcalls)`.
 
-Normally a process would do all its alloted reductions and `fcalls`
+Normally a process would do all its allotted reductions and `fcalls`
 would be 0 at this point, but if the process suspends in a receive
 waiting for a message it will have some reductions left.
 
@@ -379,7 +379,7 @@ there is one queue per scheduler.
 ----
 
 The reality is slightly more complicated since Erlang processes have
-priorities. Each scheduler actually have three queues. One queue for
+priorities. Each scheduler actually has three queues. One queue for
 _max priority_ tasks, one for _high priority_ tasks and one queue
 containing both _normal_ and _low priority_ tasks.
 
@@ -394,7 +394,7 @@ containing both _normal_ and _low priority_ tasks.
                                            P10
 ----
 
-If there are any processes int the max queue the scheduler will
+If there are any processes in the max queue the scheduler will
 pick these processes for execution. If there are no processes
 in the max queue but there are processes in the high priority
 queue the scheduler will pick those processes. Only if there
@@ -416,7 +416,7 @@ A processs trying to do a receive on an empty mailbox or on
 a mailbox with no matching messages will yield and go into the
 waiting state.
 
-When a message is deliverd to an inbox the sending process will check
+When a message is delivered to an inbox the sending process will check
 whether the receiver is _sleeping_ in the waiting state, and in that
 case it will _wake_ the process, change its state to runable, and put
 it at the end of the appropriate ready queue.
@@ -425,7 +425,7 @@ If the receive statement has a +timeout+ clause a timer will be
 created for the process which will trigger after the specified timeout
 time. The only guarantee the runtime system gives on a timeout is that
 it will not trigger before the set time, it might be some time after
-the intended time before the process is scheduled and get to execute.
+the intended time before the process is scheduled and gets to execute.
 
 Timers are handled in the VM by a _timing wheel_. That is, an array of
 time slots which wraps around. Prior to Erlang 18 the timing wheel was
@@ -490,7 +490,7 @@ world outside of the Erlang VM. Communications with sockets, pipes,
 and file IO are all done through ports on the Erlang side.
 
 A port, like a process, is created on the same scheduler as the
-creating process. Also like processes port uses reductions to decide
+creating process. Also like processes ports use reductions to decide
 when to yield, and they also get to run for 2000 reductions. But
 since ports don't run Erlang code there are no Erlang function calls
 to count as reductions, instead each _port task_ is counted as a
@@ -644,10 +644,10 @@ schedulers should be allocated to cores. The default behaviour is that
 it is up to the OS to allocated scheduler threads to cores, but you
 can also choose to bind schedulers to cores.
 
-The load balancer assumes that there is one schedulers running on each
+The load balancer assumes that there is one scheduler running on each
 core so that moving a process from a overloaded scheduler to an under
 utilized scheduler will give you more parallel processing power. If
-you have changed how schedulers are allocated to cores, or if you OS
+you have changed how schedulers are allocated to cores, or if your OS
 is overloaded or bad at assigning threads to cores, the load balancing
 might actually work against you.
 
@@ -771,7 +771,7 @@ In the example:
 Then we are done.
 
 In reality things are a bit more complicated since schedulers can be
-taken off line. The migration planning is only done for online
+taken offline. The migration planning is only done for online
 schedulers. Also, as mentioned before, this is done per priority
 level.
 
@@ -781,13 +781,13 @@ run queue of S1 is larger than AMQL and that the run queue of S2 is
 smaller than the average. This way the migration is only allowed if
 both queues are still unbalanced.
 
-There are two exception though where a migration is forced even
+There are two exceptions though where a migration is forced even
 when the queues are balanced or even imbalanced in the wrong way.
 In both these cases a special evacuation flag is set which overrides
 the balance test.
 
-The evacuation flag is set when a scheduler is taken off line to
-ensure that no new processes are scheduled on an off line scheduler.
+The evacuation flag is set when a scheduler is taken offline to
+ensure that no new processes are scheduled on an offline scheduler.
 The flag is also set when the scheduler detects that no progress is
 made on some priority. That is, if there for example is a max priority
 process which always is ready to run so that no normal priority processes

@@ -543,7 +543,7 @@ Note that the star in "+goto+ +&#42;+" does not mean dereference, the
 expression means jump to an address pointer, we should really write it
 as "+goto&#42;+".
 
-Now imagine that the compile C code for these instructions end up at
+Now imagine that the compiled C code for these instructions end up at
 memory addresses 0x3000, 0x3100, and 0x3200. When the BEAM code is
 loaded the three move instructions in the code will be replaced by the
 memory addresses of the implementation of the instructions. Imagine
@@ -576,7 +576,7 @@ BEAM instructions and how they are implemented.
 Most modern multi-threading operating systems use preemptive scheduling.
 This means that the operating system decides when to switch from one
 process to another, regardless of what the process is doing. This protects
-the other processes from a processes misbehaving by not yielding in time.
+the other processes from a process misbehaving by not yielding in time.
 
 In cooperative multitasking which uses a non-preemptive scheduler the
 running process decides when to yield. This has the advantage that the
@@ -599,7 +599,7 @@ stack and heap.
 On the language level all processes are running concurrently and the
 programmer should not have to deal with explicit yields. BEAM solves
 this by keeping track of how long a process has been running. This is
-done by counting _reductions_. The term originaly comes from the
+done by counting _reductions_. The term originally comes from the
 mathematical term beta-reduction used in lambda calculus.
 
 The definition of a reduction in BEAM is not very specific, but we can

@@ -38,7 +38,7 @@ The names and opcodes of the generic instructions are defined
 in +lib/compiler/src/genop.tab+.
 
 The file contains a version number for the Beam instruction format, which
-also is wirtten to +.beam+ files. This number has so far never changed
+also is written to +.beam+ files. This number has so far never changed
 and is still at version 0. If the external format would be changed in a
 non backwards compatible way this number would be changed.
 
@@ -68,7 +68,7 @@ The main content of the file are the opcode definitions of the form:
 OPNUM: [-]NAME/ARITY
 ----
 Where OPNUM and ARITY are integers, NAME is an identifier starting
-with a lowercase letter (a-z), and _:_, _-_, and _/_ are litterals.
+with a lowercase letter (a-z), and _:_, _-_, and _/_ are literals.
 
 For example:
 
@@ -76,9 +76,9 @@ For example:
 1: label/1
 ----
 
-The minus sign (-) indicates a depricated function. A depricated
+The minus sign (-) indicates a deprecated function. A deprecated
 function keeps its opcode in order for the loader to be sort of
-backwards compatible (it will recognize depricated instructions and
+backwards compatible (it will recognize deprecated instructions and
 refuse to load the code).
 
 In the rest of this Chapter we will go through some BEAM instructions
