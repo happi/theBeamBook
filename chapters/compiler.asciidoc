@@ -254,7 +254,7 @@ ok
 ----
 
 This gives us an +.E+ file, in this case all compiler directives have
-been removed and the build in functions +module_info/{1,2}+ have been
+been removed and the built in functions +module_info/{1,2}+ have been
 added to the source:
 
 [source,erlang]
@@ -361,7 +361,7 @@ that gives you a valid term. E.g.:
  t() -> [f,?p.
 ----
 
-There are few real useages for this other than to win the
+There are few real usages for this other than to win the
 obfuscated Erlang code contest. The main point to remember is that 
 you can not really use the Erlang preprocessor to define a language 
 with a syntax that differs from Erlang. Fortunately there are
@@ -411,7 +411,7 @@ To write a parse transform you need to write an Erlang module (lets
 call it _p_) which exports the function +parse_transform/2+. This
 function is called by the compiler during the parse transform pass if
 the module being compiled (lets call it _m_) contains the compiler
-option +{parse_transform, p}+. The arguments to the funciton is the
+option +{parse_transform, p}+. The arguments to the function is the
 AST of the module m and the compiler options given to the call to the
 compiler.
 
