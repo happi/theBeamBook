@@ -394,7 +394,7 @@ containing both _normal_ and _low priority_ tasks.
                                            P10
 ----
 
-If there are any processes int the max queue the scheduler will
+If there are any processes in the max queue the scheduler will
 pick these processes for execution. If there are no processes
 in the max queue but there are processes in the high priority
 queue the scheduler will pick those processes. Only if there
