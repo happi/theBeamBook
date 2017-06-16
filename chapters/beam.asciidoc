@@ -604,9 +604,10 @@ mathematical term beta-reduction used in lambda calculus.
 
 The definition of a reduction in BEAM is not very specific, but we can
 see it as a small piece of work, which shouldn't take _too long_.
-Each function call is counted as a reduction, and BEAM does a test
-upon entry to each function if the process has used up all its
-reductions.
+Each function call is counted as a reduction. BEAM does a test
+upon entry to each function to check whether the process has used up all its
+reductions or not. If there are reductions left the function is executed
+otherwise the process is suspended.
 
 Since there are no loops in Erlang, only tail-recursive function
 calls, it is very hard to write a program that does any significant
