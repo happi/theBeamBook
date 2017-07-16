@@ -376,7 +376,7 @@ actually runs more than one scheduler, usually one per physical core,
 each having their own queues. This way Erlang achieves true
 parallelism. To utilize more than one core ERTS has to be built (see
 xref:CH-BuildingERTS[]) in _SMP_(((SMP))) mode. SMP stands for
-_Symetric MultiProcessing_, that is, the ability to execute a
+_Symmetric MultiProcessing_, that is, the ability to execute a
 processes on any one of multiple CPUs.
 
 In reality the picture is more complicated with priorities among
