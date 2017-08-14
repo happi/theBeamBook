@@ -519,7 +519,7 @@ Argument types
 |y|	A stack slot, e.g. `1` for `{y, 1}`
 |==================================================
 
-List of all BEAM Instructions
+==== List of all BEAM Instructions
 
 [options="header,autowidth"]
 |===========
@@ -528,7 +528,7 @@ List of all BEAM Instructions
 |allocate_heap      | t I t     | Allocate some words on the heap
 |allocate_heap_zero | t I t     | Allocate some heap and set the words to NIL
 |allocate_init      | t I y     |
-|allocate_zero      | t t       | Allocate some stack and set the words to NIL
+|allocate_zero      | t t       | Allocate some stack and set the words to 0?
 |apply              | I         | Apply function object (in x[Arity]) with args (in x[0..Arity-1])
 |apply_last         | I P       | Same as `apply` but does not save the CP and `deallocates` P words
 |badarg             | j         | Create a `badarg` error
@@ -548,8 +548,8 @@ List of all BEAM Instructions
 |case_end           | rxy       | Create a `case_clause` error
 |catch              | y f       |
 |catch_end          | y         |
-|deallocate         |I          | Free some words from stack and pop CP
-|deallocate_return  | Q         |
+|deallocate         | I         | Free some words from stack and pop CP
+|deallocate_return  | Q         | Combines `deallocate` and `return`
 |extract_next_element | xy      |
 |extract_next_element2 | xy     |
 |extract_next_element3 | xy     |
@@ -557,12 +557,12 @@ List of all BEAM Instructions
 |fconv              | d l       |
 |fmove              | qdl ld    |
 |get_list           | rxy rxy rxy | Deconstruct a list cell into the head and the tail
-|i_apply            |           |
-|i_apply_fun        |           |
-|i_apply_fun_last   | P         |
-|i_apply_fun_only   |           |
-|i_apply_last       | P         |
-|i_apply_only       |           |
+|i_apply            |           | Call the code for function `x0:x1` with args `x2` saving the CP
+|i_apply_fun        |           | Call the code for function object `x0` with args `x1` saving the CP
+|i_apply_fun_last   | P         | Jump to the code for function object `x0` with args `x1`, restoring the CP and deallocating `P` stack cells
+|i_apply_fun_only   |           | Jump to the code for function object `x0` with args `x1`
+|i_apply_last       | P         | Jump to the code for function `x0:x1` with args `x2`
+|i_apply_only       |           | Jump to the code for function `x0:x1` with args `x2`
 |i_band             | j I d     |
 |i_bif2             | f b d     |
 |i_bif2_body        | b d       |
@@ -667,7 +667,7 @@ List of all BEAM Instructions
 |i_new_bs_put_integer   | j s I s   |
 |i_new_bs_put_integer_imm | j I I s |
 |i_plus             | j I d     |
-|i_put_tuple        | rxy I     |
+|i_put_tuple        | rxy I     | Create tuple of arity `I` and place result in `rxy`, elements follow as `put` instructions
 |i_recv_set         | f         |
 |i_rem              | j I d     |
 |i_select_tuple_arity | r f I   |
@@ -677,13 +677,13 @@ List of all BEAM Instructions
 |i_select_tuple_arity2 | x f A f A f |
 |i_select_tuple_arity2 | y f A f A f |
 |i_select_val       | r f I     | Compare value to a list of pairs `{Value, Label}` and jump when a match is found, otherwise jump to `f`
-|i_select_val       | x f I     |
-|i_select_val       | y f I     |
-|i_select_val2      | r f c f c f |
-|i_select_val2      | x f c f c f |
-|i_select_val2      | y f c f c f |
+|i_select_val       | x f I     | Compare value to a list of pairs `{Value, Label}` and jump when a match is found, otherwise jump to `f`
+|i_select_val       | y f I     | Compare value to a list of pairs `{Value, Label}` and jump when a match is found, otherwise jump to `f`
+|i_select_val2      | r f c f c f | Compare value to two pairs `{c1, f1}`, or `{c2, f2}` and jump, on fail jump to `f`
+|i_select_val2      | x f c f c f | Compare value to two pairs `{c1, f1}`, or `{c2, f2}` and jump, on fail jump to `f`
+|i_select_val2      | y f c f c f | Compare value to two pairs `{c1, f1}`, or `{c2, f2}` and jump, on fail jump to `f`
 |i_times            | j I d     |
-|i_trim             |I          |
+|i_trim             |I          | Cut stack by `I` elements, preserving CP on top
 |i_wait_error       |           |
 |i_wait_error_locked |          |
 |i_wait_timeout     | f I       |
@@ -691,53 +691,54 @@ List of all BEAM Instructions
 |i_wait_timeout_locked | f I    |
 |i_wait_timeout_locked | f s    |
 |if_end             |           | Create an `if_clause` error
-|init               |y          | Set some words on stack to NIL
-|init2              |y y        |
-|init3              |y y y      |
+|init               |y          | Set some words on stack to NIL []
+|init2              |y y        | Set some words on stack to NIL []
+|init3              |y y y      | Set some words on stack to NIL []
 |int_code_end       |           |
-|is_atom            | f rxy     |
-|is_bitstring       | f rxy     |
-|is_boolean         | f rxy     |
-|is_float           | f rxy     |
-|is_function        | f rxy     |
-|is_function2       | f s s     |
-|is_integer         | f rxy     |
+|is_atom            | f rxy     | Check whether a value is an atom and jump if not
+|is_bitstring       | f rxy     | Check whether a value is a bit string and jump if not
+|is_boolean         | f rxy     | Check whether a value is atom 'true' or 'false' and jump if not
+|is_float           | f rxy     | Check whether a value is a floating point number and jump if not
+|is_function        | f rxy     | Check whether a value is a function and jump if not
+|is_function2       | f s s     | Check whether a value is a function and jump if not
+|is_integer         | f rxy     | Check whether a value is a big or small integer and jump if not
 |is_integer_allocate  | f rx I I |
-|is_list            | f rxy     |
-|is_nil             | f rxy     |
-|is_nonempty_list   | f rxy     |
+|is_list            | f rxy     | Check whether a value is a list and jump if not
+|is_nil             | f rxy     | Check whether a value is an empty list [] and jump if not
+|is_nonempty_list   | f rxy     | Check whether a value is a nonempty list and jump if not
 |is_nonempty_list_allocate | f rx I t |
 |is_nonempty_list_test_heap | f r I t |
-|is_number          | f rxy     | Check if the value is an integer or a float, else jump to `f`
-|is_pid             | f rxy     |
-|is_port            | f rxy     |
-|is_reference       | f rxy     |
-|is_tuple           | f rxy     |
-|is_tuple_of_arity  | f rxy A   |
+|is_number          | f rxy     | Check whether a value is a big or small integer or a float and jump if not
+|is_pid             | f rxy     | Check whether a value is a pid and jump if not
+|is_port            | f rxy     | Check whether a value is a port and jump if not
+|is_reference       | f rxy     | Check whether a value is a reference and jump if not
+|is_tuple           | f rxy     | Check whether a value is a tuple and jump if not
+|is_tuple_of_arity  | f rxy A   | Check whether a value is a tuple of arity `A` and jump if not
 |jump               | f         | Jump to `f`
 |label              | L         | Marks a location in code, removed at the load time
 |line               | I         | Marks a location in source file, removed at the load time
 |loop_rec_end       | f         |
 |move               | rxync rxy | Moves a value or a register into another register
-|move2              | x x x x   |
-|move2              | x y x y   |
-|move2              | y x y x   |
+|move2              | x x x x   | Move a pair of values to a pair of destinations
+|move2              | x y x y   | Move a pair of values to a pair of destinations
+|move2              | y x y x   | Move a pair of values to a pair of destinations
 |move_call          | xy r f    |
 |move_call_last     | xy r f Q  |
 |move_call_only     | x r f     |
 |move_deallocate_return | xycn r Q |
 |move_jump          | f ncxy    |
 |move_return        | xcn r     |
-|move_x1            | c         |
-|move_x2            | c         |
+|move_x1            | c         | Store value in `x1`
+|move_x2            | c         | Store value in `x2`
 |node               | rxy       | Get `rxy` to the atom, current node name
+|put                | rxy       | After `i_put_tuple` initializes `N`-th element of the tuple, internal counter `N` is incremented
 |put_list           | s s d     | Construct a list cell from a head and a tail
 |raise              | s s       | Raise an exception of given type
 |recv_mark          | f         |
 |remove_message     |           |
 |return             |           | Jump to the address in CP, set CP to 0
 |self               | rxy       | Set `rxy` to the pid of the current process
-|send               |           |
+|send               |           | Send message `x1` to process `x0`
 |set_tuple_element  | s d P     | Destructively update a tuple element by index
 |system_limit       | j         |
 |test_arity         | f rxy A   |
@@ -751,3 +752,6 @@ List of all BEAM Instructions
 |wait_locked        | f         |
 |wait_unlocked      | f         |
 |============================= 
+
+// Empty line to break the table
+//
