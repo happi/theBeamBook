@@ -15,9 +15,9 @@ executes the code is vital to be able to profile and tune your
 code.
 
 The BEAM design influences large parts of the rest of ERTS. The
-primitives for scheduling infuences the Scheduler
+primitives for scheduling influences the Scheduler
 (xref:CH-Scheduling[]), the representation of Erlang terms and the
-interaction with the memory infuences the Garbage Collector
+interaction with the memory influences the Garbage Collector
 (xref:CH-Memory[]). By understanding the basic design of BEAM you
 will more easily understand the implementations of these other
 components.
