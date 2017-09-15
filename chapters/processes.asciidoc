@@ -783,7 +783,7 @@ follows each root and copies the data on the heap to the new
 heap. Finally it also copies the stack to the new heap and frees up
 the old memory area.
 
-The GC is controlled by these fields int the PCB:
+The GC is controlled by these fields in the PCB:
 
 [source,c]
 ----
@@ -864,7 +864,7 @@ safely write data. If a sending process can not get the lock it would
 write to the `m-buf` instead. When all data of a message has been
 copied to the `m-buf` the message is linked to the process through the
 mailbox. The linking (_LINK_MESSAGE_ in
-link:https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_message.h[erl_message.h]
+link:https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_message.h[erl_message.h])
  appends the message to the receiver's
 message queue.
 
