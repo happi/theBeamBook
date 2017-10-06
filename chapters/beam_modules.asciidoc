@@ -513,6 +513,8 @@ The reason behind this complicated design is to try and fit as much type and val
 
 ----
 
+NOTE: Since OTP 20 this tag format has been changed and the `Extended - Float` is gone. All following tag values are shifted down by 1: List is 2#10111, fpreg is 2#100111, alloc list is 2#110111 and literal is 2#1010111. Floating point values now go straight to literal area of the BEAM file.
+
 It uses the first 3 bits of a first byte to store the tag which defines the type of the following value. If the bits were all 1 (special value 7 or ?tag_z from `beam_opcodes.hrl`), then a few more bits are used.
 
 For values under 16, the value is placed entirely into bits 4-5-6-7 having bit 3 set to 0:
