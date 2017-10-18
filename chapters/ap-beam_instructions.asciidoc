@@ -76,17 +76,17 @@ In this chapter we will summarize what the different call instructions does. For
 
 ==== call Arity Label
 
-Does a call to the function of arity `Arity` in the same module at label `Label`. First count down the reductions and if needed do a context switch. Current code address before the call is saved into CP.
+Does a call to the function of arity `Arity` in the same module at label `Label`. First count down the reductions and if needed do a context switch. Current code address after the call is saved into CP.
 
 For all local calls the label is the second label of the function where the code starts. It is assumed that the preceding instruction at that label is `func_info` in order to get the MFA if a context switch is needed.
 
 
-==== call_last Arity Label
+==== call_only Arity Label
 
 Do a tail recursive call the function of arity `Arity` in the same module at label `Label`. First count down the reductions and if needed do a context switch. The CP is not updated with the return address.
 
 
-==== call_only Arity Label Deallocate
+==== call_last Arity Label Deallocate
 
 Deallocate `Deallocate` words of stack, then do a tail recursive call to the function of arity `Arity` in the same module at label `Label` First count down the reductions and if needed do a context switch. The CP is not updated with the return address.
 
