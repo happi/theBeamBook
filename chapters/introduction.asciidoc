@@ -235,7 +235,7 @@ this will be ERTS. This and the fourth layer, the Erlang Virtual Machine
 The fifth layer, OTP(((OTP))), supplies the Erlang standard libraries. OTP
 originally stood for "Open Telecom Platform" and was a number of
 Erlang libraries supplying building blocks (such as `supervisor`,
-`gen_server` and `gen_ftp`) for building robust applications (such as
+`gen_server` and `gen_tcp`) for building robust applications (such as
 telephony exchanges).  Early on, the libraries and the meaning of OTP
 got intermingled with all the other standard libraries shipped with
 ERTS. Nowadays most people use OTP together with Erlang in
