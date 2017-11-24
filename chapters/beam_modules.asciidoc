@@ -293,7 +293,7 @@ parse_chunks([{"StrT", _Size, <<Strings/binary>>} | Rest], Acc) ->
 
 ==== Attributes Chunk
 
-The chunk named `Attr` is optional, but some OTP tools expect the attributes to be present. The releashandler expect the "vsn" attribute to be present. You can get the version attribute from a file with: beam_lib:version(Filename), this function assumes that there is an attribute chunk with a "vsn" attribute present.
+The chunk named `Attr` is optional, but some OTP tools expect the attributes to be present. The release handler expect the "vsn" attribute to be present. You can get the version attribute from a file with: beam_lib:version(Filename), this function assumes that there is an attribute chunk with a "vsn" attribute present.
 
 The format of the chunk is:
 
