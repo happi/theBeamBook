@@ -219,7 +219,7 @@ Solaris for many years.  Depending on your use case you might actually
 get the best performance on a Solaris system. The OS choice is usually
 not based on performance requirements, but is restricted by other
 factors. If you are building an embedded application you might be
-restricted to Rasbian or VxWork, and if you for some reason are
+restricted to Raspbian or VxWork, and if you for some reason are
 building an end user or client application you might have to use
 Windows. The Windows port of ERTS has so far not had the highest
 priority and might not be the best choice from a performance or
@@ -235,7 +235,7 @@ this will be ERTS. This and the fourth layer, the Erlang Virtual Machine
 The fifth layer, OTP(((OTP))), supplies the Erlang standard libraries. OTP
 originally stood for "Open Telecom Platform" and was a number of
 Erlang libraries supplying building blocks (such as `supervisor`,
-`gen_server` and `gen_ftp`) for building robust applications (such as
+`gen_server` and `gen_tcp`) for building robust applications (such as
 telephony exchanges).  Early on, the libraries and the meaning of OTP
 got intermingled with all the other standard libraries shipped with
 ERTS. Nowadays most people use OTP together with Erlang in
@@ -327,7 +327,7 @@ Erlang Node.
 ****
 *BEAM:* The name BEAM originally stood for Bogdan's Erlang Abstract
  Machine, but nowadays most people refer to it as Bj&ouml;rn's
-Erlang Abstract machine, after the current maintainer. 
+Erlang Abstract Machine, after the current maintainer.
  
 ****
 
@@ -376,7 +376,7 @@ actually runs more than one scheduler, usually one per physical core,
 each having their own queues. This way Erlang achieves true
 parallelism. To utilize more than one core ERTS has to be built (see
 xref:CH-BuildingERTS[]) in _SMP_(((SMP))) mode. SMP stands for
-_Symetric MultiProcessing_, that is, the ability to execute a
+_Symmetric MultiProcessing_, that is, the ability to execute a
 processes on any one of multiple CPUs.
 
 In reality the picture is more complicated with priorities among

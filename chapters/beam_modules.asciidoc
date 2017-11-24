@@ -293,7 +293,7 @@ parse_chunks([{"StrT", _Size, <<Strings/binary>>} | Rest], Acc) ->
 
 ==== Attributes Chunk
 
-The chunk named `Attr` is optional, but some OTP tools expect the attributes to be present. The release handler expect the "vsn" attribute to be present. You can get the version attribute from a file with: beam_lib:version(Filename), this function assumes that there is an attribute chunk with a "vsn" attribute present.
+The chunk named `Attr` is optional, but some OTP tools expect the attributes to be present. The release handler expects the "vsn" attribute to be present. You can get the version attribute from a file with: beam_lib:version(Filename), this function assumes that there is an attribute chunk with a "vsn" attribute present.
 
 The format of the chunk is:
 
@@ -492,7 +492,7 @@ Let's look at the algorithm, used by `beam_asm:encode`. BEAM files use a special
 
 TIP: `Beam_asm` is a module in the `compiler` application, part of the Erlang distribution, it is used to assemble binary content of beam modules.
 
-The reason behind this complicated design is to try and fit as much type and value data into the first byte as possible to make code section more compact. After decoding all encoded values become full size machine words or terms.
+The reason behind this complicated design is to try and fit as much type and value data into the first byte as possible to make the code section more compact. After decoding, all encoded values become full size machine words or terms.
 
 [shaape]
 ----
@@ -513,7 +513,9 @@ The reason behind this complicated design is to try and fit as much type and val
 
 ----
 
-It uses first 3 bits of a first byte to store the tag which defines the type of the following value. If the bits were all 1 (special value 7 or ?tag_z from `beam_opcodes.hrl`), then few more bits are used.
+NOTE: Since OTP 20 this tag format has been changed and the `Extended - Float` is gone. All following tag values are shifted down by 1: List is 2#10111, fpreg is 2#100111, alloc list is 2#110111 and literal is 2#1010111. Floating point values now go straight to literal area of the BEAM file.
+
+It uses the first 3 bits of a first byte to store the tag which defines the type of the following value. If the bits were all 1 (special value 7 or ?tag_z from `beam_opcodes.hrl`), then a few more bits are used.
 
 For values under 16, the value is placed entirely into bits 4-5-6-7 having bit 3 set to 0:
 

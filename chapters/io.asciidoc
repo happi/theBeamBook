@@ -5,13 +5,13 @@ Within Erlang, all communication is done by asynchronous signaling.
 The communication between an Erlang node and the outside world is done
 through a _port_. A port is an interface between Erlang processes and
 an external resource. In early versions of Erlang a port behaved very
-much in the same way as a process and you comunicated by sending and
+much in the same way as a process and you communicated by sending and
 receiving signals. You can still communicate with ports this way but
 there are also a number of BIFs to communicate directly with a port.
 
 In this chapter we will look at how ports are used as a common
-interface for all IO, how ports comunicate with the outside world and
-how Erlang processes comunicate with ports. But first we will look
+interface for all IO, how ports communicate with the outside world and
+how Erlang processes communicate with ports. But first we will look
 at how standard IO works on a higher level.
 
 === Standard IO ===
@@ -63,13 +63,13 @@ options:
 Process P1 has opened a port (Port1) to a file, and is the owner of
 the port and can receive messages from the port. Process P2 also has a
 handle to the port and can send messages to the port. The processes
-and the port resides in an Erlang node. The file lives in the file and
+and the port reside in an Erlang node. The file lives in the file and
 operating system on the outside of the Erlang node.
 
 
 If the port owner dies or is terminated the port is also killed.
 When a port terminates all external resources should also be cleaned
-up. This is true for all ports that comes with Erlang and if you
+up. This is true for all ports that come with Erlang and if you
 implement your own port you should make sure it does this cleanup.
 
 ==== Different types of Ports ====

@@ -88,6 +88,11 @@ show.
 include::../code/type_system_chapter/src/show.erl[]
 ----
 
+[source,c]
+----
+include::../code/building_chapter/hipe_debug.patch[]
+----
+
 
 // [[listing-lbS]]
 // [source,beam]

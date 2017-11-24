@@ -218,7 +218,7 @@ and more information about a process with
  <0.41.0>,<0.42.0>,<0.44.0>,<0.45.0>,<0.46.0>,<0.47.0>,
  <0.48.0>,<0.49.0>,<0.50.0>,<0.51.0>,<0.52.0>,<0.53.0>,
  <0.54.0>,<0.60.0>]
-2> CodeServerPid = whereis(codeserver).
+2> CodeServerPid = whereis(code_server).
 <0.36.0>
 3> erlang:process_info(CodeServerPid).
 [{registered_name,code_server},
@@ -355,7 +355,7 @@ image::../images/observer_system.png[]
 We will go over some of this information in detail later in
 this and the next chapter. For now we will just use the Observer to look
 at the running processes. First we take a look at the
-`Application` tab which shows the supervision
+`Applications` tab which shows the supervision
 tree of the running system:
 
 image::../images/observer_applications.png[]
@@ -783,7 +783,7 @@ follows each root and copies the data on the heap to the new
 heap. Finally it also copies the stack to the new heap and frees up
 the old memory area.
 
-The GC is controlled by these fields int the PCB:
+The GC is controlled by these fields in the PCB:
 
 [source,c]
 ----
@@ -864,7 +864,7 @@ safely write data. If a sending process can not get the lock it would
 write to the `m-buf` instead. When all data of a message has been
 copied to the `m-buf` the message is linked to the process through the
 mailbox. The linking (_LINK_MESSAGE_ in
-link:https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_message.h[erl_message.h]
+link:https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_message.h[erl_message.h])
  appends the message to the receiver's
 message queue.
 

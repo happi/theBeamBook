@@ -15,9 +15,9 @@ executes the code is vital to be able to profile and tune your
 code.
 
 The BEAM design influences large parts of the rest of ERTS. The
-primitives for scheduling infuences the Scheduler
+primitives for scheduling influences the Scheduler
 (xref:CH-Scheduling[]), the representation of Erlang terms and the
-interaction with the memory infuences the Garbage Collector
+interaction with the memory influences the Garbage Collector
 (xref:CH-Memory[]). By understanding the basic design of BEAM you
 will more easily understand the implementations of these other
 components.
@@ -543,7 +543,7 @@ Note that the star in "+goto+ +&#42;+" does not mean dereference, the
 expression means jump to an address pointer, we should really write it
 as "+goto&#42;+".
 
-Now imagine that the compile C code for these instructions end up at
+Now imagine that the compiled C code for these instructions end up at
 memory addresses 0x3000, 0x3100, and 0x3200. When the BEAM code is
 loaded the three move instructions in the code will be replaced by the
 memory addresses of the implementation of the instructions. Imagine
@@ -576,7 +576,7 @@ BEAM instructions and how they are implemented.
 Most modern multi-threading operating systems use preemptive scheduling.
 This means that the operating system decides when to switch from one
 process to another, regardless of what the process is doing. This protects
-the other processes from a processes misbehaving by not yielding in time.
+the other processes from a process misbehaving by not yielding in time.
 
 In cooperative multitasking which uses a non-preemptive scheduler the
 running process decides when to yield. This has the advantage that the
@@ -599,14 +599,15 @@ stack and heap.
 On the language level all processes are running concurrently and the
 programmer should not have to deal with explicit yields. BEAM solves
 this by keeping track of how long a process has been running. This is
-done by counting _reductions_. The term originaly comes from the
+done by counting _reductions_. The term originally comes from the
 mathematical term beta-reduction used in lambda calculus.
 
 The definition of a reduction in BEAM is not very specific, but we can
 see it as a small piece of work, which shouldn't take _too long_.
-Each function call is counted as a reduction, and BEAM does a test
-upon entry to each function if the process has used up all its
-reductions.
+Each function call is counted as a reduction. BEAM does a test
+upon entry to each function to check whether the process has used up all its
+reductions or not. If there are reductions left the function is executed
+otherwise the process is suspended.
 
 Since there are no loops in Erlang, only tail-recursive function
 calls, it is very hard to write a program that does any significant
