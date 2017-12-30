@@ -555,12 +555,12 @@ that the code (+{move,{x,0},{x,1}}, {move,{y,0},{x,0}},
                      /  0x1000: 0x3000 -> 0x3000: OpCase(move_xx): x(Arg(1)) = x(Arg(0))
 {move,{x,0},{x,1}}  {   0x1004: 0x0                                I += 3;
                      \  0x1008: 0x1                                Goto(*I);
-                     /  0x100c: 0x3200
-{move,{y,0},{x,0}}  {   0x1010: 0x1
-                     \  0x1014: 0x1
-                     /  0x1018: 0x3100
-{move,{y,0},{x,0}}  {   0x101c: 0x1
-                     \  0x1020: 0x1
+                     /  0x100c: 0x3100
+{move,{y,0},{x,0}}  {   0x1010: 0x0
+                     \  0x1014: 0x0
+                     /  0x1018: 0x3200
+{move,{x,1},{y,0}}  {   0x101c: 0x1
+                     \  0x1020: 0x0
 -------------------------------------------
 
 The word at address 0x1000 points to the implementation of
