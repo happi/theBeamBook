@@ -511,8 +511,8 @@ The compilation of +json_test+ fails since the module contains invalid
 Erlang syntax, but you get to see what the AST looks like. Now we can
 just write some functions to traverse the AST and rewrite the json
 code into Erlang code.footnote:[The translation here is done in
-accordance with EEP 18 (Erlang Enhancement Proposal 18: "JSON bifs")
-link:http://www.erlang.org/eeps/eep-0018.html]
+accordance with link:http://www.erlang.org/eeps/eep-0018.html[EEP 18] 
+(Erlang Enhancement Proposal 18: "JSON bifs")]
 
 [source,erlang]
 ----
