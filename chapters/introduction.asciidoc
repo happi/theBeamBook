@@ -442,7 +442,7 @@ them briefly.
 
 ==== Erlang on Xen
 
-Erlang on Xen (link:http://erlangonxen.org) is an Erlang implementation
+Erlang on Xen (link:http://erlangonxen.org[]) is an Erlang implementation
 running directly on server hardware with no OS layer in between, only
 a thin Xen client.
 
@@ -481,7 +481,7 @@ options:
 
 ==== Erjang
 
-Erjang (link:http://erjang.org) is an Erlang implementation which runs
+Erjang (link:http://www.erjang.org[]) is an Erlang implementation which runs
 on the JVM. It loads +.beam+ files and recompile the code to Java +.class+
 files. Erjang is almost 100% binary compatible with (generic) BEAM.
 

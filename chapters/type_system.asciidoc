@@ -94,7 +94,7 @@ a body, unless it is a list.
 Currently ERTS uses a staged tag scheme, the history and reasoning
 behind the this scheme is explained in a technical report from the
 HiPE group. (See
-link:http://www.it.uu.se/research/publications/reports/2000-029/)
+link:http://www.it.uu.se/research/publications/reports/2000-029/[])
 The tagging scheme is implemented in +erl_term.h+.
 
 The basic idea is to use the least significant bits for tags. Since
