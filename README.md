@@ -2,21 +2,21 @@
 
 # The BEAM Book
 
-This is an attempt to document the internals of the Erlang Runtime
-System and the Erlang virtual machine known as the BEAM.
+This is an attempt to document the internals of the Erlang runtime
+system and the Erlang virtual machine known as the BEAM.
 
 You can read or download the book as a PDF from the [latest
 stable release](https://github.com/happi/theBeamBook/releases/latest)
 or [online as a webpage](https://happi.github.io/theBeamBook/).
 
 The book is written in AsciiDoc and most of it can be read directly
-from source on github in your browser. To read the book online just
+from source on GitHub in your browser. To read the book online just
 open the file [book.asciidoc](book.asciidoc).
 
 ## Contributing
 
 The plan is to make this book project into a collaboration effort so
-that we can get a complete documentation of the Erlang Runtime system
+that we can get a complete documentation of the Erlang runtime system
 as soon as possible. Please feel free to contribute since this work is
 far from done.
 
@@ -50,7 +50,7 @@ The priority of the AsciiDoc code in this project is that it
 renders nicely for the following targets in the following order:
 1. The PDF target
 2. The HTML target
-3. View Directly on Github
+3. View directly on GitHub
 
 We will try to come up with specific guides for which AsciiDoc
 constructs to use and add them here as we discover what works
@@ -58,7 +58,7 @@ and what doesn't work.
 
 <!-- #### The AsciiDoc dialect to use -->
 
-#### Comments in Asciidoc
+#### Comments in AsciiDoc
 Each chapter should begin with a comment about the status of
 the chapter. This should be one of 'Placeholder', 'First Draft',
 'Final Draft', or 'Done (for Erlang X.X)'.
@@ -68,14 +68,14 @@ to bring the chapter to the next level.
 A comment in the code starts with '//'.
 
 <!-- #### Callouts
-     What type of callout to use and for what (note, warning erc.)
+     What type of callout to use and for what (note, warning etc.)
 
 -->
 
 #### Linking to OTP/Erlang source code
 
-When refereing to the source code of Erlang/OTP please add
-a link to a tagged version (not to master) of the code on github,
+When refering to the source code of Erlang/OTP please add
+a link to a tagged version (not to master) of the code on GitHub,
 as in:
 
 ----
@@ -89,8 +89,8 @@ as in:
 Try to keep the root directory clean.
 
 Put each chapter in a separate .asciidoc file in the chapters directory.
-Use underscore "_" to separate words in chapter names but try to use
-just one word file names for the chpaters.
+Use underscores "_" to separate words in chapter names but try to use
+just one-word file names for the chapters.
 
 Put code used in a chapter in code/CHAPTERNAME_chapter/src, and add an
 include of the code in ap-code_listings.asciidoc.
@@ -102,8 +102,8 @@ Put images in the images directory.
 The following is not yet done consistently so please feel
 free to contribute by fixing tags in the current version.
 
-Chapter tags should start with 'CH-'. Words in a tag is separated by
-underscore '_'.
+Chapter tags should start with 'CH-'. Words in a tag are separated by
+underscores '_'.
 
 Section tags should start with 'SEC-'.
 
@@ -121,7 +121,7 @@ just make a pull request.
 
 For larger rewrites check the status of the chapter and check the
 issues to see if someone is likely to be working on that chapter
-right now. If some one else is working on the chapter try to contact
+right now. If someone else is working on the chapter try to contact
 that person before doing a major rewrite. Otherwise either just go
 ahead and do the rewrite and do a pull request or start by opening
 an issue declaring what you intend to do.
@@ -208,8 +208,8 @@ still slow, which led to another cancellation of the book early 2017.
 Now I had three repositories with three different book building systems
 with three different outlines of the book. In the end I more or less
 went back to the original longer book outline and the original AsciiDoc
-build system. I started a new repository in a private Github account and
-started pulling in content from the three different version.
+build system. I started a new repository in a private GitHub account and
+started pulling in content from the three different versions.
 
 Then on April 7 2017 I opened the repository to the public to share it with
 some students. I didn't think anyone else would notice and I was not
@@ -218,8 +218,8 @@ just contains bits and pieces from the different versions of the book.
 
 There was more interest than I had expected though and fortunately
 also several who where willing to contribute. From now on the book
-is a collaborative effort to document the Erlang RunTime System Erts,
-and it is released with a creative commons license (see above).
+is a collaborative effort to document the Erlang runtime system Erts,
+and it is released with a Creative Commons license (see above).
 
 Watch this space for further news and to see the whole book take shape.
 
