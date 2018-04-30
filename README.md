@@ -23,7 +23,7 @@ far from done.
 You can contribute by raising an issue, comment on open issues
 or create a branch with a fix or an addition.
 
-Note that the book is released under a creative commons license (see below)
+Note that the book is released under a Creative Commons license (see below)
 and anything you contribute will also be included under that license.
 
 The chapters in the book can be in one of four states:
