@@ -271,7 +271,7 @@ hardware failure. Therefore you need to distribute your system over at
 least two physical machines. You do this by starting a node on
 each machine and then you can connect the nodes to each other so
 that processes can communicate with each other across the nodes
-just as if they where running in the same node.
+just as if they were running in the same node.
 
 [[a_distributed_application]]
 .Distributed Applications
