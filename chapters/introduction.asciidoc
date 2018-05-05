@@ -84,7 +84,7 @@ implementation of Erlang (see xref:Other_Erlang_Implementations[])).
 Your application code will run in an Erlang node, and all the layers
 of the node will affect the performance of your application. We will
 look at the stack of layers that makes up a node. This will help you
-understand you options for running your system in different
+understand your options for running your system in different
 environments.
 
 In OO terminology one could say that an Erlang node is an object of
