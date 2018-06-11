@@ -321,7 +321,6 @@ minimize message queue scanning using refs, more on that later.)
 A minimal receive loop, which accepts any message and has no timeout
 (e.g. +receive _ -> ok end+) looks like this in BEAM code:
 
-A simple receive loop.
 [source,erlang]
 ----
   {label,2}.
@@ -356,7 +355,6 @@ For a selective receive like e.g. +receive [] -> ok end+ we will
 loop over the message queue to check if any message in the queue
 matches.
 
-A selective receive loop.
 [source,erlang]
 ----
   {label,1}.
@@ -390,7 +388,6 @@ If we add a timeout to our selective receive the wait instruction is
 replaced by a wait_timeout instruction followed by a timeout
 instruction and the code following the timeout.
 
-A receive loop with a timeout.
 [source,erlang]
 ----
   {label,1}.
@@ -456,7 +453,6 @@ The compiler recognizes code that uses a newly created reference (ref)
 in a receive (see xref:ref_trick_code[]), and emits code to avoid the
 long inbox scan since the new ref can not already be in the inbox.
 
-The Ref Trick Pattern.
 [source,erlang]
 ----
   Ref = make_ref(),
@@ -469,7 +465,6 @@ The Ref Trick Pattern.
 This gives us the following skeleton for a complete receive, see
 xref:ref_receive[].
 
-A receive with the ref_trick.
 [source,erlang]
 ----
     {recv_mark,{f,3}}.
