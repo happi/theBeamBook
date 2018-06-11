@@ -321,22 +321,20 @@ minimize message queue scanning using refs, more on that later.)
 A minimal receive loop, which accepts any message and has no timeout
 (e.g. +receive _ -> ok end+) looks like this in BEAM code:
 
-++++
-<figure id="simple_receive">
-<title>A simple receive loop.</title>
-<programlisting>
-
-  L1: loop_rec L2 x0
-      remove_message
-      ...
-      jump L3
-
-  L2: wait L1
-
-  L3: ...
-</programlisting>
-</figure>
-++++
+A simple receive loop.
+[source,erlang]
+----
+  {label,2}.
+    {wait,{f,1}}.
+  {label,1}.
+    {loop_rec,{f,2},{x,0}}.
+    remove_message.
+    {jump,{f,3}}.
+  {label,2}.
+    {wait,{f,1}}.
+  {label,3}.
+     ...
+----
 
 The +loop_rec L2 x0+ instruction first checks if there is any message
 in the message queue. If there are no messages execution jumps to L2,
@@ -358,22 +356,21 @@ For a selective receive like e.g. +receive [] -> ok end+ we will
 loop over the message queue to check if any message in the queue
 matches.
 
-++++
-<figure id="selective_receive">
-<title>A selective receive loop.</title>
-<programlisting>
-
-  L2: loop_rec L4  X0
-      test is_nil L3 X0
-      remove_message
-      move {atom,ok} X0
-      return
-  L3: loop_rec_end L2
-  L4: wait L2
-
-</programlisting>
-</figure>
-++++
+A selective receive loop.
+[source,erlang]
+----
+  {label,1}.
+    {loop_rec,{f,3},{x,0}}.
+    {test,is_nil,{f,2},[{x,0}]}.
+    remove_message.
+    {jump,{f,4}}.
+  {label,2}.
+    {loop_rec_end,{f,1}}.
+  {label,3}.
+    {wait,{f,1}}.
+  {label,4}.
+    ...
+----
 
 In this case we do a pattern match for Nil after the loop_rec
 instruction if there was a message in the mailbox. If the message
@@ -393,26 +390,22 @@ If we add a timeout to our selective receive the wait instruction is
 replaced by a wait_timeout instruction followed by a timeout
 instruction and the code following the timeout.
 
-
-++++
-<figure id="timeout_receive">
-<title>A receive loop with a timeout.</title>
-<programlisting>
-
-  L6: loop_rec L8 X0
-      test is_nil L7 X0
-      remove_message
-      move {atom,ok} X0
-      return
-  L7: loop_rec_end L6
-  L8: wait_timeout L6 {integer,1000}
-      timeout
-      move {atom,done} X0
-      return
-
-</programlisting>
-</figure>
-++++
+A receive loop with a timeout.
+[source,erlang]
+----
+  {label,1}.
+    {loop_rec,{f,3},{x,0}}.
+    {test,is_nil,{f,2},[{x,0}]}.
+    remove_message.
+    {jump,{f,4}}.
+  {label,2}.
+    {loop_rec_end,{f,1}}.
+  {label,3}.
+    {wait_timeout,{f,1},{integer,1000}}.
+    timeout.
+  {label,4}.
+    ...
+----
 
 The +wait_timeout+ instructions sets up a timeout timer with the given
 time (1000 ms in our example) and it also saves the address of the
@@ -463,46 +456,42 @@ The compiler recognizes code that uses a newly created reference (ref)
 in a receive (see xref:ref_trick_code[]), and emits code to avoid the
 long inbox scan since the new ref can not already be in the inbox.
 
-++++
-<figure id="ref_trick_code">
-<title>The Ref Trick Pattern.</title>
-<programlisting source="Erlang">
-
+The Ref Trick Pattern.
+[source,erlang]
+----
   Ref = make_ref(),
   Counter ! {self(), inc, Ref},
   receive
     {Ref, Count} -> Count
   end.
-</programlisting>
-</figure>
-++++
+----
 
 This gives us the following skeleton for a complete receive, see
 xref:ref_receive[].
 
-++++
-<figure id="ref_receive">
-<title>A receive with the ref_trick.</title>
-<programlisting>
-     ...
-     recv_mark L11
-     call_ext 0 {extfunc,erlang,make_ref,0}
-     ...
-
-     recv_set L11
-L11: loop_rec L13 x0
-     test is_eq_exact L12 [X0, Y0]
-     remove_message
-     ...
-
-L12: loop_rec_end L11
-L13: wait_timeout L11 {integer,1000}
-     timeout.
-     ...
-
-</programlisting>
-</figure>
-++++
+A receive with the ref_trick.
+[source,erlang]
+----
+    {recv_mark,{f,3}}.
+    {call_ext,0,{extfunc,erlang,make_ref,0}}.
+    ...
+    send.
+    {recv_set,{f,3}}.
+  {label,3}.
+    {loop_rec,{f,5},{x,0}}.
+    {test,is_tuple,{f,4},[{x,0}]}.
+    ...
+    {test,is_eq_exact,{f,4},[{x,1},{y,0}]}.
+    ...
+    remove_message.
+    ...
+    {jump,{f,6}}.
+  {label,4}.
+    {loop_rec_end,{f,3}}.
+  {label,5}.
+    {wait,{f,3}}.
+  {label,6}.
+----
 
 The +recv_mark+ instruction saves the current position (the end
 +msg.last+) in +msg.saved_last+ and the address of the label
