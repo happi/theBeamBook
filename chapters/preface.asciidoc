@@ -77,7 +77,7 @@ several machines.
 
 Erlang uses processes to achieve concurrency. Conceptually Erlang
 processes are similar to most OS processes, they execute in parallel
-and can communicate through signals. In practices there is a huge
+and can communicate through signals. In practice there is a huge
 difference in that Erlang processes are much more lightweight than
 most OS processes. Many other concurrent programming languages call
 their equivalent to Erlang processes _agents_.
