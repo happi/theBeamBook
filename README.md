@@ -13,6 +13,8 @@ The book is written in AsciiDoc and most of it can be read directly
 from source on GitHub in your browser. To read the book online just
 open the file [book.asciidoc](book.asciidoc).
 
+You can also read it as an [Github IO page](https://happi.github.io/theBeamBook/).
+
 ## Contributing
 
 The plan is to make this book project into a collaboration effort so
