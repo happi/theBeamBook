@@ -346,8 +346,8 @@ handling.
 
 For code like +receive _ -> ok end+, where we accept any messages,
 there is no pattern matching needed, we just do a +remove_message+
-which unlinks the next message from the message queue and stores a
-pointer in X0. (It also removes any timeout, more on this soon.)
+which unlinks the next message from the message queue. (It also
+removes any timeout, more on this soon.)
 
 ==== A Selective Receive Loop
 
