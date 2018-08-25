@@ -96,7 +96,7 @@ files in the directory. Each module contains a number of _functions_ and
 each function is made up of _expressions_.
 
 Since Erlang is a functional language it has no statements,
-only expressions. Erlang expressions can be combined to an Erlang
+only expressions. Erlang expressions can be combined into an Erlang
 function. A function takes a number of arguments and returns a
 value. In xref:erlang_code_examples[] we can see some examples of
 Erlang expressions and functions.
