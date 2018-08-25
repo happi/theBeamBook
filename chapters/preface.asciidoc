@@ -83,7 +83,7 @@ most OS processes. Many other concurrent programming languages call
 their equivalent to Erlang processes _agents_.
 
 Erlang achieves concurrency by interleaving the execution of processes
-on the Erlang virtual machine, the BEAM. On multi-core processor the
+on the Erlang virtual machine, the BEAM. On a multi-core processor the
 BEAM can also achieve parallelism by running one scheduler per core and
 executing one Erlang process per scheduler. The designer of an Erlang
 system can achieve further parallelism by distributing the system on
