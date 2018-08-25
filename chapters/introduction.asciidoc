@@ -37,9 +37,9 @@ or usually just ERTS.
 
 *Note* This book is mostly a book about ERTS in particular and only to
 a small extent about any general Erlang Runtime System. If you assume
-that we talk about the Ericsson implementation unless is clearly stated
-that we are talking about a general principle you will probably be
-right.
+that we talk about the Ericsson implementation unless it is clearly
+stated that we are talking about a general principle you will probably
+be right.
 
 === How to read this book
 
@@ -211,10 +211,10 @@ multicore or not and whether you want to use 32-bit or 64-bit.
 
 The second layer in the stack is the OS level. ERTS runs on most
 versions of Windows and most POSIX "compliant" operating systems,
-including Linux, VxWorks, Solaris, and Mac OS X. Today most of the
-development of ERTS is done on Linux and OS X, and you can expect the
-best performance on these platforms. However, Ericsson have been using
-Solaris internally in many projects and ERTS have been tuned for
+including Linux, VxWorks, FreeBSD, Solaris, and Mac OS X. Today most of
+the development of ERTS is done on Linux and OS X, and you can expect
+the best performance on these platforms. However, Ericsson has been
+using Solaris internally in many projects and ERTS has been tuned for
 Solaris for many years.  Depending on your use case you might actually
 get the best performance on a Solaris system. The OS choice is usually
 not based on performance requirements, but is restricted by other
@@ -360,12 +360,12 @@ To learn more about processes and the PCB see xref:CH-Processes[].
 The Scheduler is responsible for choosing the Erlang process to execute.
 Basically the scheduler keeps two queues, a _ready queue_ of processes
 ready to run, and a _waiting queue_ of processes waiting to receive a
-message. When a process in the waiting queue receives a message or get
+message. When a process in the waiting queue receives a message or gets
 a time out it is moved to the ready queue.
 
 The scheduler picks the first process from the ready queue and hands it
 to BEAM for execution of one _time slice_. BEAM preempts the running
-process when the time slice is used up and adds the processes to the
+process when the time slice is used up and adds the process to the
 end of the ready queue. If the process is blocked in a receive before
 the time slice is used up, it gets added to the waiting queue instead.
 
@@ -429,8 +429,8 @@ You can actually type in Erlang code and execute it directly from the
 shell. In this case the code is not compiled to BEAM code and executed by
 the BEAM, instead the code is parsed and interpreted by the Erlang
 interpreter. In general the interpreted code behaves exactly as compiled
-code, but there a few subtle differences, these differences and all other
-aspects of the shell are explained in xref:CH-Ops[].
+code, but there are a few subtle differences, these differences and all
+other aspects of the shell are explained in xref:CH-Ops[].
 
 [[Other_Erlang_Implementations]]
 === Other Erlang Implementations
@@ -482,7 +482,7 @@ options:
 ==== Erjang
 
 Erjang (link:http://www.erjang.org[]) is an Erlang implementation which runs
-on the JVM. It loads +.beam+ files and recompile the code to Java +.class+
+on the JVM. It loads +.beam+ files and recompiles the code to Java +.class+
 files. Erjang is almost 100% binary compatible with (generic) BEAM.
 
 In xref:the_erjang_stack you can see how the Erjang implementation
