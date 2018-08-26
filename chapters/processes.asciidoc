@@ -473,11 +473,11 @@ means in the next chapter). Printing the heap of a
 very large process for example can take a long time.
 
 These BIFs are only meant to be used for debugging
-and you use them at you own risk. You should probably
+and you use them at your own risk. You should probably
 not run them on a live system.
 
 Many of the HiPE BIFs where written by the author in
-the mid nineties (before 64 bits Erlang existed) and
+the mid nineties (before 64 bit Erlang existed) and
 the printouts on a 64 bit machine might be a bit off.
 There are new versions of these BIFs that do a better
 job, hopefully they will be included in ERTS at the
@@ -693,7 +693,7 @@ the stop of the whole heap, and `heap_sz` gives the size of the heap
 in words. That is `hend - heap = heap_sz * 8` on a 64 bit machine and
 `hend - heap = heap_sz * 4` on a 32 bit machine.
 
-The field `heap_min_size` is the size, in words, that the heap starts
+The field `min_heap_size` is the size, in words, that the heap starts
 with and which it will not shrink smaller than, the default value is
 233.
 
@@ -797,7 +797,7 @@ The GC is controlled by these fields in the PCB:
 
 ----
 
-Since the garbage collector is generational it will use a heuristics to just look at
+Since the garbage collector is generational it will use a heuristic to just look at
 new data most of the time. That is, in what is called a _minor
 collection_, the GC
 only looks at the top part of the stack and moves new data to the new
@@ -938,8 +938,8 @@ options:
 ----
 
 Each mailbox consists of a length and two pointers, stored in the fields
-_msg.len_, _msg.first_, _msg.last_ for the internal queue and _msg_inq.len_,
-_msg_inq.first_, and `msg_inq.last` for the external in queue. There is
+`msg.len`, `msg.first`, `msg.last` for the internal queue and `msg_inq.len`,
+`msg_inq.first`, and `msg_inq.last` for the external in queue. There is
 also a pointer to the next message to look at (`msg.save`) to implement
 selective receive.
 
@@ -972,7 +972,7 @@ start
 ----
 
 From this we can see that there is one message in the message queue and
-the `first`, `last` and `save` pointers all points to this message.
+the `first`, `last` and `save` pointers all point to this message.
 
 As mentioned we can force the message to end up in the in queue by
 setting the flag _message_queue_data_. We can try this with the following
@@ -1170,7 +1170,7 @@ will end up in an `m-buf` but linked from the internal mailbox:
  | |       |  |       |  |       | |
  | |       |  |       |  | first | |
  | +-------+  +-------+  +---|---+ |
- |              M-buf        v     |
+ |              m-buf        v     |
  |            +-------+  +-------+ |
  |         +->| [Msg] |  |next:[]| |
  |         |  |       |  | m: *  | |
@@ -1222,7 +1222,7 @@ will end up in an `m-buf` and linked from the external mailbox:
  | |       |  |       |  |       | |
  | | first |  |       |  | first | |
  | +---|---+  +-------+  +-------+ |
- |     v        M-buf              |
+ |     v        m-buf              |
  | +-------+  +-------+            |
  | |next:[]|  |       |            |
  | |   m:*--->| [Msg] |            |
@@ -1236,7 +1236,7 @@ options:
  - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
-After a GC the message will still be in the `M-buf`. Not until
+After a GC the message will still be in the `m-buf`. Not until
 the message is received and reachable from some other object on
 the heap or from the stack will the message be copied to the process
 heap during a GC.
@@ -1260,7 +1260,7 @@ With the new _message_queue_data_ flag introduced in Erlang 19 you
 can trade memory for execution time in a new way. If the receiving
 process is overloaded and holding on to the `main lock`, it might be
 a good strategy to use the _off_heap_ allocation in order to let the
-sending process quickly dump the message in an `M-buf`.
+sending process quickly dump the message in an `m-buf`.
 
 If two processes have a nicely balanced producer consumer behavior
 where there is no real contention for the process lock then allocation
