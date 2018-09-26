@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     printf("The value is: %i\n", res);
     return 0;
   } else {
-    printf("Give a the file name of a byte code program as argument\n");
+    printf("Give the file name of a byte code program as argument\n");
     return -1;
   }
 }

@@ -114,7 +114,7 @@ values have to be of the same type and have the same value. Furthermore the `S=s
 limits the type to a be a source register.
 Rest=*:: allows a variable number of arguments in the instruction and binds them to
 variable `Rest`.
-use_jump_tab(Size, Rest):: calls a the
+use_jump_tab(Size, Rest):: calls the
 https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L2707[use_jump_tab]
 C function in `beam_load.c` that decides whether the arguments in the `select_val`
 can be transformed into a jump table.
