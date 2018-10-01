@@ -286,7 +286,7 @@ the directory "erts/emulator/beam/".
 In a SMP system there is usually one allocator of each type per
 scheduler thread.
 
-The smallest unit of memory that an allocator work with is called a
+The smallest unit of memory that an allocator can work with is called a
 _block_. When you call an allocator to allocate a certain amount of
 memory what you get back is a block. It is also blocks that you give
 as an argument to the allocator when you want to deallocate memory.
@@ -1325,7 +1325,7 @@ heaps. You can not assume that structures should be bottom up.
 
 Also note that the GC does a breath first traversal. This means that
 locality for one term most often is worse after a GC. With the size of
-modern cashes this should not be a problem. You could of course create
+modern caches this should not be a problem. You could of course create
 a pathological example where it becomes a problem, but you can also
 create a pathological example where a depth first approach would cause
 problems.
