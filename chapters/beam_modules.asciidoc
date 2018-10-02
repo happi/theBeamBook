@@ -87,7 +87,7 @@ Here we can see the chunk names that beam uses.
 
 ==== Atom table chunk
 
-The chunk named `Atom` is mandatory and contains all atoms referred to by the module. The format of the atom chunk is:
+Either the chunk named `Atom` or the chunk named `AtU8` is mandatory. It contains all atoms referred to by the module. For source files with `latin1` encoding, the chunk named `Atom` is used. For `utf8` encoded modules, the chunk is named `AtU8`. The format of the atom chunk is:
 
 [source,erlang]
 ----
@@ -100,6 +100,8 @@ AtomChunk = <<
 >>
 
 ----
+
+The format of the AtU8 chunk is the same as above, except that the name of the chunk is `AtU8`.
 
 
 NOTE: Module name is always stored as the first atom in the table (atom index 0).
