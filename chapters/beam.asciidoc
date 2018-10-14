@@ -490,7 +490,7 @@ Compiled to BEAM code this will look like:
 
 (See add.erl and add.S in xref:AP-listings[] for the full code.)
 
-Now if we zoom in on the the three instructions betwen the function calls
+Now if we zoom in on the three instructions betwen the function calls
 in this code:
 
 [source, Erlang]

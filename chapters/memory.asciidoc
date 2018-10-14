@@ -518,7 +518,7 @@ as atoms, modules, funs and long lived tables
 ==== The fixed size allocator: fix_alloc
 
 The fixed allocator is used for objects of a fixed size, such as PCBs,
-message refs and a few other. The fixed size allocator uses the
+message refs and a few others. The fixed size allocator uses the
 _address order best fit_ allocation strategy by default.
 
 // driver_event_data_state driver_select_data_state monitor_sh msg_ref
