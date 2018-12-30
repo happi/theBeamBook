@@ -130,12 +130,12 @@ NOTE: Raises `badarity` if the arity doesn't match the function object. Raises `
 
 ==== apply Arity
 
-Applies function call with `Arity` arguments stored in X registers. The module atom is stored in `x[Arity]` and the function atom is stored in `x[Arity+1]`.
+Applies function call with `Arity` arguments stored in X registers. The module atom is stored in `x[Arity]` and the function atom is stored in `x[Arity+1]`. Module can also be represented by a tuple.
 
 
 ==== apply_last Arity Dealloc
 
-Deallocates `Dealloc` elements on stack by popping CP, freeing the elements and pushing CP again. Then performs a tail-recursive call with `Arity` arguments stored in X registers, by jumping to the new location. The module and function atoms are stored in `x[Arity]` and `x[Arity+1]`.
+Deallocates `Dealloc` elements on stack by popping CP, freeing the elements and pushing CP again. Then performs a tail-recursive call with `Arity` arguments stored in X registers, by jumping to the new location. The module and function atoms are stored in `x[Arity]` and `x[Arity+1]`. Module can also be represented by a tuple.
 
 
 === Stack (and Heap) Management
