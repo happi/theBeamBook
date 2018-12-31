@@ -128,14 +128,14 @@ That is, for a zero arity call, the closure is placed in `x[0]`. For a arity 1 c
 
 NOTE: Raises `badarity` if the arity doesn't match the function object. Raises `badfun` if a non-function is passed.
 
-==== apply/1
+==== apply Arity
 
-TODO
+Applies function call with `Arity` arguments stored in X registers. The module atom is stored in `x[Arity]` and the function atom is stored in `x[Arity+1]`. Module can also be represented by a tuple.
 
 
-==== apply_last/2
+==== apply_last Arity Dealloc
 
-TODO
+Deallocates `Dealloc` elements on stack by popping CP, freeing the elements and pushing CP again. Then performs a tail-recursive call with `Arity` arguments stored in X registers, by jumping to the new location. The module and function atoms are stored in `x[Arity]` and `x[Arity+1]`. Module can also be represented by a tuple.
 
 
 === Stack (and Heap) Management
@@ -529,7 +529,7 @@ Argument types
 |allocate_heap_zero | t I t     | Allocate some heap and set the words to NIL
 |allocate_init      | t I y     |
 |allocate_zero      | t t       | Allocate some stack and set the words to 0?
-|apply              | I         | Apply function object (in x[Arity]) with args (in x[0..Arity-1])
+|apply              | I         | Apply args in `x[0..Arity-1]` to module in `x[Arity]` and function in `x[Arity+1]`
 |apply_last         | I P       | Same as `apply` but does not save the CP and `deallocates` P words
 |badarg             | j         | Create a `badarg` error
 |badmatch           | rxy       | Create a `badmatch` error
@@ -677,11 +677,11 @@ Argument types
 |i_select_tuple_arity2 | x f A f A f |
 |i_select_tuple_arity2 | y f A f A f |
 |i_select_val       | r f I     | Compare value to a list of pairs `{Value, Label}` and jump when a match is found, otherwise jump to `f`
-|i_select_val       | x f I     | Compare value to a list of pairs `{Value, Label}` and jump when a match is found, otherwise jump to `f`
-|i_select_val       | y f I     | Compare value to a list of pairs `{Value, Label}` and jump when a match is found, otherwise jump to `f`
+|i_select_val       | x f I     | Same as above but for x register
+|i_select_val       | y f I     | Same as above but for y register
 |i_select_val2      | r f c f c f | Compare value to two pairs `{c1, f1}`, or `{c2, f2}` and jump, on fail jump to `f`
-|i_select_val2      | x f c f c f | Compare value to two pairs `{c1, f1}`, or `{c2, f2}` and jump, on fail jump to `f`
-|i_select_val2      | y f c f c f | Compare value to two pairs `{c1, f1}`, or `{c2, f2}` and jump, on fail jump to `f`
+|i_select_val2      | x f c f c f | Same as above but for x register
+|i_select_val2      | y f c f c f | Same as above but for y register
 |i_times            | j I d     |
 |i_trim             |I          | Cut stack by `I` elements, preserving CP on top
 |i_wait_error       |           |
@@ -691,33 +691,33 @@ Argument types
 |i_wait_timeout_locked | f I    |
 |i_wait_timeout_locked | f s    |
 |if_end             |           | Create an `if_clause` error
-|init               |y          | Set some words on stack to NIL []
-|init2              |y y        | Set some words on stack to NIL []
-|init3              |y y y      | Set some words on stack to NIL []
-|int_code_end       |           |
-|is_atom            | f rxy     | Check whether a value is an atom and jump if not
-|is_bitstring       | f rxy     | Check whether a value is a bit string and jump if not
-|is_boolean         | f rxy     | Check whether a value is atom 'true' or 'false' and jump if not
-|is_float           | f rxy     | Check whether a value is a floating point number and jump if not
-|is_function        | f rxy     | Check whether a value is a function and jump if not
-|is_function2       | f s s     | Check whether a value is a function and jump if not
-|is_integer         | f rxy     | Check whether a value is a big or small integer and jump if not
+|init               |y          | Set a word on stack to NIL []
+|init2              |y y        | Set two words on stack to NIL []
+|init3              |y y y      | Set three words on stack to NIL []
+|int_code_end       |           | End of the program (same as return with no stack)
+|is_atom            | f rxy     | Check whether a value is an atom and jump otherwise
+|is_bitstring       | f rxy     | Check whether a value is a bit string and jump otherwise
+|is_boolean         | f rxy     | Check whether a value is atom 'true' or 'false' and jump otherwise
+|is_float           | f rxy     | Check whether a value is a floating point number and jump otherwise
+|is_function        | f rxy     | Check whether a value is a function and jump otherwise
+|is_function2       | f s s     | Check whether a value is a function and jump otherwise
+|is_integer         | f rxy     | Check whether a value is a big or small integer and jump otherwise
 |is_integer_allocate  | f rx I I |
-|is_list            | f rxy     | Check whether a value is a list and jump if not
-|is_nil             | f rxy     | Check whether a value is an empty list [] and jump if not
-|is_nonempty_list   | f rxy     | Check whether a value is a nonempty list and jump if not
+|is_list            | f rxy     | Check whether a value is a list or NIL and jump otherwise
+|is_nil             | f rxy     | Check whether a value is an empty list [] and jump otherwise
+|is_nonempty_list   | f rxy     | Check whether a value is a nonempty list (cons pointer) and jump otherwise
 |is_nonempty_list_allocate | f rx I t |
 |is_nonempty_list_test_heap | f r I t |
-|is_number          | f rxy     | Check whether a value is a big or small integer or a float and jump if not
-|is_pid             | f rxy     | Check whether a value is a pid and jump if not
-|is_port            | f rxy     | Check whether a value is a port and jump if not
-|is_reference       | f rxy     | Check whether a value is a reference and jump if not
-|is_tuple           | f rxy     | Check whether a value is a tuple and jump if not
-|is_tuple_of_arity  | f rxy A   | Check whether a value is a tuple of arity `A` and jump if not
-|jump               | f         | Jump to `f`
+|is_number          | f rxy     | Check whether a value is a big or small integer or a float and jump otherwise
+|is_pid             | f rxy     | Check whether a value is a pid and jump otherwise
+|is_port            | f rxy     | Check whether a value is a port and jump otherwise
+|is_reference       | f rxy     | Check whether a value is a reference and jump otherwise
+|is_tuple           | f rxy     | Check whether a value is a tuple and jump otherwise
+|is_tuple_of_arity  | f rxy A   | Check whether a value is a tuple of arity `A` and jump otherwise
+|jump               | f         | Jump to location (label) `f`
 |label              | L         | Marks a location in code, removed at the load time
 |line               | I         | Marks a location in source file, removed at the load time
-|loop_rec_end       | f         |
+|loop_rec_end       | f         | Advances receive pointer in the process and jumps to the `loop_rec` instruction
 |move               | rxync rxy | Moves a value or a register into another register
 |move2              | x x x x   | Move a pair of values to a pair of destinations
 |move2              | x y x y   | Move a pair of values to a pair of destinations
@@ -731,27 +731,26 @@ Argument types
 |move_x1            | c         | Store value in `x1`
 |move_x2            | c         | Store value in `x2`
 |node               | rxy       | Get `rxy` to the atom, current node name
-|put                | rxy       | After `i_put_tuple` initializes `N`-th element of the tuple, internal counter `N` is incremented
-|put_list           | s s d     | Construct a list cell from a head and a tail
-|raise              | s s       | Raise an exception of given type
-|recv_mark          | f         |
-|remove_message     |           |
+|put                | rxy       | Sequence of these is placed after `i_put_tuple` and is used to initialize tuple elements (starting from 0)
+|put_list           | s s d     | Construct a list cell from a head and a tail and the cons pointer is placed into destination `d`
+|raise              | s s       | Raise an exception of given type, the exception type has to be extracted from the second stacktrace argument due to legacy/compatibility reasons.
+|recv_mark          | f         | Mark a known restart position for messages retrieval (reference optimization)
+|remove_message     |           | Removes current message from the process inbox (was received)
 |return             |           | Jump to the address in CP, set CP to 0
 |self               | rxy       | Set `rxy` to the pid of the current process
-|send               |           | Send message `x1` to process `x0`
+|send               |           | Send message `x1` to the inbox of process `x0`, there is no error if process did not exist
 |set_tuple_element  | s d P     | Destructively update a tuple element by index
 |system_limit       | j         |
-|test_arity         | f rxy A   |
+|test_arity         | f rxy A   | Check whether function object (closure or export) in `rxy` has arity `A` and jump to `f` otherwise
 |test_heap          |I t        | Check the heap space availability
 |test_heap_1_put_list | I y     |
-|timeout            |           |
+|timeout            |           | Sets up a timer and yields the execution of the process waiting for an incoming message, or a timer event whichever comes first
 |timeout_locked     |           |
+|try                | y f       | Writes a special catch value to stack cell `y` which marks an active try block, the VM will jump to the label `f` if an exception happens. Code which runs after this becomes guarded against exceptions
+|try_case           | y         | Similar to `try_end` marks an end of the guarded section, clears the catch value on stack and begins the code section of exception matching
 |try_case_end       | s         |
-|try_end            | y         |
-|wait               | f         |
+|try_end            | y         | Clears the catch value from the stack cell `y` marking an end of the guarded section
+|wait               | f         | Schedules the process out waiting for an incoming message (yields)
 |wait_locked        | f         |
 |wait_unlocked      | f         |
-|============================= 
-
-// Empty line to break the table
-//
+|===========
