@@ -425,7 +425,7 @@ The compiler does not expand compiler options until the _expand_ pass
 which occurs after the parse transform pass.
 ====
 
-The documenation of the abstract format is somewhat dense and it is
+The documentation of the abstract format is somewhat dense and it is
 quite hard to get a grip on the abstract format by reading the
 documentation. I encourage you to use the _syntax_tools_ and
 especially +erl_syntax_lib+ for any serious work on the AST.
