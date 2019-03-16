@@ -150,7 +150,7 @@ then tries to solve each part.
 
 When a process is scheduled it will get a number of reductions defined
 by `CONTEXT_REDS` (defined in +erl_vm.h+,
-currently as 2000). After using
+currently as 4000). After using
 up its reductions or when doing a receive without a matching message
 in the inbox, the process will be suspended and a new processes will
 be scheduled.
@@ -695,9 +695,9 @@ This is done by the function _check_balance_ in _erl_process.c_.
 
 The migration is done by first setting up a migration plan and then
 letting schedulers execute on that plan until a new plan is set up.
-Every 2000*2000 reductions a scheduler calculates a migration path per
-priority per scheduler by looking at the workload of all
-schedulers. The migration path can have three different types of
+Every 2000*CONTEXT_REDS reductions a scheduler calculates
+a migration path per priority per scheduler by looking at the workload
+of all schedulers. The migration path can have three different types of
 values: 1) cleared 2) migrate to scheduler # 3) immigrate from
 scheduler #
 

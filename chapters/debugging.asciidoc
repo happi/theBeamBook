@@ -46,11 +46,9 @@ TODO
 == Redbug
 
 _Redbug_ is a debugging utility which allows you to easily interact
-with the Erlang _tracing facilities_. It is an external library which
-is part of the https://github.com/massemanet/eper[eper] performance
-and debugging suite for Erlang and therefore it has to be installed
-separately. One of the best Redbug features is its ability to shut
-itself down in case of overload.
+with the Erlang _tracing facilities_. It is an external library and
+therefore it has to be installed separately. One of the best Redbug
+features is its ability to shut itself down in case of overload.
 
 === Installing Redbug
 
@@ -58,24 +56,24 @@ You can clone redbug via:
 
 [source,bash]
 ----
-$ git clone https://github.com/massemanet/eper.git
+$ git clone https://github.com/massemanet/redbug
 ----
 
 You can then compile it with:
 
 [source,bash]
 ----
-$ cd eper
+$ cd redbug
 $ make
 ----
 
-Ensure `eper` is included in your path when starting an Erlang shell
+Ensure `redbug` is included in your path when starting an Erlang shell
 and you are set to go. This can be done by explicitely adding the path
-to the eper _beam_ files when invoking `erl`:
+to the redbug _beam_ files when invoking `erl`:
 
 [source,bash]
 ----
-$ erl -pa /path/to/eper/ebin
+$ erl -pa /path/to/redbug/ebin
 ----
 
 Alternatively, the following line can be added to the `~/.erlang`
@@ -84,7 +82,7 @@ automatically at every startup:
 
 [source,erlang]
 ----
-code:add_patha("/path/to/eper/ebin").
+code:add_patha("/path/to/redbug/ebin").
 ----
 
 === Using Redbug

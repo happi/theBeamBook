@@ -63,7 +63,7 @@ The comparison instructions are: `is_lt`,  `is_ge`,  `is_eq`,  `is_ne`, `is_eq_e
 
 Remember that all Erlang terms are ordered so these instructions can compare any two terms. You can for example test if the atom `self` is less than the pid  returned by `self()`. (It is.)
 
-Note that for numbers the comparison is done on the Erlang type _number_, see xref:CH-TypeSystem[]. That is, for a mixed float and integer comparison the number of lower precision is converted to the other type before comparison. For example on my system 1 and 0.1 compares as equal, as well as 9999999999999999 and 1.0e16. Comparing floating point numbers is always risk and best avoided, the result may wary depending on the underlying hardware.
+Note that for numbers the comparison is done on the Erlang type _number_, see xref:CH-TypeSystem[]. That is, for a mixed float and integer comparison the number of lower precision is converted to the other type before comparison. For example on my system 1 and 1.0 compares as equal, as well as 9999999999999999 and 1.0e16. Comparing floating point numbers is always risk and best avoided, the result may wary depending on the underlying hardware.
 
 If you want to make sure that the integer 1 and the floating point number 1.0 are compared different you can use is_eq_exact and is_ne_exact. This corresponds to the Erlang operators `=:=` and `=/=`.
 
