@@ -194,7 +194,7 @@ The other two functions in the file are auto generated. If we look at
 the second function the instruction +{move,{x,0},{x,1}}+ moves the
 argument in register x0 to the second argument register x1. Then the
 instruction +{move,{atom,beamexample1},{x,0}}+ moves the module name
-atom to the first argument register x1. Finally a tail call is made to
+atom to the first argument register x0. Finally a tail call is made to
 +erlang:get_module_info/2+ 
 (+{call_ext_only,2,{extfunc,erlang,get_module_info,2}}+). As we will
 see in the next section there are several different call instructions.
