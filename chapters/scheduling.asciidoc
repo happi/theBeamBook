@@ -491,7 +491,7 @@ and file IO are all done through ports on the Erlang side.
 
 A port, like a process, is created on the same scheduler as the
 creating process. Also like processes ports use reductions to decide
-when to yield, and they also get to run for 2000 reductions. But
+when to yield, and they also get to run for 4000 reductions. But
 since ports don't run Erlang code there are no Erlang function calls
 to count as reductions, instead each _port task_ is counted as a
 number of reductions. Currently a task uses a little more than 200
@@ -509,7 +509,7 @@ execution.
 === Reductions
 
 When a process is scheduled it will get a number of reductions defined
-by CONTEXT_REDS (defined in erl_vm.h, currently as 2000). After using
+by CONTEXT_REDS (defined in erl_vm.h, currently as 4000). After using
 up its reductions or when doing a receive without a matching message
 in the inbox, the process will be suspended and a new processes will
 be scheduled.
