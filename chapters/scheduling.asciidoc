@@ -140,20 +140,29 @@ there is no way to loop forever without doing a function call.
 Each function call is counted as a `reduction`; when the reduction
 limit for the process is reached it is suspended.
 
-NOTE: Reductions
+[NOTE]
+.Version Info
+====
+Prior to OTP-20.0, the value of `CONTEXT_REDS` was 2000.
+====
+
+[NOTE]
+.Reductions
+====
 The term reduction comes from the Prolog ancestry of Erlang.
 In Prolog each execution step is a goal-reduction, where each
 step reduces a logic problem into its constituent parts, and
 then tries to solve each part.
+====
 
 ==== How Many Reductions Will You Get?
 
 When a process is scheduled it will get a number of reductions defined
-by `CONTEXT_REDS` (defined in +erl_vm.h+,
-currently as 4000). After using
-up its reductions or when doing a receive without a matching message
-in the inbox, the process will be suspended and a new processes will
-be scheduled.
+by `CONTEXT_REDS` (defined in
+link:https://github.com/erlang/otp/blob/OTP-20.0/erts/emulator/beam/erl_vm.h[erl_vm.h],
+currently as 4000). After using up its reductions or when doing a
+receive without a matching message in the inbox, the process will be
+suspended and a new processes will be scheduled.
 
 If the VM has executed as many reductions as defined by
 `INPUT_REDUCTIONS` (currently `2*CONTEXT_REDS`, also defined in
@@ -491,7 +500,7 @@ and file IO are all done through ports on the Erlang side.
 
 A port, like a process, is created on the same scheduler as the
 creating process. Also like processes ports use reductions to decide
-when to yield, and they also get to run for 2000 reductions. But
+when to yield, and they also get to run for 4000 reductions. But
 since ports don't run Erlang code there are no Erlang function calls
 to count as reductions, instead each _port task_ is counted as a
 number of reductions. Currently a task uses a little more than 200
@@ -509,13 +518,15 @@ execution.
 === Reductions
 
 When a process is scheduled it will get a number of reductions defined
-by CONTEXT_REDS (defined in erl_vm.h, currently as 2000). After using
+by `CONTEXT_REDS` (defined in
+link:https://github.com/erlang/otp/blob/OTP-20.0/erts/emulator/beam/erl_vm.h[erl_vm.h],
+currently as 4000). After using up its reductions or when doing a
 up its reductions or when doing a receive without a matching message
 in the inbox, the process will be suspended and a new processes will
 be scheduled.
 
 If the VM has executed as many reductions as defined by
-INPUT_REDUCTIONS (currently 2*CONTEXT_REDS, also defined in
+`INPUT_REDUCTIONS` (currently `2*CONTEXT_REDS`, also defined in
 +erl_vm.h+) or if there is no process ready to run the scheduler will
 do system-level activities. That is, basically, check for IO; we will
 cover the details soon.
