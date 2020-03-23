@@ -1,4 +1,11 @@
 = The Erlang Runtime System
+:author: Erik Stenman
+:encoding: utf-8
+:lang: en
+:toc: left
+:toclevels: 3
+:experimental:
+:icons: font
 
 include::chapters/preface.asciidoc[]
 
