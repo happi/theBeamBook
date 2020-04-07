@@ -29,7 +29,7 @@ learn how to build your own runtime environment.
 
 If you want to debug the VM If you want to extend the VM If you want
 to do performance tweaking--jump to the last chapter … but to really
-understand that chapter you need to read the book.
+understand that chapter, you need to read the book.
 
 === How to read this book
 
@@ -41,11 +41,11 @@ optimize the performance of such a system for your application, you
 need to not only know your application, but you also need to have a
 thorough understanding of ERTS itself.
 
-With this knowledge of how ERTS works you will be able to understand
+With this knowledge of how ERTS works, you will be able to understand
 how your application behaves when running on ERTS, and you will also
 be able to find and fix problems with the performance of your application.
-In the second part of this book we will go through how you successfully
-run, monitor and scale your ERTS application.
+In the second part of this book, we will go through how you successfully
+run, monitor, and scale your ERTS application.
 
 
 You don’t need to be an Erlang programmer to read this book, but you
@@ -55,20 +55,20 @@ section will give you some Erlang background.
 
 === Erlang
 
-In this section we will look at some basic Erlang concepts that
+In this section, we will look at some basic Erlang concepts that
 are vital to understanding the rest of the book.
 
-Erlang has been called, especially by one of Erlang's creators Joe
+Erlang has been called, especially by one of Erlang's creators, Joe
 Armstrong, a concurrency oriented language. Concurrency is definitely
 at the heart of Erlang, and to be able to understand how an Erlang
 system works you need to understand the concurrency model of Erlang.
 
-First of all we need to make a distinction between _concurrency_ and
-_parallelism_. In this book _concurrency_ is the concept of having
+First of all, we need to make a distinction between _concurrency_ and
+_parallelism_. In this book, _concurrency_ is the concept of having
 two or more processes that *can* execute independently of each other,
 this can be done by first executing one process then the other or by
 interleaving the execution, or by executing the processes in
-parallel. With _parallel_ executions we mean that the processes
+parallel. With _parallel_ executions, we mean that the processes
 actually execute at the exact same time by using several physical
 execution units. Parallelism can be achieved on different levels.
 Through multiple execution units in the execution pipeline in one core,
@@ -77,7 +77,7 @@ several machines.
 
 Erlang uses processes to achieve concurrency. Conceptually Erlang
 processes are similar to most OS processes, they execute in parallel
-and can communicate through signals. In practice there is a huge
+and can communicate through signals. In practice, there is a huge
 difference in that Erlang processes are much more lightweight than
 most OS processes. Many other concurrent programming languages call
 their equivalent to Erlang processes _agents_.
@@ -92,10 +92,10 @@ several computers.
 A typical Erlang system (a server or service built in Erlang) consists
 of a number of Erlang _applications_, corresponding to a directory on disk.
 Each application is made up of several Erlang _modules_ corresponding to
-files in the directory. Each module contains a number of _functions_ and
+files in the directory. Each module contains a number of _functions_, and
 each function is made up of _expressions_.
 
-Since Erlang is a functional language it has no statements,
+Since Erlang is a functional language, it has no statements,
 only expressions. Erlang expressions can be combined into an Erlang
 function. A function takes a number of arguments and returns a
 value. In xref:erlang_code_examples[] we can see some examples of
@@ -122,7 +122,7 @@ max(X, Y) ->
 Erlang has a number of _built in functions_ (or _BIFs_) which are
 implemented by the VM. This is either for efficiency reasons, like the
 implementation of +lists:append+ (which could be implemented in
-Erlang). It could also be to provide some low level functionality
+Erlang). It could also be to provide some low level functionality,
 which would be hard or impossible to implement in Erlang itself, like
 +list_to_atom+.
 
