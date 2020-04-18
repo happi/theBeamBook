@@ -15,11 +15,11 @@ NOTE: What is a module. How is code loaded. How does hot code loading work. How 
 
 The definite source of information about the beam file format is obviously the source code of beam_lib.erl (see link:$$https://github.com/erlang/otp/blob/maint/lib/stdlib/src/beam_lib.erl$$[]). There is actually also a more readable but slightly dated description of the format written by the main developer and maintainer of Beam (see link:$$http://www.erlang.se/~bjorn/beam_file_format.html$$[]).
 
-The beam file format is based on the interchange file format (EA IFF)#, with two small changes. We will get to those shortly. An IFF file starts with a header followed by a number of &ldquo;chunks&rdquo;. There are a number of standard chunk types in the IFF specification dealing mainly with images and music. But the IFF standard also lets you specify your own named chunks, and this is what BEAM does.
+The beam file format is based on the interchange file format (EA IFF)#, with two small changes. We will get to those shortly. An IFF file starts with a header followed by a number of “chunks”. There are a number of standard chunk types in the IFF specification dealing mainly with images and music. But the IFF standard also lets you specify your own named chunks, and this is what BEAM does.
 
-NOTE: Beam files differ from standard IFF files, in that each chunk is aligned on 4-byte boundary (i.e. 32 bit word) instead of on a 2-byte boundary as in the IFF standard. To indicate that this is not a standard IFF file the IFF header is tagged with &ldquo;FOR1&rdquo; instead of &ldquo;FORM&rdquo;. The IFF specification suggests this tag for future extensions.
+NOTE: Beam files differ from standard IFF files, in that each chunk is aligned on 4-byte boundary (i.e. 32 bit word) instead of on a 2-byte boundary as in the IFF standard. To indicate that this is not a standard IFF file the IFF header is tagged with “FOR1” instead of “FOR”. The IFF specification suggests this tag for future extensions.
 
-Beam uses form type &ldquo;BEAM&rdquo;. A beam file header has the following layout:
+Beam uses form type “BEAM”. A beam file header has the following layout:
 
 [source,erlang]
 ----
@@ -265,7 +265,7 @@ parse_code_info(<<Instructionset:32/integer,
 
 
 
-We will learn how to decode the beam instructions in a later chapter, aptly named &ldquo;BEAM Instructions&rdquo;.
+We will learn how to decode the beam instructions in a later chapter, aptly named “BEAM Instructions”.
 
 
 ==== String table chunk
