@@ -13,6 +13,10 @@ xml/beam-book-from-ab.xml:  chapters/opcodes_doc.asciidoc
 beam-book.pdf: xml/beam-book-from-ab.xml
 	dblatex $(DBLATEX_OPTS) xml/beam-book-from-ab.xml -o $@
 
+### Experimental pdf command
+beam-book2.pdf:  chapters/opcodes_doc.asciidoc
+	asciidoctor-pdf  -r ./custom-pdf-converter.rb --doctype book -a media=prepress -a pdf-style=pdf-theme.yml book.asciidoc -o $@
+
 index.html:
 	asciidoctor -r asciidoctor-diagram --backend=html5 --doctype=book -o site/index.html book.asciidoc
 
