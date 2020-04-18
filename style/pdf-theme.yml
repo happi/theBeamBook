@@ -1,6 +1,8 @@
 #
 # This file was copied from default-theme.yml of ascii-doctor-pdf, and customized for the BEAM book.
 # - header and footer was customized
+# - Title page
+# - VERSION Admonition
 font:
   catalog:
     # Noto Serif supports Latin, Latin-1 Supplement, Latin Extended-A, Greek, Cyrillic, Vietnamese & an assortment of symbols
@@ -60,10 +62,10 @@ footer:
   padding: [3, 0, 0, 0]
   recto:
     right:
-      content: '{part-title} {chapter-title}     {page-number} / {page-count}'
+      content: '{part-title} {chapter-title}     {page-number}/{page-count}'
   verso:
     left:
-      content: '{page-number} / {page-count}     {section-or-chapter-title}'
+      content: '{page-number}/{page-count}     {section-or-chapter-title}'
 role:
   line-through:
     text_decoration: line-through
@@ -107,7 +109,7 @@ heading:
   font_color: $base_font_color
   font_style: bold
   # h1 is used for part titles (book doctype) or the doctitle (article doctype)
-  h1_font_size: floor($base_font_size * 2.6)
+  h1_font_size: floor($base_font_size * 3.6)
   # h2 is used for chapter titles (book doctype only)
   h2_font_size: floor($base_font_size * 2.15)
   h3_font_size: round($base_font_size * 1.7)
@@ -125,15 +127,15 @@ title_page:
   title:
     top: 55%
     font_size: $heading_h1_font_size
-    font_color: 999999
+    font_color: 000000
     line_height: 0.9
   subtitle:
     font_size: $heading_h3_font_size
     font_style: bold_italic
     line_height: 1
   authors:
-    margin_top: $base_font_size * 1.25
-    font_size: $base_font_size_large
+    margin_top: $heading_h3_font_size * 1.25
+    font_size: $heading_h3_font_size
     font_color: 181818
   revision:
     margin_top: $base_font_size * 1.25
