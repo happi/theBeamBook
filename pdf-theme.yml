@@ -191,8 +191,8 @@ verse:
 # code is used for source blocks (perhaps change to source or listing?)
 code:
   font_color: $base_font_color
-  #font_family: $literal_font_family
-  font_family: Courier
+  font_family: $literal_font_family
+  #font_family: Courier
   font_size: ceil($base_font_size)
   padding: $code_font_size
   line_height: 1.25
