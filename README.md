@@ -113,6 +113,8 @@ Section tags should start with 'SEC-'.
 
 Figure tags should start with 'FIG-'.
 
+Appendix tags should start with 'AP-'.
+
 Code listing tags (in the appendix) should start with 'LISTING-'.
 
 ### Process

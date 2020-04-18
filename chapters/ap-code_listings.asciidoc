@@ -1,5 +1,6 @@
 [[AP-listings]]
-== Full Code Listings
+[appendix]
+= Full Code Listings
 
 [source,erlang]
 ----

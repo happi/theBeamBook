@@ -1,5 +1,6 @@
-[[CH-BuildingERTS]]
-== Building the Erlang Runtime System
+[[AP-BuildingERTS]]
+[appendix]
+= Building the Erlang Runtime System
 
 In this chapter we will look at different way to configure and build
 Erlang/OTP to suite your needs. We will use an Ubuntu Linux for most
