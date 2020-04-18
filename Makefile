@@ -14,7 +14,7 @@ beam-book.pdf: xml/beam-book-from-ab.xml
 	dblatex $(DBLATEX_OPTS) xml/beam-book-from-ab.xml -o $@
 
 ### Experimental pdf command
-beam-book2.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc  chapters/*.asciidoc
+beam-book2.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc  chapters/*.asciidoc chapters/contributors.txt
 	asciidoctor-pdf  -r ./custom-pdf-converter.rb -r asciidoctor-diagram -a config=ditaa.cfg --doctype book -a media=prepress -a pdf-style=pdf-theme.yml book.asciidoc -o $@
 
 index.html:
