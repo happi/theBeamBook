@@ -1,5 +1,5 @@
 [[CH-Debugging]]
-= Debugging
+== Debugging
 
 [WARNING]
 This chapter is still a stub and it's being heavily worked
@@ -9,7 +9,7 @@ still welcome to submit your feedback using a GitHub Issue. You can
 use the same mechanism to suggest sections that you believe should be
 included in this chapter, too.
 
-== Preliminary Outline
+=== Preliminary Outline
 
 * Introduction
 * debugger
@@ -18,7 +18,7 @@ included in this chapter, too.
 * Crash dumps
 * ...
 
-== Introduction
+=== Introduction
 
 Debugging is the _art_ of identifying and removing errors
 (i.e. _bugs_) from software. This section covers the most common
@@ -35,22 +35,22 @@ emulator limit is reached. _Crash Dumps_ can are extremely precious
 for post-mortem analysis of Erlang nodes and you will learn how to
 read and interpret them.
 
-== debugger
+=== debugger
 
 TODO
 
-== dbg
+=== dbg
 
 TODO
 
-== Redbug
+=== Redbug
 
 _Redbug_ is a debugging utility which allows you to easily interact
 with the Erlang _tracing facilities_. It is an external library and
 therefore it has to be installed separately. One of the best Redbug
 features is its ability to shut itself down in case of overload.
 
-=== Installing Redbug
+==== Installing Redbug
 
 You can clone redbug via:
 
@@ -85,7 +85,7 @@ automatically at every startup:
 code:add_patha("/path/to/redbug/ebin").
 ----
 
-=== Using Redbug
+==== Using Redbug
 
 Redbug is safe to be used in production, thanks to a self-protecting
 mechanism against overload, which kills the tool in case too many
@@ -325,6 +325,6 @@ available options for redbug, you can ask the tool itself:
 18> redbug:help().
 ----
 
-== Crash Dumps
+=== Crash Dumps
 
 TODO
