@@ -140,7 +140,7 @@ illustrated with two Erlang nodes running on one machine.
 
 [[the_erts_stack]]
 .ERTS Stack
-[shaape]
+[ditaa]
 ----
 
   Node1     Node2
@@ -159,16 +159,14 @@ illustrated with two Erlang nodes running on one machine.
  |    HW or VM    |
  +----------------+
 
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
+
 ----
 
 If you are using Elixir there is yet another layer to the stack.
 
 [[the_elixir_stack]]
 .Elixir Stack
-[shaape]
+[ditaa]
 ----
    Node1     Node2
 
@@ -189,9 +187,6 @@ If you are using Elixir there is yet another layer to the stack.
  |    HW or VM    |
  +----------------+
 
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 
@@ -275,7 +270,7 @@ just as if they were running in the same node.
 
 [[a_distributed_application]]
 .Distributed Applications
-[shaape]
+[ditaa]
 ----
    Node1     Node2      Node3     Node4
 
@@ -298,10 +293,6 @@ just as if they were running in the same node.
  +-------------------------------------+
  |               Network               |
  +-------------------------------------+
-
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
 
 ----
 
@@ -456,7 +447,7 @@ the BEAM compiler from the OTP layer to compile Erlang to Ling.
 
 [[erlang_on_xen]]
 .Erlang On Xen
-[shaape]
+[ditaa]
 ----
   Node1     Node2       Node2     Node3
 
@@ -474,9 +465,7 @@ the BEAM compiler from the OTP layer to compile Erlang to Ling.
  |      HW        |   |    HW or VM    |
  +----------------+   +----------------+
 
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
+
 ----
 
 ==== Erjang
@@ -493,7 +482,7 @@ in Java on top of the VM.
 
 [[erlang_on_jvm]]
 .Erlang on the JVM
-[shaape]
+[ditaa]
 ----
   Node1     Node2       Node3     Node4
 
@@ -511,9 +500,7 @@ in Java on top of the VM.
  |    HW or VM    |   |    HW or VM    |
  +----------------+   +----------------+
 
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
+
 ----
 
 Now that you have a basic understanding of all the major pieces of

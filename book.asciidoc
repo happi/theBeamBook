@@ -11,6 +11,9 @@
 :sectlinks:
 :!compat-mode:
 :source-highlighter: rouge
+:imagesdir: imagesdir
+:ditaa-shadows: false
+:ditaa-transparent: true
 
 include::chapters/preface.asciidoc[]
 

@@ -13,7 +13,7 @@ A program's memory layout looks something like this:
 
 [[program_memory_layout]]
 .Program Memory Layout
-[shaape]
+[ditaa]
 ----
  high
  addresses
@@ -62,9 +62,7 @@ A program's memory layout looks something like this:
  low
  addresses
 
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
+
 ----
 
 
@@ -310,7 +308,7 @@ of system flags below.
 Most allocators also have one "main multiblock carrier" which is never
 deallocated.
 
-[shaape]
+[ditaa]
 ----
  high
  addresses
@@ -343,9 +341,7 @@ multiblock |     Block 2   |       | MSmmbcs kb
  low
  addresses
 
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
+
 ----
 
 // Want most data un multiblock carriers mbc
@@ -574,7 +570,7 @@ similar to:
 
 
 [[fig-list_layout]]
-[shaape]
+[ditaa]
 ----
          ADR                               BINARY  VALUE  +  DESCRIPTION
  hend ->     +-------- -------- -------- --------+
@@ -597,9 +593,7 @@ similar to:
              |                ...                |
  heap ->     +-----------------------------------+
 
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
+
 ----
 
 If you then create a tuple with two instances of the list, all that is repeated is
@@ -690,7 +684,7 @@ Given the code in <<listing-send,send.erl>> the state of the system could
 look like this just before the send in p1/1:
 
 
-[shaape]
+[ditaa]
 ----
 
     x0       |00000000 00000000 00000000 00100011| Pid 2
@@ -723,9 +717,7 @@ look like this just before the send in p1/1:
 
 P2
 
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
+
 ----
 
 Then P1 start sending the message M to P2. It (through the code in
@@ -1336,7 +1328,7 @@ before.
 
 Generations..
 
-[shaape]
+[ditaa]
 ----
   hend ->  +----+
            |....|
@@ -1349,9 +1341,7 @@ Generations..
   heap ->  +----+    +----+ old_heap
           The Heap   Old Heap
 
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
+
 ----
 
  +high_water, old_hend, old_htop, old_heap,

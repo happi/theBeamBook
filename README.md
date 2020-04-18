@@ -163,7 +163,7 @@ make
 1. `easy_install dblatex`
 1. Install [asciidoc](http://asciidoc.org/INSTALL.html)
 1. Install [asciidoctor-diagram](http://asciidoctor.org/docs/asciidoctor-diagram/)
-1. Install [shaape](https://github.com/christiangoltz/shaape)
+1. Install [ditaa](https://github.com/stathissideris/ditaa)
 1. Install [source-highlight](https://www.gnu.org/software/src-highlite/)
 1. Install [wget](https://www.gnu.org/software/wget/)
 1. `make`
@@ -174,8 +174,7 @@ make
 1. Add `/Library/TeX/texbin` to your `PATH`.
 1. `sudo easy_install dblatex`
 1. `brew install asciidoc`
-1. `brew install pygtk py2cairo pango`
-1. `pip install shaape`
+1. `brew install ditaa`
 1. `brew install source-highlight`
 1. `brew install wget`
 1. `gem install asciidoctor-diagram`

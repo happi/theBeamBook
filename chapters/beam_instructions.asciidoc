@@ -283,7 +283,7 @@ registers. E.g. if +Live+ is 2 then registers X0 and X1 are saved.
 When allocating on the stack, the stack pointer (E) is decreased.
 
 .Allocate 1 0
-[shaape]
+[ditaa]
 ----
        Before           After
          | xxx |            | xxx |
@@ -293,10 +293,6 @@ When allocating on the stack, the stack pointer (E) is decreased.
            ...                ...
  HTOP -> |     |    HTOP -> |     |
          | xxx |            | xxx |
-
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 For a full listing of all types of allocate and deallocate
