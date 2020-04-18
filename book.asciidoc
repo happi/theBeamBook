@@ -60,11 +60,12 @@ include::chapters/ops.asciidoc[]
 include::chapters/tweak.asciidoc[]
 
 [[appendix]]
-= Appendices
-// include::chapters/index.asciidoc[]
-
 include::chapters/building.asciidoc[]
 
 include::chapters/ap-beam_instructions.asciidoc[]
 
 include::chapters/ap-code_listings.asciidoc[]
+
+
+//[index]
+//include::chapters/index.asciidoc[]
