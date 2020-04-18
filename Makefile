@@ -18,7 +18,8 @@ beam-book2.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc  chapters/*.asciido
 	asciidoctor-pdf  -r ./custom-pdf-converter.rb -r asciidoctor-diagram -a config=ditaa.cfg --doctype book -a media=prepress -a pdf-style=pdf-theme.yml book.asciidoc -o $@
 
 index.html:
-	asciidoctor -r asciidoctor-diagram --backend=html5 --doctype=book -o site/index.html book.asciidoc
+	asciidoctor -r asciidoctor-diagram  -a config=ditaa.cfg --backend=html5 --doctype=book -o site/index.html book.asciidoc
+	cp -r images/*.png site/images
 
 code/book/ebin/generate_op_doc.beam: code/book/src/generate_op_doc.erl
 	erlc -o $(dir $@) $<
