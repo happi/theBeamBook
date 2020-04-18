@@ -10,6 +10,7 @@
 :sectnums:
 :sectlinks:
 :!compat-mode:
+:source-highlighter: rouge
 
 include::chapters/preface.asciidoc[]
 
