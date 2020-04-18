@@ -119,7 +119,7 @@ then moves the value to a Y register.
 
 [[x_and_y_regs_in_memory]]
 .X and Y Registers in Memory
-[shaape]
+[ditaa]
 ----
   hend ->  +----+    -
            |....|
@@ -142,10 +142,6 @@ then moves the value to a Y register.
       X1   |    |
      (X0)  |    |
            +----+
-
-options:
- - ".*": {fill: [[0.7, 0.7, 0.7], no-shadow], frame: [[0.9, 0.9, 0.9], line]}
- - ".*": {text : ["Monospace 10", no-shadow]}
 ----
 
 Let us compile the following program with the _'S'_ flag:

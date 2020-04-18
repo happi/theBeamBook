@@ -60,10 +60,10 @@ footer:
   padding: [3, 0, 0, 0]
   recto:
     right:
-      content: '{part-title} {section-or-chapter-title}     {page-number} / {page-count}'
+      content: '{part-title} {chapter-title}     {page-number} / {page-count}'
   verso:
     left:
-      content: '{page-number} / {page-count}     {chapter-title}'
+      content: '{page-number} / {page-count}     {section-or-chapter-title}'
 role:
   line-through:
     text_decoration: line-through
@@ -212,7 +212,9 @@ example:
   background_color: $page_background_color
   padding: [$vertical_rhythm, $horizontal_rhythm, 0, $horizontal_rhythm]
 image:
-  align: left
+  align: center
+  caption:
+    align: center
 prose:
   margin_top: $block_margin_top
   margin_bottom: $block_margin_bottom
