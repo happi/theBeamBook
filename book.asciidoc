@@ -6,6 +6,10 @@
 :toclevels: 3
 :experimental:
 :icons: font
+:partnums:
+:sectnums:
+:sectlinks:
+:!compat-mode:
 
 include::chapters/preface.asciidoc[]
 
