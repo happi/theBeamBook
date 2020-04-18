@@ -140,7 +140,7 @@ there is no way to loop forever without doing a function call.
 Each function call is counted as a `reduction`; when the reduction
 limit for the process is reached it is suspended.
 
-[NOTE]
+[VERSION]
 .Version Info
 ====
 Prior to OTP-20.0, the value of `CONTEXT_REDS` was 2000.

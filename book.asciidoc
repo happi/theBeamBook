@@ -11,7 +11,7 @@
 :sectlinks:
 :!compat-mode:
 :source-highlighter: rouge
-:imagesdir: images
+:imagesdir: site/images
 :ditaa-shadows: false
 :ditaa-transparent: true
 
