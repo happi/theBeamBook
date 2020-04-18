@@ -261,7 +261,7 @@ integer(I) ->
 -------------------------------------------
 
 Now lets write a simple virtual machine in C. The full code can
-be found in [appendix].
+be found in xref:AP-listings[].
 
 [source, C]
 -------------------------------------------
