@@ -167,7 +167,7 @@ ends up in one of these corner cases.
 
 For a nice story about the troubles the system might get into
 and how to analyze and correct the behavior read
-Fred H&eacute;bert's essay https://blog.heroku.com/archives/2013/11/7/logplex-down-the-rabbit-hole["Troubleshooting Down the Logplex Rabbit Hole"].
+Fred Hébert’s essay https://blog.heroku.com/archives/2013/11/7/logplex-down-the-rabbit-hole["Troubleshooting Down the Logplex Rabbit Hole"].
 
 
 When we are talking about a memory allocator in this book we
