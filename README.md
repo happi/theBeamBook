@@ -107,6 +107,8 @@ free to contribute by fixing tags in the current version.
 Chapter tags should start with 'CH-'. Words in a tag are separated by
 underscores '_'.
 
+Part tags should start with 'P-'.
+
 Section tags should start with 'SEC-'.
 
 Figure tags should start with 'FIG-'.
