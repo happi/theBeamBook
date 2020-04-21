@@ -11,9 +11,10 @@
 :sectlinks:
 :!compat-mode:
 :source-highlighter: rouge
-:imagesdir: site/images
+:imagesdir: images
 :ditaa-shadows: false
 :ditaa-transparent: true
+:attribute-missing: warn
 
 include::chapters/preface.asciidoc[]
 
