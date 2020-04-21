@@ -1,21 +1,10 @@
-ABFLAGS = --backend=docbook --doctype=book
-
-DBLATEX_OPTS = -P latex.output.revhistory=0 -P doc.collab.show=0
-
 all: chapters/contributors.txt beam-book.pdf index.html
 
 chapters/contributors.txt: .git
 	./bin/gitlog.sh $@
 
-xml/beam-book-from-ab.xml:  chapters/opcodes_doc.asciidoc
-	asciidoc $(ABFLAGS) -o $@ book.asciidoc
-
-beam-book.pdf: xml/beam-book-from-ab.xml
-	dblatex $(DBLATEX_OPTS) xml/beam-book-from-ab.xml -o $@
-
-### Experimental pdf command
-beam-book2.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc  chapters/*.asciidoc chapters/contributors.txt
-	asciidoctor-pdf  -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram -r ./style/custom-admonition-block.rb  -a config=./style/ditaa.cfg --doctype book -a media=prepress -a pdf-style=./style/pdf-theme.yml book.asciidoc -o $@
+beam-book.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt
+	asciidoctor-pdf  -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram -r ./style/custom-admonition-block.rb  -a config=./style/ditaa.cfg --doctype=book -a media=prepress -a pdf-style=./style/pdf-theme.yml book.asciidoc -o $@
 
 index.html:
 	cp -r images site
