@@ -15,12 +15,12 @@ beam-book.pdf: xml/beam-book-from-ab.xml
 
 ### Experimental pdf command
 beam-book2.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc  chapters/*.asciidoc chapters/contributors.txt
-	cp -r images/*.png site/images
 	asciidoctor-pdf  -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram -r ./style/custom-admonition-block.rb  -a config=./style/ditaa.cfg --doctype book -a media=prepress -a pdf-style=./style/pdf-theme.yml book.asciidoc -o $@
 
 index.html:
+	cp -r images site
 	asciidoctor -r asciidoctor-diagram  -r ./style/custom-admonition-block.rb -a config=style/ditaa.cfg --backend=html5 --doctype=book -o site/index.html book.asciidoc --trace
-	cp -r images/*.png site/images
+	rsync -R code/*/*.png site
 
 code/book/ebin/generate_op_doc.beam: code/book/src/generate_op_doc.erl
 	erlc -o $(dir $@) $<
@@ -33,5 +33,5 @@ genop.tab:
 	touch $@
 
 clean:
-	rm -f beam-book.pdf site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml
-	rm -f beam-book2.pdf site/images/*.png
+	rm -f beam-book.pdf site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml ./images/diag-*.png
+	rm -fdr beam-book2.pdf site/images site/code
