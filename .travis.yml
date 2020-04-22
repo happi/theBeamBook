@@ -4,10 +4,10 @@ services:
   - docker
 
 before_install:
-  - docker pull robertoaloi/docker-thebeambook:latest
+  - docker pull asciidoctor/docker-asciidoctor:latest
 
 script:
-  - docker run -v $TRAVIS_BUILD_DIR:/book -t --name thebeambook robertoaloi/docker-thebeambook make
+  - docker run -i -v ${PWD}:/documents/ -t --name thebeambook asciidoctor/docker-asciidoctor bash -c "apk add --no-cache git rsync && make"
 
 after_error:
   - docker logs thebeambook
