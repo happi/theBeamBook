@@ -22,5 +22,6 @@ genop.tab:
 	touch $@
 
 clean:
-	rm -f beam-book.pdf site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml ./images/diag-*.png
-	rm -fdr beam-book2.pdf site/images site/code
+	find site -type f -name '.[^gitignore]*' -delete
+	rm -rfv beam-book.pdf site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml ./images/diag-*.png site/code/*/*.png site/images/*
+	rmdir site/code/* site/images site/code
