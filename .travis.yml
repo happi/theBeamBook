@@ -7,7 +7,7 @@ before_install:
   - docker pull asciidoctor/docker-asciidoctor:latest
 
 script:
-  - docker run -i -v ${PWD}:/documents/ -t --name thebeambook asciidoctor/docker-asciidoctor bash -c "apk add --no-cache git rsync && make"
+  - docker run -i -v ${PWD}:/documents/ -t --name thebeambook asciidoctor/docker-asciidoctor bash -c "apk add --no-cache git rsync erlang && make"
 
 after_error:
   - docker logs thebeambook
