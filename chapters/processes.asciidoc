@@ -481,7 +481,7 @@ There are new versions of these BIFs that do a better
 job, hopefully they will be included in ERTS at the
 time of the printing of this book. Otherwise you
 can build your own version with the patch provided
-in the code section and the instructions in xref:CH-BuildingERTS[].
+in the code section and the instructions in xref:AP-BuildingERTS[].
 
 ****
 
