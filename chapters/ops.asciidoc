@@ -543,7 +543,7 @@ just the node name.
 
 If you have built your runtime with OPPROF or DEBUG you will be able
 to get even more information.  We will look at how to do this in
-xref:CH-BuildingERTS[]. The code for the break mode can be found in
+xref:AP-BuildingERTS[]. The code for the break mode can be found in
 <filename>[OTP_SOURCE]/erts/emulator/beam/break.c</filename>.
 
 Note that going into break mode freezes the node. This is

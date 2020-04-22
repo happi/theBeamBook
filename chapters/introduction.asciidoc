@@ -254,7 +254,7 @@ xref:CH-Debugging[] we will look at how to find the cause
 of crashing applications and how to find bugs in your application.
 
 For information on how to build and run an Erlang node
-see xref:CH-BuildingERTS[], and read the rest of the book to
+see xref:AP-BuildingERTS[], and read the rest of the book to
 learn all about the components of an Erlang node.
 
 ==== Distribution
@@ -366,7 +366,7 @@ is just one process running in the VM. On a multicore machine Erlang
 actually runs more than one scheduler, usually one per physical core,
 each having their own queues. This way Erlang achieves true
 parallelism. To utilize more than one core ERTS has to be built (see
-xref:CH-BuildingERTS[]) in _SMP_(((SMP))) mode. SMP stands for
+xref:AP-BuildingERTS[]) in _SMP_(((SMP))) mode. SMP stands for
 _Symmetric MultiProcessing_, that is, the ability to execute a
 processes on any one of multiple CPUs.
 
