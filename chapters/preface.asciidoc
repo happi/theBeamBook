@@ -132,8 +132,16 @@ interface.
 
 === Acknowledgments
 
-A big thank you to everyone who has contributed in some way by checking in
-something:
+First of all I want to thank the whole OTP team at Ericsson both for maintaining Erlang
+and the Erlang runtime system, and also for patiently answering all my questions.
+In particular I want to thank Kenneth Lundin, Björn Gustavsson, Lukas Larsson, Rickard Green
+and Raimo Niskanen.
+
+I would also like to thank Yoshihiro Tanaka, Roberto Aloi and Dmytro Lytovchenko for
+major contributions to the book, and HappiHacking and TubiTV for sponsoring work on
+the book.
+ 
+Finally, a big thank you to everyone who has contributed with edits and fixes:
 
 include::contributors.txt[]
 
