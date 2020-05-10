@@ -581,7 +581,7 @@ true
 ----
 
 We can also print the content of some of the fields in
-the PCB with `hipe_bifs:show_pcb/1':
+the PCB with `hipe_bifs:show_pcb/1`:
 
 [source,erlang]
 ----
@@ -1064,8 +1064,8 @@ consider messages sent between Erlang nodes. Imagine two processes
 Process `P1` will then take the following steps:
 
 * Calculate the size of _Msg_.
-* Allocate space for the message (on or off `P2's` heap as described before).
-* Copy _Msg_ from `P1's` heap to the allocated space.
+* Allocate space for the message (on or off `P2` 's heap as described before).
+* Copy _Msg_ from `P1` 's heap to the allocated space.
 * Allocate and fill in an _ErlMessage_ struct wrapping up the message.
 * Link in the _ErlMessage_ either in the _ErlMsgQueue_ or in the _ErlMsgInQueue_.
 
@@ -1119,7 +1119,7 @@ on the heap:
 ----
 
 If `P1` can not get the `main lock` of P2 or there is not enough space
-on `P2's` heap and the allocation strategy is _on_heap_ the message
+on `P2` 's heap and the allocation strategy is _on_heap_ the message
 will end up in an `m-buf` but linked from the internal mailbox:
 
 [[erlang_message_passing_3]]
