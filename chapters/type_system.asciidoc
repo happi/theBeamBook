@@ -28,17 +28,16 @@ The Erlang Type Lattice
 
 [[erlang_type_lattice]]
 .Erlang Type Lattice
-[ditaa]
 ----
 
-                                                  any()
-            /               /         /       /    |     \     \       \         \         \
-           /               /         /       /     |      \     \       \         \         \
-       number()         atom() reference() fun() port() pid() tuple()    map()   list()   binary()
-       /    \             \         \        \     |     /      /       /        /  \       /
-  integer() float()        \         \        \    |    /      /       /      nil() cons() /
-      \      \              \         \        \   |   /      /       /        /     /    /
-                                                  none()
+                                        any()
+          /        /         /       /    |     \     \    \        \        \
+         /        /         /       /     |      \     \    \        \        \
+     number()  atom() reference() fun() port() pid() tuple() map()  list()  binary()
+     /    \      \         \        \     |     /      /    /       /  \      /
+integer() float() \         \        \    |    /      /    /    nil() cons() /
+    \       \      \         \        \   |   /      /    /      /    /     /
+                                        none()
 
 ----
 
