@@ -723,7 +723,7 @@ heap and the stack are actually just one memory area:
 
 [[erlang_process_memory_2]]
 .Erlang Process Memory : Heap + Stack
-[ditaa]
+[ditaa, separation=false]
 ----
  +-------+  +-------+
  |  PCB  |  | Stack |
@@ -805,7 +805,7 @@ our original picture of a process as four memory areas:
 
 [[erlang_process_memory_3]]
 .Erlang Process Memory : GC
-[ditaa]
+[ditaa, separation=false]
 ----
 
   +-------+               +-------+
@@ -906,7 +906,7 @@ mailboxes) and a varying number of heap fragments (`m-bufs`):
 
 [[erlang_process_memory_4]]
 .Erlang Process Memory : Messages
-[ditaa]
+[ditaa, separation=false]
 ----
 
  +-------+             +-------+
@@ -915,11 +915,11 @@ mailboxes) and a varying number of heap fragments (`m-bufs`):
                        | free  |
  +-------+  +-------+  +-------+  +-------+
  | M-box |  | M-box |  | Heap  |  |  Old  |
- | intern|  | inbox |  |       |  | Heap  |
+ | intern|  | inq   |  |       |  | Heap  |
  +-------+  +-------+  +-------+  +-------+
 
  +-------+  +-------+  +-------+  +-------+
- | m-buf |  | m-buf |  | m-buf |  | m-buf |
+ | m−buf |  | m−buf |  | m−buf |  | m−buf |
  +-------+  +-------+  +-------+  +-------+
 
 
@@ -1028,7 +1028,7 @@ consider messages sent between Erlang nodes. Imagine two processes
 
 [[erlang_message_passing_1]]
 .Erlang Message Passing Step 1
-[ditaa]
+[ditaa, separation=false]
 ----
                  P 1
  +---------------------------------+
@@ -1036,6 +1036,7 @@ consider messages sent between Erlang nodes. Imagine two processes
  | |  PCB  |  | Stack |  |  Old  | |
  | +-------+  +-------+  | Heap  | |
  |            | free  |  +-------+ |
+ |            |       |            |
  | +-------+  +-------+  +-------+ |
  | | M-box |  | Heap  |  | M-box | |
  | | inq   |  | [Msg] |  | intern| |
@@ -1052,6 +1053,7 @@ consider messages sent between Erlang nodes. Imagine two processes
  | |  PCB  |  | Stack |  |  Old  | |
  | +-------+  +-------+  | Heap  | |
  |            | free  |  +-------+ |
+ |            |       |            |
  | +-------+  +-------+  +-------+ |
  | | M-box |  | Heap  |  | M-box | |
  | | inq   |  |       |  | intern| |
@@ -1076,7 +1078,7 @@ on the heap:
 
 [[erlang_message_passing_2]]
 .Erlang Message Passing Step 2
-[ditaa]
+[ditaa, separation=false]
 ----
                  P 1
  +---------------------------------+
@@ -1084,6 +1086,7 @@ on the heap:
  | |  PCB  |  | Stack |  |  Old  | |
  | +-------+  +-------+  | Heap  | |
  |            | free  |  +-------+ |
+ |            |       |            |
  | +-------+  +-------+  +-------+ |
  | | M-box |  | Heap  |  | M-box | |
  | | inq   |  | [Msg] |  | intern| |
@@ -1100,19 +1103,20 @@ on the heap:
  | |  PCB  |  | Stack |  |  Old  | |
  | +-------+  +-------+  | Heap  | |
  |            | free  |  +-------+ |
+ |            |       |            |
  | +-------+  +-------+  +-------+ |
  | | M-box |  | Heap  |  | M-box | |
- | | inq   |  |       |  | intern| |
- | |       |  | [Msg] |  |       | |
- | |       |  | ^     |  | first | |
- | +-------+  +-|-----+  +---|---+ |
- |              |            v     |
- |              |        +-------+ |
- |              |        |next:[]| |
- |              |        | m: *  | |
- |              |        +----|--+ |
- |              |             |    |
- |              +-------------+    |
+ | | inq   |  | [Msg] |  | intern| |
+ | |       |  |       |  |       | |
+ | |       |  |  ^    |  | first | |
+ | +-------+  +--|----+  +---|---+ |
+ |               |           v     |
+ |               |       +-------+ |
+ |               |       |next []| |
+ |               |       | m  *  | |
+ |               |       +----|--+ |
+ |               |            |    |
+ |               +------------+    |
  +---------------------------------+
 
 
@@ -1124,7 +1128,7 @@ will end up in an `m-buf` but linked from the internal mailbox:
 
 [[erlang_message_passing_3]]
 .Erlang Message Passing Step 3
-[ditaa]
+[ditaa, separation=false]
 ----
                  P 1
  +---------------------------------+
@@ -1132,6 +1136,7 @@ will end up in an `m-buf` but linked from the internal mailbox:
  | |  PCB  |  | Stack |  |  Old  | |
  | +-------+  +-------+  | Heap  | |
  |            | free  |  +-------+ |
+ |            |       |            |
  | +-------+  +-------+  +-------+ |
  | | M-box |  | Heap  |  | M-box | |
  | | inq   |  | [Msg] |  | intern| |
@@ -1148,16 +1153,17 @@ will end up in an `m-buf` but linked from the internal mailbox:
  | |  PCB  |  | Stack |  |  Old  | |
  | +-------+  +-------+  | Heap  | |
  |            | free  |  +-------+ |
+ |            |       |            |
  | +-------+  +-------+  +-------+ |
  | | M-box |  | Heap  |  | M-box | |
  | | inq   |  |       |  | intern| |
  | |       |  |       |  |       | |
  | |       |  |       |  | first | |
  | +-------+  +-------+  +---|---+ |
- |              m-buf        v     |
+ |              m−buf        v     |
  |            +-------+  +-------+ |
- |         +->| [Msg] |  |next:[]| |
- |         |  |       |  | m: *  | |
+ |         +->| [Msg] |  |next []| |
+ |         |  |       |  | m  *  | |
  |         |  +-------+  +----|--+ |
  |         |                  |    |
  |         +------------------+    |
@@ -1174,7 +1180,7 @@ will end up in an `m-buf` and linked from the external mailbox:
 
 [[erlang_message_passing_4]]
 .Erlang Message Passing Step 4
-[ditaa]
+[ditaa, separation=false]
 ----
                  P 1
  +---------------------------------+
@@ -1182,6 +1188,7 @@ will end up in an `m-buf` and linked from the external mailbox:
  | |  PCB  |  | Stack |  |  Old  | |
  | +-------+  +-------+  | Heap  | |
  |            | free  |  +-------+ |
+ |            |       |            |
  | +-------+  +-------+  +-------+ |
  | | M-box |  | Heap  |  | M-box | |
  | | inq   |  | [Msg] |  | intern| |
@@ -1198,22 +1205,21 @@ will end up in an `m-buf` and linked from the external mailbox:
  | |  PCB  |  | Stack |  |  Old  | |
  | +-------+  +-------+  | Heap  | |
  |            | free  |  +-------+ |
+ |            |       |            |
  | +-------+  +-------+  +-------+ |
  | | M-box |  | Heap  |  | M-box | |
  | | inq   |  |       |  | intern| |
  | |       |  |       |  |       | |
  | | first |  |       |  | first | |
  | +---|---+  +-------+  +-------+ |
- |     v        m-buf              |
- | +-------+  +-------+            |
- | |next:[]|  |       |            |
- | |   m:*--->| [Msg] |            |
- | +-------+  +-------+            |
- |                                 |
- |                                 |
+ |     v        m−buf              |
+ | +--------+  +-----+             |
+ | |next [] |  |     |             |
+ | |        |  |     |             |
+ | | m *------>|[Msg]|             |
+ | |        |  |     |             |
+ | +--------+  +-----+             |
  +---------------------------------+
-
-
 ----
 
 After a GC the message will still be in the `m-buf`. Not until
@@ -1277,7 +1283,7 @@ memory area, PD, the process dictionary:
 
 [[erlang_process_memory_5]]
 .Erlang Process Memory : Process Dictionary
-[ditaa]
+[ditaa, separation=false]
 ----
 
  +-------+             +-------+  +-------+
@@ -1290,7 +1296,7 @@ memory area, PD, the process dictionary:
  +-------+  +-------+  +-------+  +-------+
 
  +-------+  +-------+  +-------+  +-------+
- | m-buf |  | m-buf |  | m-buf |  | m-buf |
+ | m−buf |  | m−buf |  | m−buf |  | m−buf |
  +-------+  +-------+  +-------+  +-------+
 
 
