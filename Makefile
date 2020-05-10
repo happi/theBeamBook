@@ -1,12 +1,14 @@
+ASSET_CHAPTERS = $(shell find chapters -type f)
+
 all: chapters/contributors.txt beam-book.pdf index.html
 
 chapters/contributors.txt: .git
 	./bin/gitlog.sh $@
 
-beam-book.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt
+beam-book.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
 	asciidoctor-pdf  -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram -r ./style/custom-admonition-block.rb  -a config=./style/ditaa.cfg --doctype=book -a pdf-style=./style/pdf-theme.yml book.asciidoc -o $@
 
-index.html:
+index.html: $(ASSET_CHAPTERS)
 	cp -r images site
 	asciidoctor -r asciidoctor-diagram  -r ./style/custom-admonition-block.rb -a config=style/ditaa.cfg --backend=html5 --doctype=book -o site/index.html book.asciidoc --trace
 	rsync -R code/*/*.png site
