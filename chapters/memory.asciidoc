@@ -379,7 +379,7 @@ _Address order first fit_: Find the block with the lowest address that
 satisfies the requested block size.
 (aoff)
 
-_Address order first fit carrier best fit_
+_Address order first fit carrier best fit_ : 
 Find the carrier with the lowest address that can satisfy the
 requested block size, then find a block within that carrier using the
 "best fit" strategy.  (aoffcbf)
