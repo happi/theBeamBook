@@ -15,6 +15,7 @@
 :ditaa-shadows: false
 :ditaa-transparent: true
 :attribute-missing: warn
+:xrefstyle: short
 
 include::chapters/preface.asciidoc[]
 
