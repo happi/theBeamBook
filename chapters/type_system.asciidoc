@@ -26,18 +26,82 @@ subtype for each size.)
 
 The Erlang Type Lattice
 
+
 [[erlang_type_lattice]]
 .Erlang Type Lattice
+[graphviz]
 ----
 
-                                        any()
-          /        /         /       /    |     \     \    \        \        \
-         /        /         /       /     |      \     \    \        \        \
-     number()  atom() reference() fun() port() pid() tuple() map()  list()  binary()
-     /    \      \         \        \     |     /      /    /       /  \      /
-integer() float() \         \        \    |    /      /    /    nil() cons() /
-    \       \      \         \        \   |   /      /    /      /    /     /
-                                        none()
+digraph G {
+  overlap=false;
+  splines=false;
+  node[fontname=Helvetica fontsize=22];
+  edge [penwidth=0.5]
+
+  any[shape=plaintext, label="any()"];
+  number[shape=plaintext, label="number()"];
+  atom[shape=plaintext, label="atom()"];
+  reference[shape=plaintext, label="reference()"];
+  fun[shape=plaintext, label="fun()"];
+  port[shape=plaintext, label="port()"];
+  pid[shape=plaintext, label="pid()"];
+  tuple[shape=plaintext, label="tuple()"];
+  map[shape=plaintext, label="map()"];
+  list[shape=plaintext, label="list()"];
+  binary[shape=plaintext, label="binary()"];
+  integer[shape=plaintext, label="integer()"];
+  float[shape=plaintext, label="float()"];
+  nil[shape=plaintext, label="nil()"];
+  cons[shape=plaintext, label="cons()"];
+  dummy0[shape=point, width=0.004];
+  none[shape=plaintext, label="none()"];
+  gt0[shape=plaintext, label="<" fontcolor=gray];
+  gt1[shape=plaintext, label="<" fontcolor=gray];
+  gt2[shape=plaintext, label="<" fontcolor=gray];
+  gt3[shape=plaintext, label="<" fontcolor=gray];
+  gt4[shape=plaintext, label="<" fontcolor=gray];
+  gt5[shape=plaintext, label="<" fontcolor=gray];
+  gt6[shape=plaintext, label="<" fontcolor=gray];
+  gt7[shape=plaintext, label="<" fontcolor=gray];
+  gt8[shape=plaintext, label="<" fontcolor=gray];
+
+  subgraph cluster_1 {
+    style=invis
+    {rank=same gt0 gt1 gt2 gt3 gt4 gt5 gt6 gt7 gt8 number, atom, reference, fun, port, pid, tuple, map, list, binary}
+    number -> gt0 -> atom -> gt1 -> reference -> gt2 -> fun -> gt3 -> port -> gt4 -> pid -> gt5 -> tuple -> gt6 -> map -> gt7 -> list -> gt8 -> binary
+    [color=transparent arrowhead=none labelcolor=gray];
+  }
+
+  {rank=same integer, float, nil, cons, dummy0}
+  any->number[dir=none];
+  number->integer[dir=none];
+  number->float[dir=none];
+  any->atom[dir=none];
+  any->reference[dir=none];
+  any->fun[dir=none];
+  any->port[dir=none];
+  any->pid[dir=none];
+  any->tuple[dir=none];
+  any->map[dir=none];
+  any->list[dir=none];
+  list->nil[dir=none];
+  list->cons[dir=none];
+  any->binary[dir=none];
+  binary->dummy0[dir=none];
+  integer->none[dir=none];
+  float->none[dir=none];
+  atom->none[dir=none];
+  reference->none[dir=none];
+  fun->none[dir=none];
+  port->none[dir=none];
+  pid->none[dir=none];
+  tuple->none[dir=none];
+  map->none[dir=none];
+  nil->none[dir=none];
+  cons->none[dir=none];
+  dummy0->none[dir=none];
+
+}
 
 ----
 
@@ -91,7 +155,8 @@ Currently ERTS uses a staged tag scheme, the history and reasoning
 behind the this scheme is explained in a technical report from the
 HiPE group. (See
 link:http://www.it.uu.se/research/publications/reports/2000-029/[])
-The tagging scheme is implemented in +erl_term.h+.
+The tagging scheme is implemented in
+link:https://github.com/erlang/otp/blob/OTP-23.0/erts/emulator/beam/erl_term.h[erl_term.h].
 
 The basic idea is to use the least significant bits for tags. Since
 most modern CPU architectures aligns 32- and 64-bit words, there are at
@@ -217,20 +282,20 @@ The string "hello" might look like this in memory:
  hend ->     +-------- -------- -------- --------+
              |              ...                  |
              |              ...                  |
-             |00000000 00000000 00000000 10000001| 128 + list tag  ---------------+
- stop ->     |                                   |                                |
-                                                                                  |
- htop ->     |                                   |                                |
-         132 |00000000 00000000 00000000 01111001| 120 + list tag  -------------- | -+
-         128 |00000000 00000000 00000110 10001111| (h) 104 bsl 4 + small int tag <+  |
-         124 |00000000 00000000 00000000 01110001| 112 + list tag  ----------------- | -+
-         120 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag <---+  |
-         116 |00000000 00000000 00000000 01110001| 112 + list tag  -------------------- | -+
-         112 |00000000 00000000 00000110 11001111| (l) 108 bsl 4 + small int tag <------+  |
-         108 |00000000 00000000 00000000 01110001|  96 + list tag  ----------------------- | -+
-         104 |00000000 00000000 00000110 11001111| (l) 108 bsl 4 + small int tag <---------+  |
-         100 |11111111 11111111 11111111 11111011| NIL                                        |
-          96 |00000000 00000000 00000110 11111111| (o) 111 bsl 4 + small int tag <------------+
+             |00000000 00000000 00000000 10000001| 128 + list tag  -----------------+
+ stop ->     |                                   |                                  |
+                                                                                    |
+ htop ->     |                                   |                                  |
+         132 |00000000 00000000 00000000 01111001| 120 + list tag  -----------------|--+
+         128 |00000000 00000000 00000110 10001111| (h) 104 bsl 4 + small int tag <--+  |
+         124 |00000000 00000000 00000000 01110001| 112 + list tag  --------------------|--+
+         120 |00000000 00000000 00000110 01011111| (e) 101 bsl 4 + small int tag <-----+  |
+         116 |00000000 00000000 00000000 01110001| 112 + list tag  -----------------------|--+
+         112 |00000000 00000000 00000110 11001111| (l) 108 bsl 4 + small int tag <--------+  |
+         108 |00000000 00000000 00000000 01110001| 96 + list tag  ---------------------------|--+
+         104 |00000000 00000000 00000110 11001111| (l) 108 bsl 4 + small int tag <-----------+  |
+         100 |11111111 11111111 11111111 11111011| NIL                                          |
+          96 |00000000 00000000 00000110 11111111| (o) 111 bsl 4 + small int tag <--------------+
              |                ...                |
  heap ->     +-----------------------------------+
 
@@ -247,7 +312,7 @@ The tags are:
 
  0000	ARITYVAL (Tuples)
  0001   BINARY_AGGREGATE                |
- 001s	BIGNUM with sign bit		|
+ 001s	BIGNUM with sign bit            |
  0100	REF                             |
  0101	FUN                             | THINGS
  0110	FLONUM                          |
@@ -308,7 +373,7 @@ We will talk more about binaries in the xref:CH-Memory[].
 Integers that do not fit in a small integer (word size - 4 bits) are
 stored on the heap as "bignums" (or arbitrary precision integers). A
 bignum has a header word followed by a number of words encoding the
-bignum. The sign part of the bignum tag (s) in the header encodes the
+bignum. The sign part of the bignum tag (`s`) in the header encodes the
 sign of the number (s=0 for positive numbers, and s=1 for negative
 numbers).
 
@@ -317,7 +382,7 @@ TODO: Describe bignum encoding. (And arithmetic ?)
 A reference is a _"unique"_ term often used to tag messages in order
 to basically implement a channel over a process mailbox. A reference
 is implemented as an 82 bit counter. After 9671406556917033397649407
-calls to +make_ref+ the counter will wrap and start over with ref 0
+calls to +make_ref/0+ the counter will wrap and start over with ref 0
 again. You need a really fast machine to do that many calls to
 +make_ref+ within your lifetime. Unless you restart the node, in which
 case it also will start from 0 again, but then all the old local refs

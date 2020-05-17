@@ -155,6 +155,7 @@ make
 1. Install [asciidoctor-pdf](https://github.com/asciidoctor/asciidoctor-pdf)
 1. Install [asciidoctor-diagram](http://asciidoctor.org/docs/asciidoctor-diagram/)
 1. Install [ditaa](https://github.com/stathissideris/ditaa)
+1. Install [graphviz](https://www.graphviz.org/)
 1. Install [rouge](https://asciidoctor.org/docs/user-manual/#rouge)
 1. Install [wget](https://www.gnu.org/software/wget/)
 1. `make`
@@ -165,6 +166,7 @@ make
 1. `gem install asciidoctor-pdf`
 1. `gem install asciidoctor-diagram`
 1. `brew install ditaa`
+1. `brew install graphviz`
 1. `gem install rouge`
 1. `brew install wget`
 1. `make`
