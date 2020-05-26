@@ -49,8 +49,9 @@ add
 
 This code can be generated directly from the parse tree of
 the expression. By using Erlang expression and the modules
-+erl_scan+ and +erl_parse+ we can build the world's most simplistic
-compiler.
+https://erlang.org/doc/man/erl_scan.html[+erl_scan+] and
+https://erlang.org/doc/man/erl_parse.html[+erl_parse+] we
+can build the world's most simplistic compiler.
 
 [source,erlang]
 -------------------------------------------
@@ -633,7 +634,8 @@ need to do explicit memory management. On the BEAM level, though, the
 code is responsible for checking for stack and heap overrun, and for
 allocating enough space on the stack and the heap.
 
-The BEAM instruction +test_heap+ will ensure that there is as much
+The BEAM instruction https://github.com/erlang/otp/blob/OTP-23.0/lib/compiler/src/genop.tab#L118[+test_heap+]
+will ensure that there is as much
 space on the heap as requested. If needed the instruction will call
 the garbage collector to reclaim space on the heap. The garbage
 collector in turn will call the lower levels of the memory subsystem
