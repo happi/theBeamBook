@@ -178,16 +178,16 @@ Then we get the following code for the add function:
 ------------------------------------------
 
 Here we can see that the code (starting at label 2) first allocates a
-stack slot, to get space to save the argument _B_ over the function
-call _id(A)_. The value is then saved by the instruction
-_{move,{x,1},{y,0}}_ (read as move x1 to y0 or in imperative style: y0
-:= x1).
+stack slot, to get space to save the argument `B` over the function
+call `id(A)`. The value is then saved by the instruction
+`{move,{x,1},{y,0}}` (read as move `x1` to `y0` or in imperative style: `y0
+:= x1`).
 
 The id function (at label f4) is then called by 
-_{call,1,{f,4}}_. (We will come back to what the argument "1" stands for later.)
-Then the result of the call (now in X0)
-needs to be saved on the stack (Y0), but the argument _B_
-is saved in Y0 so the BEAM does a bit of shuffling:
+`{call,1,{f,4}}`. (We will come back to what the argument "1" stands for later.)
+Then the result of the call (now in `X0`)
+needs to be saved on the stack (`Y0`), but the argument `B`
+is saved in `Y0` so the BEAM does a bit of shuffling:
 
 Except for the x and y registers, there are a number of special
 purpose registers:
@@ -209,12 +209,12 @@ fields in the PCB.
     {move,{x,1},{y,0}}. % y0 := x1 (id(A))
 ------------------------------------------
 
-Now we have the second argument _B_ in x0 (the first 
-argument register) and we can call the _id_ function
-again _{call,1,{f,4}}_. 
+Now we have the second argument `B` in `x0` (the first
+argument register) and we can call the `id` function
+again `{call,1,{f,4}}`.
 
-After the call x0 contains _id(B)_ and y0 contains _id(A)_,
-now we can do the addition: _{gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}_.
+After the call x0 contains `id(B)` and `y0` contains `id(A)`,
+now we can do the addition: `{gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}`.
 (We will go into the details of BIF calls and GC later.)
 
 === Dispatch: Directly Threaded Code
@@ -298,7 +298,7 @@ int run(char *code) {
 You see, a virtual machine written in C does not need to 
 be very complicated. This machine is just a loop checking
 the byte code at each instruction by looking at the value
-pointed to by the _instruction pointer _ (ip).
+pointed to by the _instruction pointer_ (`ip`).
 
 For each byte code instruction it will switch on the instruction byte
 code and jump to the case which executes the instruction. This
@@ -425,7 +425,7 @@ values".
 We will look closer at the BEAM emulator later but we will take a
 quick look at how the add instruction is implemented. The code is
 somewhat hard to follow due to the heavy usage of macros. The
-STORE_ARITH_RESULT macro actually hides the dispatch function which
+`STORE_ARITH_RESULT` macro actually hides the dispatch function which
 looks something like: `I += 4; Goto(*I);`.
 
 [source, C]
@@ -497,10 +497,10 @@ in this code:
     {move,{x,1},{y,0}}.
 -------------------------------------------
 
-This code first saves the return value of the function call (x0) in a
-new register (x1). Then it moves the caller saves register (y0) to
-the first argument register (x0). Finally it moves the saved value in
-x1 to the caller save register (y0) so that it will survive the next
+This code first saves the return value of the function call (`x0`) in a
+new register (`x1`). Then it moves the caller saves register (`y0`) to
+the first argument register (`x0`). Finally it moves the saved value in
+x1 to the caller save register (`y0`) so that it will survive the next
 function call.
 
 Imagine that we would implement three instruction in BEAM called
