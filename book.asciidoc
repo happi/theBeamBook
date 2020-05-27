@@ -76,6 +76,8 @@ include::chapters/ap-beam_instructions.asciidoc[]
 
 include::chapters/ap-code_listings.asciidoc[]
 
+[[bibliography]]
+include::chapters/references.asciidoc[]
 
 //[index]
 //include::chapters/index.asciidoc[]
