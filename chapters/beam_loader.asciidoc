@@ -15,7 +15,7 @@ and translates from the external (generic) format to the internal
 
 The code for the loader can be found in +beam_load.c+ (in
 +erts/emulator/beam+) but most of the logic for the translations are in
-the file +ops.tab+ (in the same directory).
+the file +ops.tab+ (in +erts/emulator/beam/emu+).
 
 The first step of the loader is to parse beam file, basically the same
 work as we did in Erlang in xref:CH-beam_modules[] but written in C.
