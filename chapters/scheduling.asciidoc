@@ -246,6 +246,69 @@ it will instead go into the state _waiting_ (for a message).
 In the next section we will take a look at all the different
 states a process can be in.
 
+// I have compiled a table of variable names used for reduction counting
+// as a reference for you if you want to dive into the source code. In
+// xref:redvars[] you can see the variables used globally and in the PCB
+// and in the emulator and the scheduler.
+
+// [[redvars]]
+// [cols="1,2a"]
+// |====
+// | Global
+
+// |
+
+// [cols="1,3"]
+// !====
+// ! Variable ! Use
+
+// ! +function_calls+ ! static (file global) variable in erl_process.c, number of function calls since last system-level activity
+
+// !====
+
+// | In PCB
+
+// |
+
+// [cols="1,3"]
+// !====
+// ! Variable                         ! Use
+// ! p->fcalls                        !
+// ! p->reds                          !
+// ! REDS_IN == (+p->def_arg_reg[5]+) ! reds while swapped out?
+
+// !====
+
+// | beam_emu.c
+
+// |
+
+// [cols="1,3"]
+// !====
+// ! Variable   ! Use
+// ! FCALLS     ! register mapped var for reductions
+// ! reds_used  ! used reductions during execution, calls in erl_process.c schedule
+// ! reds (c_p->fcalls) !
+// ! neg_o_reds ! ("negative old value of reds when call saving is active")
+// !====
+
+// | erl_process.c schedule/2
+
+// |
+
+// [cols="1,3"]
+// !====
+// ! Variable         ! Use
+// ! calls            ! argument to schedule
+// ! context_reds     !
+// ! fcalls           !
+// ! input_reductions !
+// ! actual_reds      !
+// ! reds             !
+// !====
+
+// |====
+
 === The Process State (or _status_)
 
 The field `status` in the PCB contains the process state. It can be one
@@ -511,106 +574,6 @@ the executing thread takes a lock on the port.
 Port tasks are scheduled and executed in each iteration in the
 scheduler loop (see below) before a new process is selected for
 execution.
-
-=== Reductions
-
-When a process is scheduled it will get a number of reductions defined
-by `CONTEXT_REDS` (defined in
-link:https://github.com/erlang/otp/blob/OTP-20.0/erts/emulator/beam/erl_vm.h[erl_vm.h],
-currently as 4000). After using up its reductions or when doing a
-up its reductions or when doing a receive without a matching message
-in the inbox, the process will be suspended and a new processes will
-be scheduled.
-
-If the VM has executed as many reductions as defined by
-`INPUT_REDUCTIONS` (currently `2*CONTEXT_REDS`, also defined in
-+erl_vm.h+) or if there is no process ready to run the scheduler will
-do system-level activities. That is, basically, check for IO; we will
-cover the details soon.
-
-It is not completely defined what a reduction is, but at least each
-function call should be counted as a reduction. Things get a bit more
-complicated when talking about BIFs and NIFs. A process should not be
-able to run for "a long time" without using a reduction and yielding.
-A function written in C can usually not yield at any time, and the
-reason for writing it in C is usually to achieve performance. In such
-functions a reduction might take longer which can lead to imbalance in
-the scheduler.
-
-For example in Erlang versions prior to R16 the BIFs
-+binary_to_term/1+ and +term_to_binary/1+ where non yielding and only
-counted as one reduction. This meant that a process calling theses
-functions on large terms could starve other processes. This can even
-happen in a SMP system because of the way processes are balanced
-between schedulers, which we will get to soon.
-
-While a process is running the emulator keeps the number of reductions
-left to execute in the (register mapped) variable FCALLS (see
-+beam_emu.c+).
-
-// I have compiled a table of variable names used for reduction counting
-// as a reference for you if you want to dive into the source code. In
-// xref:redvars[] you can see the variables used globally and in the PCB
-// and in the emulator and the scheduler.
-
-// [[redvars]]
-// [cols="1,2a"]
-// |====
-// | Global
-
-// |
-
-// [cols="1,3"]
-// !====
-// ! Variable ! Use
-
-// ! +function_calls+ ! static (file global) variable in erl_process.c, number of function calls since last system-level activity
-
-// !====
-
-// | In PCB
-
-// |
-
-// [cols="1,3"]
-// !====
-// ! Variable                         ! Use
-// ! p->fcalls                        !
-// ! p->reds                          !
-// ! REDS_IN == (+p->def_arg_reg[5]+) ! reds while swapped out?
-
-// !====
-
-// | beam_emu.c
-
-// |
-
-// [cols="1,3"]
-// !====
-// ! Variable   ! Use
-// ! FCALLS     ! register mapped var for reductions
-// ! reds_used  ! used reductions during execution, calls in erl_process.c schedule
-// ! reds (c_p->fcalls) !
-// ! neg_o_reds ! ("negative old value of reds when call saving is active")
-// !====
-
-// | erl_process.c schedule/2
-
-// |
-
-// [cols="1,3"]
-// !====
-// ! Variable         ! Use
-// ! calls            ! argument to schedule
-// ! context_reds     !
-// ! fcalls           !
-// ! input_reductions !
-// ! actual_reds      !
-// ! reds             !
-// !====
-
-// |====
-
 
 === The Scheduler Loop
 
