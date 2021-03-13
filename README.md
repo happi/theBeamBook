@@ -141,7 +141,7 @@ that you have all the needed tools installed.
 
 ### Docker
 
-Docker images with asciidoctor is available here: [dcoker-asciidoctor](https://github.com/asciidoctor/docker-asciidoctor)
+Docker images with asciidoctor is available here: [docker-asciidoctor](https://github.com/asciidoctor/docker-asciidoctor)
 
 ### Linux
 WIP, to be updated
