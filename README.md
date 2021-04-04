@@ -214,7 +214,7 @@ just contains bits and pieces from the different versions of the book.
 
 There was more interest than I had expected though and fortunately
 also several who where willing to contribute. From now on the book
-is a collaborative effort to document the Erlang runtime system Erts,
+is a collaborative effort to document the Erlang runtime system ERTS and the Erlang virtual machine BEAM,
 and it is released with a Creative Commons license (see above).
 
 Watch this space for further news and to see the whole book take shape.
