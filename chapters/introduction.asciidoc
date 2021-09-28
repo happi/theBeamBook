@@ -470,7 +470,7 @@ the BEAM compiler from the OTP layer to compile Erlang to Ling.
 
 ==== Erjang
 
-Erjang (link:http://www.erjang.org[]) is an Erlang implementation which runs
+Erjang (link:https://github.com/trifork/erjang[]) is an Erlang implementation which runs
 on the JVM. It loads +.beam+ files and recompiles the code to Java +.class+
 files. Erjang is almost 100% binary compatible with (generic) BEAM.
 
