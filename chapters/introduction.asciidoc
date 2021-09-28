@@ -433,7 +433,7 @@ them briefly.
 
 ==== Erlang on Xen
 
-Erlang on Xen (link:http://erlangonxen.org[]) is an Erlang implementation
+Erlang on Xen (link:https://github.com/cloudozer/ling[]) is an Erlang implementation
 running directly on server hardware with no OS layer in between, only
 a thin Xen client.
 
