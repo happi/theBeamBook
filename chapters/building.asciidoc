@@ -102,8 +102,8 @@ If you want to quickly download a stable version of the source try:
 > export ERL_TOP=`pwd`
 ----
 
-or if you want to be able to easilly update to the latest bleeding
-edge or you want to contribute fixes back to the comunity you can
+or if you want to be able to easily update to the latest bleeding
+edge or you want to contribute fixes back to the community you can
 check out the source through git:
 
 [source,sh]

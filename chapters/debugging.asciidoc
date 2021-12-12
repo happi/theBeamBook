@@ -68,7 +68,7 @@ $ make
 ----
 
 Ensure `redbug` is included in your path when starting an Erlang shell
-and you are set to go. This can be done by explicitely adding the path
+and you are set to go. This can be done by explicitly adding the path
 to the redbug _beam_ files when invoking `erl`:
 
 [source,bash]

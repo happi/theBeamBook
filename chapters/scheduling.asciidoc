@@ -481,7 +481,7 @@ queue seven times before they are scheduled.
 
 ==== Waiting, Timeouts and the Timing Wheel
 
-A processs trying to do a receive on an empty mailbox or on
+A process trying to do a receive on an empty mailbox or on
 a mailbox with no matching messages will yield and go into the
 waiting state.
 

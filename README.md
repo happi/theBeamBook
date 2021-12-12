@@ -76,7 +76,7 @@ A comment in the code starts with '//'.
 
 #### Linking to OTP/Erlang source code
 
-When refering to the source code of Erlang/OTP please add
+When referring to the source code of Erlang/OTP please add
 a link to a tagged version (not to master) of the code on GitHub,
 as in:
 
