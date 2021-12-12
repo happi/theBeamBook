@@ -273,7 +273,7 @@ application.
 
 When the runtime starts it calls `boot(BootArgs)` in the preloaded
 module `init`. The argument `BootArgs` contains the command line
-arguments used when starting the runtime. If theses arguments contains
+arguments used when starting the runtime. If these arguments contains
 `-boot Name` init will execute the boot commands in the binary file
 'Name.boot'. This file is generated from the human readable [script
 file](http://erlang.org/doc/man/script.html) `Name.script`.  The boot

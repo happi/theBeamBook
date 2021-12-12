@@ -628,7 +628,7 @@ end of the compilation, where it will be written to the .beam file.
 It is important to note that the code is saved before any
 optimisations are applied, so if there is a bug in an optimisation
 pass in the compiler and you run code in the debugger you will get a
-diffferent behavior. If you are implementing your own compiler
+different behavior. If you are implementing your own compiler
 optimisations this can trick you up badly.
 
 ==== Compiler Pass: Expand
