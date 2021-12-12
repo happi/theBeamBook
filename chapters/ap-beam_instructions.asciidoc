@@ -2,7 +2,7 @@
 [appendix]
 = BEAM Instructions
 
-Here we will go through most of the instructions in the BEAM generic instruction set in detail. In the next section we list all instructions with a brief explanation generated from the documentaion in the code (see `lib/compiler/src/genop.tab`).
+Here we will go through most of the instructions in the BEAM generic instruction set in detail. In the next section we list all instructions with a brief explanation generated from the documentation in the code (see `lib/compiler/src/genop.tab`).
 
 === Functions and Labels
 

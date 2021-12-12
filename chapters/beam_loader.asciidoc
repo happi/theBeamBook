@@ -65,7 +65,7 @@ move S x==0 | return => move_return S
 ....
 
 This combines a `move` from any location to `x(0)` and return into a single
-instruction called `move_return`. Let's break the tranformation apart to
+instruction called `move_return`. Let's break the transformation apart to
 see what the different parts do.
 
 move:: is the instruction that the pattern first has to match. This can be either
@@ -125,7 +125,7 @@ C function in `beam_load.c` that takes care of generating the appropriate instru
 
 ==== Specific instruction
 
-When all transformations are done, we have to decide how the specifc instruction should
+When all transformations are done, we have to decide how the specific instruction should
 look like. Let's continue to look at `move_return`:
 
 ....
@@ -291,7 +291,7 @@ ones are instruction combining and instruction specialization.
 Instruction combining is the joining of two or more smaller instructions into one larger
 instruction. This can lead to a large speed up of the code if the instructions are known
 to follow each other most of the time. The speed up is achieved because there is no longer
-any need to do a dispatch inbetween the instructions, and also the C compiler gets more
+any need to do a dispatch in between the instructions, and also the C compiler gets more
 information to work with when it is optimizing that instruction. When to do instruction
 combining is a trade-off where one has to consider the impact the increased size of the
 main emulator loop has vs the gain when the instruction is executed.
