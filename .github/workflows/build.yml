@@ -1,0 +1,30 @@
+---
+
+name: Build
+on:
+  pull_request:
+  push:
+    branchs:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: asciidoctor/docker-asciidoctor:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+      - name: install tools
+        run: apk add git rsync erlang
+      - name: build
+        run: make
+      - name: release
+
+        if: ${{ github.ref == 'refs/heads/master' }}
+        uses: softprops/action-gh-release@v0.1.14
+        with:
+          tag_name: latest
+          files: |
+            beam-book.pdf
+
+...
