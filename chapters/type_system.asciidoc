@@ -53,6 +53,9 @@ digraph G {
   float[shape=plaintext, label="float()"];
   nil[shape=plaintext, label="nil()"];
   cons[shape=plaintext, label="cons()"];
+  boolean[shape=plaintext, label="boolean()"];
+  false[shape=plaintext, label="false()"];
+  true[shape=plaintext, label="true()"];
   dummy0[shape=point, width=0.004];
   none[shape=plaintext, label="none()"];
   gt0[shape=plaintext, label="<" fontcolor=gray];
@@ -64,6 +67,7 @@ digraph G {
   gt6[shape=plaintext, label="<" fontcolor=gray];
   gt7[shape=plaintext, label="<" fontcolor=gray];
   gt8[shape=plaintext, label="<" fontcolor=gray];
+  gt9[shape=plaintext, label="<" fontcolor=gray];
 
   subgraph cluster_1 {
     style=invis
@@ -72,11 +76,19 @@ digraph G {
     [color=transparent arrowhead=none labelcolor=gray];
   }
 
-  {rank=same integer, float, nil, cons, dummy0}
+  subgraph cluster_2 {
+    style=invis
+    {rank=same gt9 true, false}
+    false -> gt9 -> true
+    [color=transparent arrowhead=none label color=gray];
+  }
+
+  {rank=same integer, float, boolean, nil, cons, dummy0}
   any->number[dir=none];
   number->integer[dir=none];
   number->float[dir=none];
   any->atom[dir=none];
+  atom->boolean[dir=none];
   any->reference[dir=none];
   any->fun[dir=none];
   any->port[dir=none];
@@ -91,6 +103,11 @@ digraph G {
   integer->none[dir=none];
   float->none[dir=none];
   atom->none[dir=none];
+  boolean->false[dir=none];
+  boolean->true[dir=none];
+  boolean->none[dir=none];
+  false->none[dir=none];
+  true->none[dir=none];
   reference->none[dir=none];
   fun->none[dir=none];
   port->none[dir=none];
