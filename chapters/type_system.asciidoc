@@ -80,7 +80,7 @@ digraph G {
     style=invis
     {rank=same gt9 true, false}
     false -> gt9 -> true
-    [color=transparent arrowhead=none label color=gray];
+    [color=transparent arrowhead=none labelcolor=gray];
   }
 
   {rank=same integer, float, boolean, nil, cons, dummy0}
