@@ -1,4 +1,6 @@
 #!/bin/bash
+pwd
+git status
 echo git shortlog -s -n HEAD
 echo `git shortlog -s -n HEAD`
 echo Filter
