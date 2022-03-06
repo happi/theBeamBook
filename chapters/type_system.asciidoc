@@ -199,7 +199,7 @@ The first two bits (the primary tag) are used as follows:
 The header tag is only used on the heap for header words, more on that later.
 On the stack 00 indicates a return address.
 The list tag is used for cons cells, and the boxed tag is used for all other
-pointers to the heap. The immediate tag is used further divided like this:
+pointers to the heap. The immediate tag is further divided like this:
 
 ----
  00 11 Pid
