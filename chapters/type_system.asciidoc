@@ -57,6 +57,8 @@ digraph G {
   false[shape=plaintext, label="false()"];
   true[shape=plaintext, label="true()"];
   dummy0[shape=point, width=0.004];
+  dummy1[shape=point, width=0.004];
+  dummy2[shape=point, width=0.004];
   none[shape=plaintext, label="none()"];
   gt0[shape=plaintext, label="<" fontcolor=gray];
   gt1[shape=plaintext, label="<" fontcolor=gray];
@@ -79,7 +81,7 @@ digraph G {
   subgraph cluster_2 {
     style=invis
     {rank=same gt9 true, false}
-    false -> gt9 -> true
+    dummy1 dummy2 false -> gt9 -> true
     [color=transparent arrowhead=none labelcolor=gray];
   }
 
@@ -100,8 +102,10 @@ digraph G {
   list->cons[dir=none];
   any->binary[dir=none];
   binary->dummy0[dir=none];
-  integer->none[dir=none];
-  float->none[dir=none];
+  integer->dummy1[dir=none];
+  dummy1->none[dir=none];
+  float->dummy2[dir=none];
+  dummy2->none[dir=none];
   atom->none[dir=none];
   boolean->false[dir=none];
   boolean->true[dir=none];
