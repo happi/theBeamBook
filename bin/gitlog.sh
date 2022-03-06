@@ -1,6 +1,7 @@
 #!/bin/bash
 pwd
 git status
+git --version
 echo git --no-pager shortlog -s HEAD
 echo `git --no-pager shortlog -s HEAD`
 echo Filter
