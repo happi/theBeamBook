@@ -163,14 +163,13 @@ Then we get the following code for the add function:
 ------------------------------------------
 {function, add, 2, 2}.
   {label,1}.
+    {line,[{location,"add.erl",4}]}.
     {func_info,{atom,add},{atom,add},2}.
   {label,2}.
     {allocate,1,2}.
     {move,{x,1},{y,0}}.
     {call,1,{f,4}}.
-    {move,{x,0},{x,1}}.
-    {move,{y,0},{x,0}}.
-    {move,{x,1},{y,0}}.
+    {swap,{y,0},{x,0}}.
     {call,1,{f,4}}.
     {gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}.
     {deallocate,1}.
@@ -187,7 +186,15 @@ The id function (at label f4) is then called by
 `{call,1,{f,4}}`. (We will come back to what the argument "1" stands for later.)
 Then the result of the call (now in `X0`)
 needs to be saved on the stack (`Y0`), but the argument `B`
-is saved in `Y0` so the BEAM does a bit of shuffling:
+is saved in `Y0`. Fortunately there is now a `swap` instruction to handle this case.
+
+Now we have the second argument `B` in `x0` (the first
+argument register) and we can call the `id` function
+again `{call,1,{f,4}}`.
+
+After the call x0 contains `id(B)` and `y0` contains `id(A)`,
+now we can do the addition: `{gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}`.
+(We will go into the details of BIF calls and GC later.)
 
 Except for the x and y registers, there are a number of special
 purpose registers:
@@ -202,20 +209,6 @@ purpose registers:
 These registers are cached versions of the corresponding
 fields in the PCB.
 
-
-------------------------------------------
-    {move,{x,0},{x,1}}. % x1 := x0 (id(A))
-    {move,{y,0},{x,0}}. % x0 := y0 (B)
-    {move,{x,1},{y,0}}. % y0 := x1 (id(A))
-------------------------------------------
-
-Now we have the second argument `B` in `x0` (the first
-argument register) and we can call the `id` function
-again `{call,1,{f,4}}`.
-
-After the call x0 contains `id(B)` and `y0` contains `id(A)`,
-now we can do the addition: `{gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}`.
-(We will go into the details of BIF calls and GC later.)
 
 === Dispatch: Directly Threaded Code
 
