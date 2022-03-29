@@ -1,2 +1,149 @@
 [[CH-DataStructures]]
 == Advanced data structures (ETS, DETS, Mnesia)
+
+Work In Progress!
+
+== Outline ==
+
+Process Dictionary
+ The PD is actually an Erlang list on the heap. Each entry in the list is a two tuple ({key, Value}) also stored on the heap.
+ Updating a key in the dictionary,causes the whole list to be reallocated to make sure we don’t get pointers from the old heap to the new heap.
+ 
+ put(Key, Value)
+get(Key)
+get()
+get_keys(Value)
+erase(Key)
+erase()
+
+
+== ETS ==
+Erlang Term Storage.
+
+Off heap key value store.
+
+Uses a hash table.
+
+Can be shared between processes.
+
+Puts and gets generates copying.
+
+Table types are: set, bag, ordered_set, duplicate_bag.
+
+(We will look at them when talking about Mnesia)
+
+== DETS ==
+Disk-based Erlang Term Storage
+
+Can be opened by multiple Erlang processes.
+
+If a DETS table is not closed properly it must be repaired.
+
+Buddy system in RAM.
+
+Table types are: set, bag, duplicate_bag.
+
+== MNESIA ==
+
+Erlang/Elixir terms stored in tables using records on top level.
+The table types are:
+set - unique but unordered.
+ordered_set - unique and ordered by term order.
+bag - multiple entries on one key (hint: avoid this).
+The table storage type are:
+ram_copies - No persistence on disc.
+disc_copies - Persists the data and keeps it in memory.
+disc_only_copies - Access and persistence on disc.
+ext - External. You provide the implementation (e.g., leveldb).
+
+MNESIA table types
+set
+Keys are unique and hashed into buckets.
+Table traversal is unsafe outside transactions (i.e, rehashing).
+No defined order for table traversal.
+ordered_set
+Keys are unique and ordered according to term order.
+Dirty (next_key) traversal is safe (i.e., without locking the table).
+Not available for storage type disc_only_copies
+bag
+Keys can have multiple entries, but no object duplicates.
+Delete either all objects for a key, or provide the object to be deleted.
+
+MNESIA storage type
+
+ram_copies
+Data is stored in ETS tables, and not persisted.
+In distributed Mnesia, tables can be recovered if at least one node remains up.
+disc_copies
+Data is stored for fast access in ETS tables.
+Data is persisted on disk using disk_log.
+Slower on startup (more on this later).
+​disc_only_copies
+Data is stored in DETS.
+DETS has a 2G limit on storage. Will fail if >2G.
+
+MNESIA transactions
+Transactions ensures the ACID property of Mnesia.
+A transaction is a fun() which either:
+succeeds ({'ok', Result})
+fails ({'aborted', Reason})
+​Instead of a 'transaction' you can use an 'activity'.
+transaction
+sync_transaction - synced to disk on all nodes
+async_dirty - make function run in a dirty context
+sync_dirty - dirty context, but wait for replicas.
+Transactions are written to disc using disc_log (LATEST.LOG).
+
+MNESIA transaction
+
+(Add diagram)
+
+Note that most actions happens in the calling process. Access is granted by mnesia, but the process performs the tasks.
+
+Note that nothing changes in global state (or disc) until the commit.
+
+MNESIA dirty ops
+
+Dirty operations takes no locks.
+In transactions, dirty operations bypasses the TID store:
+Direct access to the table backend.
+You can read the old value for things you have updated.
+Don't use this unless you really know what you're doing!
+Dirty updates (e.g., delete, write) are quick but dangerous.
+Will go to transaction log, but order is not guaranteed.
+Doesn't respect locks already acquired by others.
+Will be replicated, but again, order is not guaranteed.
+Can leave you in an inconsistent state.
+
+MNESIA dumper
+Dumps are triggered by time or by number of operations. The parameters can be set.
+
+dump_log_time_threshold
+dump_log_write_threshold
+
+
+The warning "Mnesia is overloaded" is issued when a dump is triggered before the last one has finished. This is mostly harmless, but the parameters should be tweaked to only get the warnings when the system is actually loaded.
+
+(Add diagram)
+
+The dump decision is based on the size ratio between the ETS and the DCL file.
+
+Note that this only applies for disc_copies tables.
+
+MNESIA loader
+
+(Add diagram)
+
+When the previous and latest logs are dumped, a new dump decision is made. When the ETS is complete it might be dumped based on that decision.
+
+
+
+
+
+
+
+
+
+
+
+
