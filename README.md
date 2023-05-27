@@ -1,4 +1,4 @@
-![Build ](https://github.com/appi/theBeamBook/actions/workflows/build.yml/badge.svg)
+![PDF Build](https://github.com/happi/theBeamBook/actions/workflows/build.yml/badge.svg)
 
 # The BEAM Book
 
