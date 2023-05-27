@@ -1,5 +1,5 @@
 ![PDF Build](https://github.com/happi/theBeamBook/actions/workflows/build.yml/badge.svg)
-![Pages Build](https://github.com/happi/theBeamBook/actions/workflows/build.yml/badge.svg) 
+![Pages Build](https://github.com/happi/theBeamBook/actions/workflows/gh-pages.yml/badge.svg) 
 
 # The BEAM Book
 
