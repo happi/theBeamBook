@@ -33,7 +33,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: install tools
-        run: apk add git rsync erlang
+        run: apk add git rsync erlang tar
       - name: build
         run: make && mv site _site && ls -al
       - name: Build pages
