@@ -35,9 +35,7 @@ jobs:
       - name: install tools
         run: apk add git rsync erlang
       - name: build
-        run: make
-             tar -cvf github-pages site/
-             la -al
+        run: make && tar -cvf github-pages site/ && la -al
       - name: Build pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
