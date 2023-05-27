@@ -414,11 +414,11 @@ available options for redbug, you can ask the tool itself:
 
 === Let it Crash Principle
 
-===== Overview and rationale
+==== Overview and rationale
 
-===== Exceptions in Erlang
+==== Exceptions in Erlang
 
-===== Designing systems with supervisor trees
+==== Designing systems with supervisor trees
 
 
 === Debugging Philosophy
