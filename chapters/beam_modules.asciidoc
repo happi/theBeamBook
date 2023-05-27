@@ -6,8 +6,27 @@
 
 === Modules
 
-.%% TODO
-NOTE: What is a module. How is code loaded. How does hot code loading work. How does the purging work. How does the code server work. How does dynamic code loading work, the code search path. Handling code in a distributed system. (Overlap with chapter 10, have to see what goes where.) Parameterized modules. How p-mods are implemented. The trick with p-mod calls. Here follows an excerpt from the current draft:
+In Erlang, a module is a file containing Erlang functions. It provides a way to group related functions together and use them in other modules.
+Code loading in Erlang is the process of loading compiled Erlang modules into the BEAM virtual machine. This can be done statically at startup or dynamically while the system is running.
+
+Erlang supports hot code loading, which means you can update a module while your system is running without stopping or restarting the system.
+This is very convenient during development and debugging.
+Depending on how you deploy your system it can also be useful
+when maintaining and running a 24/7 system by allowing you to
+upgrade a module without stopping the system.
+
+When new code is loaded, the old version remains in memory until there are no processes executing it. Once that's the case, the old code is purged from the system. Note that if you load a third version of a module before the
+first version has been purged, then the default behavior of the system is to
+kill any process that references (has a call on the stack) the first version.
+
+You can load a module into the system dynamically using the `code:load_file(Module)` function. After a new module is loaded then any fully qualified
+calls (i.e. `Module:function`), also called remote calls, will go to the
+new version. Note that if you have a server loop without a remote call
+then it will continue running the old code.
+
+The code server is a part of the BEAM virtual machine responsible for managing loaded modules and their code.
+
+Erlang's distribution model and hot code loading feature make it possible to update code across multiple nodes in a distributed system. However, it's a complex task that requires careful coordination.
 
 [[BEAM_files]]
 
@@ -59,7 +78,7 @@ include::../code/beam_modules_chapter/src/beamfile1.erl[]
 ----
 
 
-A sample run might look like: 
+A sample run might look like:
 
 ----
 > beamfile:read("beamfile.beam").
@@ -138,7 +157,7 @@ ExportChunk = <<
 
 `FunctionName` is the index in the atom table.
 
-We can extend our parse_chunk function by adding the following clause after the atom handling clause: 
+We can extend our parse_chunk function by adding the following clause after the atom handling clause:
 
 [source,erlang]
 ----
@@ -166,7 +185,7 @@ parse_exports(<<>>) -> [].
 
 The chunk named `ImpT` (for IMPort Table) is mandatory and contains information about which functions are imported.
 
-The format of the chunk is: 
+The format of the chunk is:
 
 [source,erlang]
 ----
@@ -236,13 +255,13 @@ We can parse out the code chunk by adding the following code to our program:
 
 [source,erlang]
 ----
-parse_chunks([{"Code", Size, <<SubSize:32/integer,Chunk/binary>>           
+parse_chunks([{"Code", Size, <<SubSize:32/integer,Chunk/binary>>
               } | Rest], Acc) ->
    <<Info:SubSize/binary, Code/binary>> = Chunk,
    %% 8 is size of CunkSize & SubSize
    OpcodeSize = Size - SubSize - 8,
    <<OpCodes:OpcodeSize/binary, _Align/binary>> = Code,
-   parse_chunks(Rest,[{code,parse_code_info(Info), OpCodes}  
+   parse_chunks(Rest,[{code,parse_code_info(Info), OpCodes}
                       | Acc]);
 
 ..
@@ -288,8 +307,8 @@ StringChunk = <<
 The string chunk can be parsed easily by just turning the string of bytes into a binary:
 
 ----
-parse_chunks([{"StrT", _Size, <<Strings/binary>>} | Rest], Acc) -> 
-    parse_chunks(Rest,[{strings,binary_to_list(Strings)}|Acc]); 
+parse_chunks([{"StrT", _Size, <<Strings/binary>>} | Rest], Acc) ->
+    parse_chunks(Rest,[{strings,binary_to_list(Strings)}|Acc]);
 ----
 
 
@@ -431,10 +450,6 @@ parse_literals(<<>>) -> [].
 ----
 
 
-
-
-
-
 ==== Abstract Code Chunk
 
 The chunk named `Abst` is optional and may contain the code in abstract form. If you give the flag `debug_info` to the compiler it will store the abstract syntax tree for the module in this chunk. OTP tools like the debugger and Xref need the abstract form. The format of the chunk is:
@@ -462,29 +477,43 @@ parse_chunks([{"Abst", _ChunkSize, <<AbstractCode/binary>>} | Rest], Acc) ->
 
 
 
+==== Encryption
 
+Erlang allows for the encryption of debug information in BEAM files. This feature enables developers to keep their source code confidential while still being able to utilize tools such as the Debugger or Xref.
 
+To employ encrypted debug information, a key must be supplied to both the compiler and beam_lib. This key is specified as a string, ideally containing at least 32 characters, including both upper and lower case letters, digits, and special characters.
 
+The default and currently the only type of crypto algorithm used is des3_cbc, which stands for triple DES (Data Encryption Standard) in Cipher Block Chaining mode. The key string is scrambled using erlang:md5/1 to generate the keys used for des3_cbc.
 
+The key can be provided in two ways:
 
+1. Compiler Option: Use the compiler option {debug_info_key,Key} and the function crypto_key_fun/1 to register a function that returns the key whenever beam_lib needs to decrypt the debug information.
 
+2. .erlang.crypt File: If no function is registered, beam_lib searches for an .erlang.crypt file in the current directory, then the user's home directory, and finally filename:basedir(user_config, "erlang"). If the file is found and contains a key, beam_lib implicitly creates a crypto key function and registers it.
 
-==== Compression and Encryption
+The .erlang.crypt file should contain a list of tuples in the format {debug_info, Mode, Module, Key}. Mode is the type of crypto algorithm (currently only des3_cbc is allowed), Module is either an atom (in which case Key is only used for that module) or [] (in which case Key is used for all modules), and Key is the non-empty key string.
 
-TODO
+The key in the first tuple where both Mode and Module match is used. It's important to use unique keys and keep them secure to ensure the safety of the encrypted debug information.
 
+==== Compression
 
+When you pass the `compressed` flag to the Erlang compiler, it instructs the compiler to compress the BEAM file that it produces. This can result in a significantly smaller file size, which can be beneficial in environments where disk space is at a premium.
 
+The `compressed` flag applies zlib compression to the parts of the BEAM file that contain Erlang code and literal data. This does not affect the execution speed of the code, because the code is decompressed when it is loaded into memory, not when it is executed.
 
-==== Function Trace Chunk (Obsolete)
+To use the `compressed` flag, you can pass it as an option to the `compile` function, like so:
 
-This chunk type is now obsolete.
+```erlang
+compile:file(Module, [compressed]).
+```
 
+Or, if you're using the `erlc` command-line compiler, you can pass the `+compressed` option:
 
-==== Bringing it all Together
+```bash
+erlc +compressed module.erl
+```
 
-TODO
-
+It's important to note that while the `compressed` flag can reduce the size of the BEAM file, it also increases the time it takes to load the module, because the code must be decompressed. Therefore, it's a trade-off between disk space and load time.
 
 [[SEC-BeamModulesCTE]]
 

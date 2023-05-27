@@ -62,9 +62,9 @@ compile(String) ->
 				    erl_scan:string(String)))),
     generate_code(ParseTree).
 
-generate_code({op, _Line, '+', Arg1, Arg2}) -> 
+generate_code({op, _Line, '+', Arg1, Arg2}) ->
     generate_code(Arg1) ++ generate_code(Arg2) ++ [add];
-generate_code({op, _Line, '*', Arg1, Arg2}) -> 
+generate_code({op, _Line, '*', Arg1, Arg2}) ->
     generate_code(Arg1) ++ generate_code(Arg2) ++ [multiply];
 generate_code({integer, _Line, I}) -> [push, I].
 -------------------------------------------
@@ -138,7 +138,7 @@ then moves the value to a Y register.
            +----+
    X1000   |    |
     X999   |    |
-   ...      .... 
+   ...      ....
       X2   |    |
       X1   |    |
      (X0)  |    |
@@ -182,7 +182,7 @@ call `id(A)`. The value is then saved by the instruction
 `{move,{x,1},{y,0}}` (read as move `x1` to `y0` or in imperative style: `y0
 := x1`).
 
-The id function (at label f4) is then called by 
+The id function (at label f4) is then called by
 `{call,1,{f,4}}`. (We will come back to what the argument "1" stands for later.)
 Then the result of the call (now in `X0`)
 needs to be saved on the stack (`Y0`), but the argument `B`
@@ -221,7 +221,7 @@ If we take a look at our naive stack machine for arithmetic expressions
 we see that we use Erlang atoms and pattern matching to decode which
 instruction to execute. This is a very heavy machinery to just decode
 machine instructions. In a real machine we would code each instruction
-as a "machine word" integer. 
+as a "machine word" integer.
 
 We can rewrite our stack machine to be a _byte code_ machine
 implemented in C. First we rewrite the compiler so that it produces
@@ -239,9 +239,9 @@ compile(Expression, FileName) ->
 				    erl_scan:string(Expression)))),
     file:write_file(FileName, generate_code(ParseTree) ++ [stop()]).
 
-generate_code({op, _Line, '+', Arg1, Arg2}) -> 
+generate_code({op, _Line, '+', Arg1, Arg2}) ->
     generate_code(Arg1) ++ generate_code(Arg2) ++ [add()];
-generate_code({op, _Line, '*', Arg1, Arg2}) -> 
+generate_code({op, _Line, '*', Arg1, Arg2}) ->
     generate_code(Arg1) ++ generate_code(Arg2) ++ [multiply()];
 generate_code({integer, _Line, I}) -> [push(), integer(I)].
 
@@ -249,7 +249,7 @@ stop()     -> 0.
 add()      -> 1.
 multiply() -> 2.
 push()     -> 3.
-integer(I) ->    
+integer(I) ->
     L = binary_to_list(binary:encode_unsigned(I)),
     [length(L) | L].
 -------------------------------------------
@@ -271,13 +271,13 @@ int run(char *code) {
   int stack[1000];
   int sp = 0, size = 0, val = 0;
   char *ip = code;
-  
+
   while (*ip != STOP) {
     switch (*ip++) {
     case ADD: push(pop() + pop()); break;
     case MUL: push(pop() * pop()); break;
     case PUSH:
-      size = *ip++; 
+      size = *ip++;
       val = 0;
       while (size--) { val = val * 256 + *ip++; }
       push(val);
@@ -288,7 +288,7 @@ int run(char *code) {
 }
 -------------------------------------------
 
-You see, a virtual machine written in C does not need to 
+You see, a virtual machine written in C does not need to
 be very complicated. This machine is just a loop checking
 the byte code at each instruction by looking at the value
 pointed to by the _instruction pointer_ (`ip`).
@@ -316,10 +316,10 @@ L11:
 
 It has to compare the byte code with each instruction code and
 then do a conditional jump. In a real machine with many instructions
-this can become quite expensive. 
+this can become quite expensive.
 
 A better solution would be to have a table with the address of
-the code then we could just use an index into the table 
+the code then we could just use an index into the table
 to load the address and jump without
 the need to do a compare. This technique is sometimes called
 _token threaded code_. Taking this a step further we can
@@ -347,28 +347,28 @@ instructionp_t *read_file(char *name) {
   long  size;
   char ch;
   unsigned int val;
-  
+
   file = fopen(name, "r");
- 
+
   if(file == NULL) exit(1);
- 
+
   fseek(file, 0L, SEEK_END);
   size = ftell(file);
-  code = calloc(size, sizeof(instructionp_t));	
+  code = calloc(size, sizeof(instructionp_t));
   if(code == NULL) exit(1);
   cp = code;
-  
-  fseek(file, 0L, SEEK_SET);	
-  while ( ( ch = fgetc(file) ) != EOF ) 
+
+  fseek(file, 0L, SEEK_SET);
+  while ( ( ch = fgetc(file) ) != EOF )
     {
       switch (ch) {
       case ADD: *cp++ = &add; break;
       case MUL: *cp++ = &mul; break;
       case PUSH:
-	*cp++ = &pushi; 
-	ch = fgetc(file); 
+	*cp++ = &pushi;
+	ch = fgetc(file);
 	val = 0;
-	while (ch--) { val = val * 256 + fgetc(file); } 
+	while (ch--) { val = val * 256 + fgetc(file); }
 	*cp++ = (instructionp_t) val;
 	break;
       }
@@ -439,7 +439,7 @@ looks something like: `I += 4; Goto(*I);`.
 	     result = make_small(i);
 	     STORE_ARITH_RESULT(result);
 	 }
-     
+
      }
      arith_func = ARITH_FUNC(mixed_plus);
      goto do_big_arith2;
@@ -449,7 +449,7 @@ looks something like: `I += 4; Goto(*I);`.
 To make it a little easier to understand how the BEAM dispatcher is
 implemented let us take a somewhat imaginary example. We will start
 with some real external BEAM code but then I will invent some internal
-BEAM instructions and implement them in C. 
+BEAM instructions and implement them in C.
 
 If we start with a simple add function in Erlang:
 
@@ -561,7 +561,7 @@ pointer, pointing to 0x1000 then the dispatch will be to fetch `+*I+`
 In xref:CH-Instructions[] we will look more closely at some real
 BEAM instructions and how they are implemented.
 
-=== Scheduling: Non-preemptive, Reduction counting 
+=== Scheduling: Non-preemptive, Reduction counting
 
 Most modern multi-threading operating systems use preemptive scheduling.
 This means that the operating system decides when to switch from one
@@ -657,10 +657,4 @@ currently only defined by the implementation in Erlang/OTP.
 If you want to implement your own BEAM you would have to try to mimic
 the current implementation not knowing which parts are essential and
 which parts are accidental. You would have to mimic every observable
-behavior to be sure that you have a valid BEAM interpreter. 
-
-****
-
-*TODO:* Conclusion and handover to the chapters on instructions.
-
-****
+behavior to be sure that you have a valid BEAM interpreter.
