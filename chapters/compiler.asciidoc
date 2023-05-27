@@ -831,7 +831,7 @@ internal representation of Erlang's Abstract Syntax Trees (ASTs).
 
 The syntax tools applications also includes the tool Merl since Erlang 18.0.
 With Merl you can very easily manipulate the syntax tree and write
-parse stransforms in Erlang code.
+parse transforms in Erlang code.
 
 You can find the documentation for Syntax Tools on the
 Erlang.org site: link:http://erlang.org/doc/apps/syntax_tools/chapter.html[http://erlang.org/doc/apps/syntax_tools/chapter.html].
