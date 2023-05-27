@@ -1,10 +1,10 @@
 ---
 
-name: Build
+name: Build PDF
 on:
   pull_request:
   push:
-    branchs:
+    branches:
       - master
 jobs:
   build:
