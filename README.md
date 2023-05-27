@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/happi/theBeamBook.svg?branch=master)](https://travis-ci.org/happi/theBeamBook)
+![Build ](https://github.com/appi/theBeamBook/actions/workflows/build.yml/badge.svg)
 
 # The BEAM Book
 
