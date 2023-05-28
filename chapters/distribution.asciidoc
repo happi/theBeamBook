@@ -1,2 +1,324 @@
 [[CH-Distribution]]
 == Distribution
+
+Erlang is designed to support distributed computing. This chapter will explore the key aspects of distribution in Erlang, including nodes, connections, and message passing.
+
+=== Nodes and Connections
+In Erlang, a node is an instance of the Erlang runtime system.
+According to the specification it is actually a named running instance of ERTS, since only named instances can communicate through the Erlang
+distributions.
+
+In this book we will often, a bit erroneously, also refer to non distributed, unnamed instances as nodes. They can still communicate with other subsystems for example through http or directly through TCP.
+
+Each real node has a unique name, which is typically composed of an atom followed by an '@' symbol and the hostname. For example, node1@localhost.
+
+The name of a node can be either a short name or a long name. A short name is composed of an atom and does not include the hostname, like `node1`. Short names are used when all nodes are running on the same host. A long name, on the other hand, includes both the atom and the hostname, like `node1@localhost`. Long names are used when nodes are distributed across different hosts. It's important to note that nodes using short names can only communicate with other nodes using short names, and nodes using long names can only communicate with nodes using long names. Therefore, it's crucial to be consistent with the naming scheme across all nodes in a distributed system.
+
+Nodes can establish connections with each other using the `net_kernel:connect_node/1` function.
+The name of a node is composed of two parts: a name (which is an atom), and a hostname. The format is `name@hostname`.
+
+If we start a node without a name we can not connect to another node:
+
+[source,elixir]
+----
+happi@gdc12:~$ iex
+Erlang/OTP 24 [erts-12.0.4] [source] [64-bit] [smp:12:12] [ds:12:12:10] [async-threads:1] [jit]
+
+Interactive Elixir (1.12.2) - press Ctrl+C to exit (type h() ENTER for help)
+iex(1)> Node.alive?
+false
+iex(2)> :net_kernel.connect_node(:foo@gdc12)
+:ignored
+iex(3)> Node.alive?
+false
+iex(4)>
+----
+
+If we start a node with a name we can connect to another node:
+
+[source,elixir]
+----
+happi@gdc12:~$ iex --sname bar
+Erlang/OTP 24 [erts-12.0.4] [source] [64-bit] [smp:12:12] [ds:12:12:10] [async-threads:1] [jit]
+
+Interactive Elixir (1.12.2) - press Ctrl+C to exit (type h() ENTER for help)
+iex(bar@gdc12)1> Node.alive?
+true
+iex(bar@gdc12)2> :net_kernel.connect_node(:foo@gdc12)
+true
+iex(bar@gdc12)3> Node.alive?
+true
+iex(bar@gdc12)4>
+----
+
+
+If you don't want to come up with a name for the node you can start it with the special name `undefined` and then the system will come up with a name for your node if you start the distribution:
+
+[source,elixir]
+----
+happi@gdc12:~$ iex --sname undefined
+Erlang/OTP 24 [erts-12.0.4] [source] [64-bit] [smp:12:12] [ds:12:12:10] [async-threads:1] [jit]
+
+Interactive Elixir (1.12.2) - press Ctrl+C to exit (type h() ENTER for help)
+iex(1)> Node.alive?
+false
+iex(2)> :net_kernel.connect_node(:foo@gdc12)
+true
+iex(2YOVGWCSCSR8R@gdc12)3> Node.alive?
+true
+iex(2YOVGWCSCSR8R@gdc12)4>
+----
+
+Nodes can connect to each other as long as they are running the same "cookie", which is a security measure to ensure that only authorized nodes can connect. A cookie is a simple atom that needs to be the same on all nodes that should be able to connect to each other. If the cookies don't match, the connection is not established.
+
+You can set the cookie when starting an Erlang node using the `-setcookie` option, or dynamically using the `erlang:set_cookie/2` function.
+If no cookie is set then when an Erlang node is initiated, it is assigned a random atom as its default magic cookie, while the cookie for other nodes is assumed to be `nocookie`. This magic cookie serves as a basic authentication mechanism between nodes.
+
+The Erlang network authentication server, also known as `auth`, performs its first operation by looking for a file named `.erlang.cookie` in the user's home directory, followed by the directory specified by `filename:basedir(user_config, "erlang")`.
+
+In the event that neither of these files exist, `auth` takes the initiative to create a `.erlang.cookie` file in the user's home directory. This file is given UNIX permissions set to read-only for the user. The content of this file is a randomly generated string.
+
+Subsequently, an atom, `Cookie`, is generated from the contents of the `.erlang.cookie` file. The local node's cookie is then set to this atom using the `erlang:set_cookie(Cookie)` function. This action establishes the default cookie that the local node will use when interacting with all other nodes.
+
+This process ensures a basic level of security and authentication when nodes in a distributed Erlang system communicate with each other.
+
+Once a connection is established, nodes can communicate freely with each other. Connections between nodes are transparent. This means that you can send a message to a process on another node just like you would send a message to a process on the same node if they are connected.
+
+Nodes in an Erlang distribution are by default fully connected. When
+a node, N1, connects to another node, N2, it will get a list of all the nodes
+that N2 is connected to and connect to all of them. Since connections are
+bidirectional N2 will also connect to all nodes N1 is connected to.
+
+You can turn off this behavior by using the command line flag `-connect_all false` when starting the system.
+
+Erlang also supports SSL connections between nodes. This is useful when you need to secure the communication between nodes, for example, when they are communicating over an untrusted network.
+
+To use SSL for node connections, you need to configure the ssl application and the inet_dist listen and connect options. This involves setting up SSL certificates and keys, and configuring the Erlang runtime system to use SSL for inter-node communication.
+
+Remember that using SSL can have an impact on performance, due to the overhead of encryption and decryption. Therefore, it should be used judiciously, when the benefits of secure communication outweigh the performance cost.
+
+Hidden nodes in Erlang are a special type of node that can be used to create connections in a distributed Erlang system without fully joining the network of nodes.
+
+When a node is started as a hidden node using the `-hidden` option, it does not appear in the list of nodes returned by the `nodes()` function on other nodes, and it does not automatically establish connections to other nodes in the system. However, it can establish connections to individual nodes using `net_kernel:connect_node/1`, and these connections are fully functional: they can be used for message passing, process spawning, and other distributed operations.
+
+One of the main use cases for hidden nodes is to create connections that are isolated from the rest of the network. For example, you might want to connect a node to a specific group of nodes without connecting it to all nodes in the system. This can be useful for managing network traffic, isolating certain operations, or creating subnetworks within a larger distributed system.
+
+Another use case for hidden nodes is in systems where the full network of nodes is large and dynamic, and it's not feasible or desirable for each node to maintain connections to all other nodes. By using hidden nodes, you can create a more flexible and scalable network topology.
+
+It's important to note that hidden nodes are not a security feature. While they don't appear in the `nodes()` list and don't automatically connect to other nodes, they don't provide any additional protection against unauthorized access or eavesdropping. If you need to secure your distributed Erlang system, you should use features like cookie-based authentication and SSL/TLS encryption.
+
+For a full description of the distribution on the Erlang level, including command-line flags, and helpful modules and functions read the reference manual on link:https://www.erlang.org/doc/reference_manual/distributed.html[ Distributed Erlang].
+
+Now lets turn to the more interesting stuff, how this works in the beam.
+
+== How the Erlang Distribution Works
+
+Erlang uses a custom protocol for communication between nodes, known as the Erlang distribution protocol. This protocol is implemented by ERTS and is used for all inter-node communication.
+
+The distribution protocol supports a variety of message types, including process messages, system messages, and control messages. Process messages are used for communication between Erlang processes, while system messages are used for communication between different parts of the VM. Control messages are used for managing the state of the distribution system, such as establishing and closing connections.
+
+=== Erlang Port Mapper Daemon (EPMD)
+The Erlang Port Mapper Daemon (EPMD) is a small server that assists in the process of establishing connections between Erlang nodes. It's a crucial part of the Erlang distribution mechanism.
+
+When an Erlang node is started with a name (using the `-name` or `-sname` option), it automatically starts an instance of EPMD if one is not already running. This is done by the Erlang runtime system (ERTS) before the node itself is started.
+
+The EPMD process runs as a separate operating system process, independent of the Erlang VM. This means that it continues to run even if the Erlang node that started it stops. If multiple Erlang nodes are running on the same host, they all use the same EPMD instance. EPMD listens on port 4369 by default.
+
+The primary role of EPMD is to map node names to TCP/IP port numbers. When an Erlang node starts, it opens a listening TCP/IP port for incoming connections from other nodes. It then registers itself with EPMD, providing its name and the port number.
+
+When a node wants to establish a connection to another node, it first contacts EPMD (on the remote host) and asks for the port number associated with the name of the remote node. EPMD responds with the port number, and the local node can then open a TCP/IP connection to the remote node.
+
+The source code for EPMD can be found in the Erlang/OTP repository on GitHub, specifically in the `erts/epmd/src` directory. The implementation is relatively straightforward, with the main logic being contained in a single C file (`epmd_srv.c`).
+
+The EPMD server operates in a simple loop, waiting for incoming connections and processing requests. When a request is received, it is parsed and the appropriate action is taken, such as registering a node, unregistering a node, or looking up a node's port number.
+
+=== The Erlang Distribution Protocol
+
+The communication between EPMD and the Erlang nodes uses a simple binary protocol. The messages are small and have a fixed format, making the protocol easy to implement and efficient to use.
+
+The protocol is described in detail in link:https://www.erlang.org/doc/apps/erts/erl_dist_protocol.html[ERTS Reference:Distribution Protocol]
+
+The Erlang Distribution Protocol is the underlying protocol that facilitates communication between different Erlang nodes. It is a custom protocol designed specifically for the needs of distributed Erlang systems.
+
+When a node wants to establish a connection to another node, it initiates a handshake process. This process involves a series of messages exchanged between the two nodes to agree on parameters such as the communication protocol version, the node names, and the distribution flags.
+
+The handshake process begins with the initiating node sending a `SEND_NAME` message to the target node. This message includes the protocol version and the name of the initiating node.
+
+The target node responds with an `ALIVE_ACK` message if it accepts the connection, or a `NACK` message if it rejects the connection. The `ALIVE_ACK` message includes the node's own name and a challenge, which is a random number used for authentication.
+
+The initiating node must then respond with a `CHALLENGE_REPLY` message, which includes the result of a computation involving the challenge and the shared secret (the magic cookie). The target node verifies this result to authenticate the initiating node.
+
+Finally, the target node sends a `CHALLENGE_ACK` message to complete the handshake. At this point, the connection is established and the nodes can start exchanging messages.
+
+The Erlang Distribution Protocol supports several types of messages, including:
+
+- **Control Messages**: These are used for managing the state of the distribution system. They include messages for linking and unlinking processes, monitoring and demonitoring processes, and sending signals such as `EXIT` and `KILL`.
+
+- **Data Messages**: These are used for sending data between processes. They include messages for sending term data and for performing remote procedure calls (RPCs).
+
+- **System Messages**: These are used for communication between different parts of the Erlang VM. They include messages for managing the distribution controller and the port mapper daemon (EPMD).
+
+=== Alternative Distribution
+
+There may be situations where Erlang's default distribution mechanism doesn't meet all the needs of a particular system. This is where alternative distribution comes into play.
+
+There are several possible reasons why you might want to use an alternative distribution mechanism:
+
+- **Performance**: The built-in distribution mechanism uses TCP/IP for communication, which may not be the most efficient option for certain workloads or network configurations. An alternative distribution mechanism could use a different protocol or a custom data format to improve performance.
+
+- **Security**: While Erlang's distribution mechanism includes basic security features such as magic cookies for authentication, it may not provide the level of security required for some applications. An alternative distribution mechanism could include additional security features, such as encryption or access control.
+
+- **Reliability Enhancements**: Erlang's distribution mechanism is designed with fault-tolerance in mind and can handle node failures and network partitions. Still there may be scenarios where additional reliability features are desired. An alternative distribution mechanism could provide more sophisticated strategies for dealing with network partitions, offer stronger guarantees about message delivery, or provide enhanced error detection and recovery mechanisms. It's important to note that these enhancements would be situational, supplementing Erlang's already robust reliability features.
+
+- **Interoperability**: If you need to integrate an Erlang system with other systems that use different communication protocols, an alternative distribution mechanism could provide the necessary interoperability.
+This is perhaps the most common use case. Being able to communicate
+with other programs written in C or Scala using Erlang messages
+and RPC can be very powerful.
+
+There are several ways to implement alternative distribution in Erlang:
+
+- **Custom Distribution Driver**: You can write a custom distribution driver in C that implements the distribution protocol. This allows you to control the low-level details of communication between nodes, such as the network protocol and data format.
+
+- **Distribution Callback Module**: You can write a callback module in Erlang that handles distribution-related events, such as establishing and closing connections and sending and receiving messages. This allows you to implement custom behavior at a higher level than a distribution driver.
+
+- **Third-Party Libraries**: There are third-party libraries available that provide alternative distribution mechanisms for Erlang. These libraries typically provide a high-level API for distributed communication, abstracting away the low-level details.
+
+Implementing alternative distribution in Erlang involves several steps:
+
+1. **Writing the Distribution Code**: This could be a distribution driver written in C, a callback module written in Erlang, or a combination of both. The code needs to implement the Erlang distribution protocol, including the handshake process and the handling of control and data messages.
+
+2. **Configuring the Erlang VM**: The VM needs to be configured to use the alternative distribution mechanism. This is done by passing certain command-line options when starting the VM. For example, to use a custom distribution driver, you would pass the `-proto_dist` option followed by the name of the driver.
+
+3. **Testing the Distribution Mechanism**: Once the distribution mechanism is implemented and configured, it needs to be tested to ensure that it works correctly. This involves testing the connection process, message passing, error handling, and any other features of the distribution mechanism.
+
+The Erlang documentation has a chapter on link:https://www.erlang.org/doc/apps/erts/alt_dist.html[how to implement an alternative carrier].
+
+It also has a chapter on link:https://www.erlang.org/doc/apps/erts/alt_disco.html[how to implement an alternative node discovery]
+
+=== Processes in distributed Erlang
+
+Processes in Erlang are, as we know by now, identified by their process identifier, or PID. A PID includes information about the node where the process is running, an index, and a serial. The index is a reference to the process in the process table and the serial is used to differentiate between old (dead) and new (alive) processes with the same index.
+
+When it comes to distributed Erlang, PIDs carry information about the node they belong to. This is important for message passing in a distributed system. When you send a message to a PID, ERTS needs to know whether the PID is local to the node or if it belongs to a process on a remote node.
+
+When you print a PID in the Erlang shell, it appears in the format `<node.index.serial>`. For example, `<0.10.0>`. Where the node ID 0 is used for the local node.
+
+When a message is sent from one node to another, any local PIDs in the message are automatically converted to remote PIDs by the Erlang runtime system. This conversion is transparent to the processes involved; from their perspective, they are simply sending and receiving messages using PIDs.
+
+The conversion involves replacing the local node identifier `0` in the PID with the real identifier of the node. The unique process number remains the same. This is done by `term_to_binary/1`.
+
+When a message is received, any remote PIDs in the message are converted back to local PIDs before the message is delivered to the receiving process. This involves replacing the node identifier with `0` and removing the creation number.
+
+This automatic conversion of PIDs allows Erlang processes to communicate transparently across nodes, without needing to be aware of the details of the distribution mechanism.
+
+When a message is sent to a PID, the ERTS uses the index part of the PID to look up the process in the process table and then adds the message to the process's message queue.
+
+When a process dies, its entry in the process table is marked as free, and the serial part of the PID is incremented. This ensures that if a new process is created and reuses the same index, it will have a different PID.
+
+For distributed Erlang, the handling of PIDs is a bit more complex. When a message is sent to a PID on a remote node, the local ERTS needs to communicate with the ERTS on the remote node to deliver the message. This is done using the Erlang distribution protocol.
+
+1. The Erlang Node 1 initiates a spawn_request, e.g. through `spawn/4`.
+2. This request is handled by the Erlang Runtime System (ERTS) on Node 1.
+3. ERTS then sends a SPAWN_REQUEST message via the Distribution Protocol.
+   In OTP 23 and later: `{29, ReqId, From, GroupLeader, {Module, Function, Arity}, OptList}` followed by `ArgList``.
+4. This message is received by ERTS on Node 2.
+5. ERTS on Node 2 then initiates a spawn_request on Erlang Node 2.
+6. Node 2 creates a new process calling `Module:Function(ArgList)`
+7. ERTS on Node 2 sends a SPAWN_REPLY message back via the Distribution Protocol. `{31, ReqId, To, Flags, Result}`
+   The Flags parameter is a binary field where each bit represents a specific flag. These flags are combined using a bitwise OR operation. Currently, the following flags are defined:
+    - Flag 1: This flag is set if a link has been established between the originating process (To) and the newly spawned process (Result). This link is set up on the node where the new process resides.
+    - Flag 2: This flag is set if a monitor has been established from the originating process (To) to the newly spawned process (Result). This monitor is set up on the node where the new process resides.
+8. This message is received by ERTS on Node 1.
+9. Finally, ERTS on Node 1 returns the Pid to the caller.
+
+
+=== Remote Procedure Calls in Distributed Erlang
+
+Remote Procedure Calls (RPCs) are a fundamental part of distributed Erlang. They allow a process on one node to invoke a function on another node, as if it were a local function call. Here's a deeper look at how they are implemented.
+
+At the most basic level, an RPC in Erlang is performed using the `rpc:call/4` function. This function takes four arguments: the name of the remote node, the name of the module containing the function to call, the name of the function, and a list of arguments to pass to the function.
+
+Here's an example of an RPC:
+
+```erlang
+Result = rpc:call(Node, Module, Function, Args).
+```
+
+When this function is called, the following steps occur:
+
+1. The calling process sends a message to the `rex` server process on the remote node. This message contains the details of the function call.
+
+2. The `rex` server on the remote node receives the message and invokes the specified function in a new process.
+
+3. The function runs to completion on the remote node, and its result is sent back to the calling process as a message.
+
+4. The `rpc:call/4` function receives the result message and returns the result to the caller.
+
+The `rex` server is a standard part of every Erlang node and is responsible for handling incoming RPC requests. Its name stands for "Remote EXecution".
+
+When the `rex` server receives an RPC request, it spawns a new process to handle the request. This process invokes the requested function and sends the result back to the caller. If the function throws an exception, the exception is caught and returned to the caller as an error.
+
+The messages used for RPCs are regular Erlang messages, and they use the standard Erlang distribution protocol for transmission. This means that RPCs can take advantage of all the features of Erlang's message-passing mechanism, such as selective receive and pattern matching.
+
+In addition to the synchronous `rpc:call/4` function, Erlang also provides an asynchronous RPC mechanism. This is done using the `rpc:cast/4` function, which works similarly to `rpc:call/4` but does not wait for the result. Instead, it sends the request to the remote node and immediately returns `noreply`.
+
+Asynchronous RPCs can be useful in situations where the caller does not need to wait for the result, or where the called function does not return a meaningful result.
+
+=== Distribution in a Large-Scale System
+
+As the system grows, the number of node connections can increase exponentially, especially with the default setting that all nodes
+connect to all nodes. This growth can lead to a surge in network traffic and can strain the system's ability to manage connections and maintain performance.
+
+In a distributed system, data has to travel across the network. The time taken for data to travel from one node to another, known as network latency, can impact the performance of the system, especially when nodes are geographically dispersed.
+
+Even though Erlang's asynchronous message-passing model allows it to handle network latency effectively. A process does not need to wait for a response after sending a message, allowing it to continue executing other tasks.
+It is still discouraged to use Erlang distribution in a geographically
+distributed system. The Erlang distribution was designed for communication within a data center or preferably within the same rack in a data center.
+For geographically distributed systems other asynchronous communication patterns are suggested.
+
+In large-scale systems, failures are inevitable. Nodes can crash, network connections can be lost, and data can become corrupted. The system must be able to detect and recover from these failures without significant downtime.
+
+This can be battles with the built-in mechanisms for fault detection and recovery. Supervision trees allow the system to detect process failures and restart failed processes automatically.
+
+Maintaining data consistency across multiple nodes is a significant challenge. When data is updated on one node, the changes need to be propagated to all other nodes that have a copy of that data.
+One way of dealing with this is to avoid state that needs to be
+distributed. If possible just keep the true state in one place,
+for example in a database.
+
+Erlang provides several tools and libraries for managing data consistency, such as Mnesia, a distributed database management system. Mnesia supports transactions and can replicate data across multiple nodes.
+Unfortunately, the default way that Mnesia handles synchronization
+after a net split or node restart is a bit too expensive for all
+but really small tables. More on this in the chapter on Mnesia.
+Using a classic performant ACID SQL database for large data sets, and message queues for event handling is recommended in most cases.
+
+=== Dist Port
+
+The Erlang distribution uses a buffer known as the inter-node communication buffer. Its size is 128 MB by default. This is a reasonable default for most workloads. However, in some environments, inter-node traffic can be very heavy and run into the buffer's capacity. Other workloads where the default is not a good fit involve transferring very large messages (for instance, in hundreds of megabytes) that do not fit into the buffer.
+
+In such cases, the buffer size can be increased using the `+zdbbl` VM flag. The value is in kilobytes:
+
+```
+erl +zdbbl 192000
+```
+
+When the buffer is hovering around full capacity, nodes will log a warning mentioning a busy distribution port (busy_dist_port):
+
+```
+2023-05-28 23:10:11.032 [warning] <0.431.0> busy_dist_port <0.324.0>
+```
+
+Increasing buffer size may help increase throughput and/or reduce latency. It's important to monitor your Erlang system regularly to identify and address performance issues like this. Tools like `etop` or the `:observer` application can provide valuable insights into the load and performance of your Erlang nodes. More on this in the chapter on monitoring.
+
+Other solutions trying to find the root cause of the busy dist port could be:
+
+1. **Network Issues**: If your network is slow or unreliable, it might be causing delays in sending messages. Check your network performance and consider upgrading your network infrastructure if necessary.
+
+2. **High Message Volume**: If your Erlang nodes are sending a large number of messages, it might be overwhelming the distribution port. Consider optimizing your code to reduce the number of messages being sent. This could involve batching messages together or reducing the frequency of messages.
+You could also try to make sure that processes that need to communicate
+are on the same node.
+
+3. **Long-Running Tasks**: If your Erlang processes are performing long-running tasks without yielding, it could be blocking the distribution port. Make sure your processes yield control regularly to allow other processes to send messages. This should usually not be a problem unless
+you have some bad behaving NIFs in the system.
+
+4. **Tune Erlang VM**: You can also tune the Erlang VM to better handle the load. This could involve increasing the number of schedulers (using `+S` option), increasing the IO polling threads (using `+A` option), or tweaking other VM settings.
+

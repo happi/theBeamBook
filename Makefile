@@ -27,3 +27,6 @@ clean:
 	find site -type f -name '.[^gitignore]*' -delete
 	rm -rfv beam-book.pdf site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml ./images/diag-*.png site/code/*/*.png site/images/*
 	rmdir site/code/* site/images site/code
+
+serve: all
+	cd site && python3 -m http.server

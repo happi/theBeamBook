@@ -174,8 +174,8 @@ linked in driver.
 
 === Distributed Erlang ===
 
-// How Erlang nodes communicate.
-// RPC
+See chapter xref:CH-Distribution[] for details on the built in
+distribution layer.
 
 === Sockets, UDP and TCP ===
 // Sockets.
