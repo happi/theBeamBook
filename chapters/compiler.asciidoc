@@ -56,7 +56,7 @@ compiler to return Core Erlang code you can give the options +[core,
  binary]+.
 
 
-The compiler is made up of a number of passes as illustrated in 
+The compiler is made up of a number of passes as illustrated in
 xref:fig_compiler_passes[].
 
 [[fig_compiler_passes]]
@@ -219,7 +219,7 @@ get a file "world.P":
 
 [source,erlang]
 ----
-2> c(world, ['P']). 
+2> c(world, ['P']).
 ** Warning: No object file created - nothing loaded **
 ok
 ----
@@ -238,7 +238,7 @@ done, you can compile the code with the +'E'+-flag.
 
 [source,erlang]
 ----
-3> c(world, ['E']). 
+3> c(world, ['E']).
 ** Warning: No object file created - nothing loaded **
 ok
 ----
@@ -260,7 +260,7 @@ for each BEAM instruction in the code.
 
 [source,erlang]
 ----
-3> c(world, ['S']). 
+3> c(world, ['S']).
 ** Warning: No object file created - nothing loaded **
 ok
 ----
@@ -272,7 +272,7 @@ The file +world.S+ should look like this:
 include::../code/compiler_chapter/src/world.S[]
 ----
 
-Since this is a file with dot ("_._") separated Erlang terms, you can 
+Since this is a file with dot ("_._") separated Erlang terms, you can
 read the file back into the Erlang shell with:
 ----
 {ok, BEAM_Code} = file:consult("world.S").
@@ -289,7 +289,7 @@ Then comes a list of exports and any compiler attributes (none in this
 example) much like in any Erlang source module.
 
 The first real beam-like instruction is +{labels, 7}+ which tells the
-VM the number of labels in the code to make it possible to allocate 
+VM the number of labels in the code to make it possible to allocate
 room for all labels in one pass over the code.
 
 After that there is the actual code for each function. The first
@@ -298,7 +298,7 @@ as a label number.
 
 You can use the +'S'+ option with great effect to help you understand
 how the BEAM works, and we will use it like that in later chapters. It
-is also invaluable if you develop your own language that you compile 
+is also invaluable if you develop your own language that you compile
 to the BEAM through Core Erlang, to see the generated code.
 
 === Compiler Passes
@@ -352,8 +352,8 @@ that gives you a valid term. E.g.:
 ----
 
 There are few real usages for this other than to win the
-obfuscated Erlang code contest. The main point to remember is that 
-you can not really use the Erlang preprocessor to define a language 
+obfuscated Erlang code contest. The main point to remember is that
+you can not really use the Erlang preprocessor to define a language
 with a syntax that differs from Erlang. Fortunately there are
 other ways to do this, as you shall see later.
 
@@ -501,7 +501,7 @@ The compilation of +json_test+ fails since the module contains invalid
 Erlang syntax, but you get to see what the AST looks like. Now we can
 just write some functions to traverse the AST and rewrite the json
 code into Erlang code.footnote:[The translation here is done in
-accordance with link:http://www.erlang.org/eeps/eep-0018.html[EEP 18] 
+accordance with link:http://www.erlang.org/eeps/eep-0018.html[EEP 18]
 (Erlang Enhancement Proposal 18: "JSON bifs")]
 
 [source,erlang]
