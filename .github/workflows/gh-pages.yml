@@ -34,6 +34,8 @@ jobs:
           fetch-depth: 0
       - name: install tools
         run: apk add git rsync erlang tar
+      - name: Sort out git ownership
+        run: git config --global --add safe.directory ${GITHUB_WORKSPACE}
       - name: build
         run: make && mv site _site && ls -al
       - name: Build pages
