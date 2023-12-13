@@ -30,7 +30,7 @@ parse_chunks([{"ImpT", _Size,
     parse_chunks(Rest,[{imports,parse_table(Imports)}|Acc]);
 parse_chunks([{"Code", Size, <<SubSize:32/integer, Chunk/binary>>} | Rest], Acc) ->
     <<Info:SubSize/binary, Code/binary>> = Chunk,
-    OpcodeSize = Size - SubSize - 8, %% 8 is size of CunkSize & SubSize
+    OpcodeSize = Size - SubSize - 8, %% 8 is size of ChunkSize & SubSize
     <<OpCodes:OpcodeSize/binary, _Align/binary>> = Code, 
     parse_chunks(Rest,[{code,parse_code_info(Info), OpCodes}|Acc]);
 parse_chunks([{"StrT", _Size, <<Strings/binary>>} | Rest], Acc) ->
