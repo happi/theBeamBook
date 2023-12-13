@@ -258,7 +258,7 @@ We can parse out the code chunk by adding the following code to our program:
 parse_chunks([{"Code", Size, <<SubSize:32/integer,Chunk/binary>>
               } | Rest], Acc) ->
    <<Info:SubSize/binary, Code/binary>> = Chunk,
-   %% 8 is size of CunkSize & SubSize
+   %% 8 is size of ChunkSize & SubSize
    OpcodeSize = Size - SubSize - 8,
    <<OpCodes:OpcodeSize/binary, _Align/binary>> = Code,
    parse_chunks(Rest,[{code,parse_code_info(Info), OpCodes}
