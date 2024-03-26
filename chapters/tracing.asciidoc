@@ -1,2 +1,14 @@
 [[CH-Tracing]]
 == Tracing
+
+Concurrency and distributed systems present unique challenges and complexities, particularly when it comes to debugging and monitoring.
+Tracing is helpful in this context, offering developers a window into the running system's behavior.
+This chapter begins by exploring the role of tracing on the BEAM.
+
+Tracing provides visibility into process execution, communication between these processes, and the overall behavior of the system.
+Erlang systems are known for their robustness and fault tolerance, traits that we really want to achieve. However, these traits can complicate pinpointing the source of errors or unexpected behavior. Tracing allows developers to follow the execution flow in real-time or through recorded logs, making it easier to identify and rectify bugs.
+Tracing also serves a vital function in monitoring the performance of Erlang applications.
+Tracing function calls, message passing, and other system activities allows developers to gather data on performance bottlenecks, inefficient code paths, and unexpected system behavior. 
+Erlang's tracing capabilities extend to providing insights into the system's behavior. 
+Tracing helps in understanding how different parts of the system interact, how they scale, and how they recover from failures.
+Tracing thus becomes an educational tool, enabling developers to model and predict system behavior more accurately.
