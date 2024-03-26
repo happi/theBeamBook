@@ -3,7 +3,7 @@
 
 Work In Progress!
 
-== Outline ==
+=== Outline 
 
 Process Dictionary
  The PD is actually an Erlang list on the heap. Each entry in the list is a two tuple ({key, Value}) also stored on the heap.
@@ -17,7 +17,7 @@ erase(Key)
 erase()
 
 
-== ETS ==
+==== ETS 
 Erlang Term Storage.
 
 Off heap key value store.
@@ -32,7 +32,7 @@ Table types are: set, bag, ordered_set, duplicate_bag.
 
 (We will look at them when talking about Mnesia)
 
-== DETS ==
+==== DETS 
 Disk-based Erlang Term Storage
 
 Can be opened by multiple Erlang processes.
@@ -43,7 +43,7 @@ Buddy system in RAM.
 
 Table types are: set, bag, duplicate_bag.
 
-== MNESIA ==
+=== MNESIA 
 
 Erlang/Elixir terms stored in tables using records on top level.
 The table types are:
@@ -98,9 +98,9 @@ MNESIA transaction
 
 (Add diagram)
 
-Note that most actions happens in the calling process. Access is granted by mnesia, but the process performs the tasks.
+Note that most actions occur in the calling process. Mnesia grants access, but the process performs the tasks.
 
-Note that nothing changes in global state (or disc) until the commit.
+Nothing changes in global state (or disc) until the commit.
 
 MNESIA dirty ops
 
@@ -122,7 +122,7 @@ dump_log_time_threshold
 dump_log_write_threshold
 
 
-The warning "Mnesia is overloaded" is issued when a dump is triggered before the last one has finished. This is mostly harmless, but the parameters should be tweaked to only get the warnings when the system is actually loaded.
+The warning "Mnesia is overloaded" is issued when a dump is triggered before the last one has finished. This is mostly harmless, but the parameters should be tweaked to only get the warnings when the system is loaded.
 
 (Add diagram)
 
