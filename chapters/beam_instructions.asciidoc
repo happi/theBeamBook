@@ -319,8 +319,6 @@ A minimal receive loop, which accepts any message and has no timeout
 
 [source,erlang]
 ----
-  {label,2}.
-    {wait,{f,1}}.
   {label,1}.
     {loop_rec,{f,2},{x,0}}.
     remove_message.
