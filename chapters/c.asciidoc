@@ -1,7 +1,153 @@
 [[CH-C]]
-== Interfacing C -- BIFs NIFs and Linked in Drivers
+//First Draft
+
+== Chapter: Interfacing other languages and extending BEAM and ERTS
+
+=== Introduction
+Interfacing C, C++, Ruby, or assembler provides an opportunity to extend the capabilities of the BEAM. In this chapter, we will use C for most examples, but the methods described can be used to interface almost any other programming language. We will give some examples of Ruby and Java in this chapter. In most cases, you can replace C with any other language in the rest of this chapter, but we will just use C for brevity.
+
+By integrating C code, developers can enhance their Erlang applications' performance, especially for computationally intensive tasks requiring direct access to system-level resources. Additionally, interfacing with C allows Erlang applications to interact directly with hardware and system-level resources. This capability is crucial for applications that require low-level operations, such as manipulating memory, accessing specialized hardware, or performing real-time data processing. Another advantage of integrating C with Erlang is using existing C libraries and codebases. Many powerful libraries and tools are available in C, and by interfacing with them, Erlang developers can incorporate these functionalities without having to reimplement them in Erlang. 
+
+Furthermore, interfacing with C can help when precise control over execution is necessary. While Erlang's virtual machine provides excellent concurrency management, certain real-time applications may require more deterministic behavior that can be better achieved with C. By integrating C code, developers can fine-tune the performance and behavior of their applications to meet specific requirements.
+
+C code can also extend ERTS and BEAM since they are written in C.
+
+In previous chapters, we have seen how you can safely interface other applications
+and services over sockets or ports. This chapter will look at ways to interface low-level code more directly, which also means using it more unsafely.
+
+==== Safe Ways of Interfacing C Code
+
+Interfacing C code with Erlang can be done safely using several mechanisms that minimize the risk of destabilizing the BEAM virtual machine. Here are the primary methods.
+
+===== Sockets
+Sockets provide a straightforward way to enable communication between Erlang and external C programs. By using TCP or UDP sockets, C applications can exchange data with Erlang processes over the network, ensuring that both systems remain isolated. This method is particularly useful for distributed systems and allows for asynchronous communication.
+
+The most common and easiest way is to use a REST-like interface over HTTP or HTTPS. There are Erlang libraries for both client and server implementations, such as `httpc` for HTTP clients and `cowboy` for HTTP servers. This approach allows C applications to expose APIs that Erlang processes can call, facilitating interaction over a well-defined protocol.
+
+The next level is to use pure socket communication, which can be more efficient than HTTP/HTTPS but requires you to come up with a protocol yourself or use some other low-level protocol. This method allows for custom data exchange formats and can optimize performance by reducing the overhead associated with higher-level protocols.
+
+See chapter xref:CH-IO[] for details on how sockets works.
+
+===== Open Ports
+The `open_port` function in Erlang creates a communication channel between an Erlang process and an external C program. This method involves starting the C program as a separate OS process and communicating with it via standard input and output. This approach encapsulates the C code, preventing it from directly affecting the Erlang VM's stability. 
+
+Example:
+```erlang
+Port = open_port({spawn, "./my_c_program"}, [binary]),
+port_command(Port, <<"Hello, C program!">>).
+```
+
+2. Overview of BIFs, NIFs, and Linked-in Drivers
+   * Definitions and primary uses.
+   * Comparison of safety and complexity.
+
+=== Linked-in Drivers
+1. Concept and Purpose
+   * Asynchronous communication with external resources.
+   * Handling complex I/O operations.
+2. Advantages and Drawbacks
+   * High flexibility and performance.
+   * Increased complexity and potential for VM destabilization.
+3. Implementation Steps
+   * Driver Initialization
+     ** Defining the `erl_drv_entry` struct.
+     ** Registering the driver.
+   * Asynchronous Operations
+     ** Handling driver callbacks.
+     ** Example of managing I/O events.
+   * Resource Management
+     ** Proper allocation and deallocation of resources.
+4. Example Implementation
+   * Step-by-step guide to creating a simple driver.
+   * Code snippets illustrating each step.
+   * Explanation of key functions and their roles.
+5. Why You Shouldn’t Use Linked-in Drivers
+   * Complexity.
+   * Risk of crashing the VM.
+   * Maintenance challenges.
+
+=== Native Implemented Functions (NIFs)
+1. Concept and Purpose
+   * Extending Erlang capabilities with custom native code.
+   * High performance for computationally intensive tasks.
+2. Advantages and Drawbacks
+   * Performance benefits.
+   * Risks of destabilizing the VM.
+3. Implementation Steps
+   * Defining a NIF
+     ** Writing C functions.
+     ** Using the Erlang NIF API to register functions.
+   * Loading a NIF
+     ** Compiling and loading the shared library.
+   * Error Handling
+     ** Implementing robust error handling.
+4. Example Implementation
+   * Creating a NIF for a mathematical operation.
+   * Detailed code walkthrough.
+   * Key considerations for stability and performance.
+5. Why You Shouldn’t Use NIFs
+   * Complexity.
+   * Risk of crashing the VM.
+   * Maintenance challenges.
+
+=== Built-In Functions (BIFs)
+1. Concept and Purpose
+   * Pre-defined functions for common operations.
+   * Integrated directly into the BEAM.
+2. Differences Between BIFs, Operators, and Library Functions
+   * BIFs: Native, efficient, implemented in C.
+   * Operators: Built-in syntactic elements.
+   * Library Functions: Implemented in Erlang, less efficient.
+3. Advantages and Drawbacks
+   * High efficiency.
+   * Potential to block schedulers if not managed carefully.
+4. Implementation Steps
+   * Creating a BIF
+     ** Writing the C implementation.
+     ** Integrating with the BEAM.
+   * Performance Considerations
+     ** Ensuring efficient execution.
+     ** Avoiding long-running operations that block schedulers.
+5. Example Implementation
+   * Implementing a custom BIF.
+   * Code examples demonstrating the integration process.
+   * Testing and performance evaluation.
+6. Why You Shouldn’t Overuse BIFs
+   * Risk of blocking schedulers.
+   * Complexity in maintaining native code.
+
+=== Case Study: Klarna and `term_to_binary`
+1. Problem Description
+   * Performance issues with `term_to_binary`.
+   * Impact on BEAM schedulers.
+2. Analysis
+   * How long-running BIFs can block schedulers.
+   * Consequences for system responsiveness.
+3. Solution: Dirty Schedulers
+   * Introduction and purpose of dirty schedulers.
+   * History and development (EEP).
+4. Implementation of Dirty Schedulers
+   * Dirty CPU Schedulers
+     ** Handling CPU-intensive tasks.
+   * Dirty I/O Schedulers
+     ** Managing I/O-bound operations.
+5. Impact and Benefits
+   * Improved system stability.
+   * Enhanced performance and responsiveness.
+
+=== Conclusion
+1. Summary of Key Points
+   * Importance of interfacing C with Erlang.
+   * Differences and use cases for Linked-in Drivers, NIFs, and BIFs.
+2. Best Practices
+   * Choosing the right tool for the task.
+   * Ensuring stability and performance.
+3. Future Directions
+   * Ongoing innovations and improvements in the BEAM ecosystem.
+
 
 // What is a bif, difference between bifs and operators and library
 // functions, how are bifs implemented. What is a nif, how to implement a
 // nif. What is a linked in driver, how to implement a linked in
 // driver. Why you shouldn&rsquo;t do this.
+

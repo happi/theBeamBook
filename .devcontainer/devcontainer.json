@@ -1,0 +1,19 @@
+{
+    "name": "BeamBook Dev Container",
+    "dockerFile": "Dockerfile",
+    
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "ms-vscode.cpptools",
+          "ms-python.python",
+          "rebornix.Ruby"
+        ]
+      },
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+      }
+    },
+    "postCreateCommand":  ". /workspace/venv/bin/activate && pip install -r requirements.txt"
+}
+  
