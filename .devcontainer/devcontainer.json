@@ -1,19 +1,30 @@
 {
-    "name": "BeamBook Dev Container",
-    "dockerFile": "Dockerfile",
-    
-    "customizations": {
-      "vscode": {
-        "extensions": [
-          "ms-vscode.cpptools",
-          "ms-python.python",
-          "rebornix.Ruby"
-        ]
-      },
-      "settings": {
-        "terminal.integrated.shell.linux": "/bin/bash"
-      }
+  "name": "BeamBook Dev Container",
+  "dockerFile": "Dockerfile",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "asciidoctor.asciidoctor-vscode",
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-azuretools.vscode-docker",
+        "ms-python.debugpy",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cpptools-themes",
+        "ms-vscode.makefile-tools",
+        "pgourlain.erlang",
+        "rebornix.ruby",
+        "twxs.cmake",
+        "wingrunr21.vscode-ruby",
+      ]
     },
-    "postCreateCommand":  ". /workspace/venv/bin/activate && pip install -r requirements.txt"
+    "settings": {
+      "terminal.integrated.shell.linux": "/bin/bash"
+    }
+  },
+  "postCreateCommand": ". /workspace/venv/bin/activate && pip install -r requirements.txt"
 }
-  

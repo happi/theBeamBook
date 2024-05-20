@@ -1,5 +1,6 @@
 [[CH-IO]]
-== IO, Ports and Networking (10p)
+== IO, Ports and Networking
+// First Draft
 
 Within Erlang, all communication is done by asynchronous signaling.
 The communication between an Erlang node and the outside world is done
@@ -15,13 +16,194 @@ how Erlang processes communicate with ports. But first we will look
 at how standard IO works on a higher level.
 
 === Standard IO ===
+Understanding standard I/O in Erlang helps with debugging and interaction with external programs. This section will cover the I/O protocol, group leaders, how to use 'erlang:display', 'io:format', and methods to redirect standard I/O.
 
-* IO protocol
-* group leader
-* erlang:display -- a BIF that sends directly to node's std out
-* io:format -- sends through io protocol and the group leader
-* Redirecting standard IO at startup (detached mode)
-* Standard in and out
+==== I/O Protocol ====
+
+Erlang's I/O protocol handles communication between processes and I/O devices. The protocol defines how data is sent to and received from devices like the terminal, files, or external programs.
+The protocol includes commands for reading, writing, formatting, and handling I/O control operations.
+These commands are performed asynchronously, maintaining the concurrency model of Erlang.
+For more detailed information, refer to the official documentation at link:https://www.erlang.org/doc/apps/stdlib/io_protocol.html[erlang.org:io_protocol].
+
+The I/O protocol is used to communicate with the group leader, which is responsible for handling I/O requests. The group leader is the process that receives I/O requests from other processes and forwards them to the I/O server. The I/O server is responsible for executing the requests and sending the responses back to the group leader, which then forwards them to the requesting process.
+
+We will discuss group leaders later, but lets look at the actual I/O protocol first. The protocol has the following messages:
+
+===== Basic Messages
+
+* `{io_request, From, ReplyAs, Request}`:
+  - `From`: `pid()` of the client process.
+  - `ReplyAs`: Identifier for matching the reply to the request.
+  - `Request`: The I/O request.
+
+* `{io_reply, ReplyAs, Reply}`:
+  - `ReplyAs`: Identifier matching the original request.
+  - `Reply`: The response to the I/O request.
+
+===== Output Requests
+
+* `{put_chars, Encoding, Characters}`:
+  - `Encoding`: `unicode` or `latin1`.
+  - `Characters`: Data to be written.
+
+* `{put_chars, Encoding, Module, Function, Args}`:
+  - `Module, Function, Args`: Function to produce the data.
+
+===== Input Requests
+
+* `{get_until, Encoding, Prompt, Module, Function, ExtraArgs}`:
+  - `Encoding`: `unicode` or `latin1`.
+  - `Prompt`: Data to be output as a prompt.
+  - `Module, Function, ExtraArgs`: Function to determine when enough data is read.
+
+* `{get_chars, Encoding, Prompt, N}`:
+  - `Encoding`: `unicode` or `latin1`.
+  - `Prompt`: Data to be output as a prompt.
+  - `N`: Number of characters to be read.
+
+* `{get_line, Encoding, Prompt}`:
+  - `Encoding`: `unicode` or `latin1`.
+  - `Prompt`: Data to be output as a prompt.
+
+===== Server Modes
+
+* `{setopts, Opts}`:
+  - `Opts`: List of options for the I/O server.
+
+* `getopts`:
+  - Requests the current options from the I/O server.
+
+===== Multi-Request and Optional Messages
+
+* `{requests, Requests}`:
+  - `Requests`: List of valid `io_request` tuples to be executed sequentially.
+
+* `{get_geometry, Geometry}`:
+  - `Geometry`: Requests the number of rows or columns (optional).
+
+===== Unimplemented Request Handling
+
+If an I/O server encounters an unrecognized request, it should respond with:
+- `{error, request}`.
+
+===== Example of a Custom I/O Server
+
+Here's a simplified example of an I/O server that stores data in memory:
+
+[source,erlang]
+----
+include::../code/io_chapter/pg_example/src/custom_io_server.erl[]
+----
+
+We can now use this memory store as an I/O device for example using
+the file interface.
+
+
+[source,erlang]
+----
+include::../code/io_chapter/pg_example/src/file_client.erl[]
+----
+
+Now we can use this memory store through the file_client interface:
+
+```erlang
+shell V14.2.1 (press Ctrl+G to abort, type help(). for help)
+1> {ok, Pid} = file_client:open().
+{ok,<0.219.0>}
+2> file_client:write(Pid, "Hello, world!\n").
+ok
+3> R = file_client:close(Pid).
+{ok,<<"Hello, world!\n">>}
+4>
+```
+
+==== Group Leader
+Group leaders allow you to redirect I/O to the appropriate endpoint. This property is inherited by child processes, creating a chain. By default, an Erlang node has a group leader called 'user' that manages communication with standard input/output channels. All input and output requests go through this process.
+
+Each shell started in Erlang becomes its own group leader. This means functions run from the shell will send all I/O data to that specific shell process. When switching shells with ^G and selecting a shell (e.g., `c <number>`), a special shell-handling process directs the I/O traffic to the correct shell.
+
+In distributed systems, slave nodes or remote shells set their group leader to a foreign PID, ensuring I/O data from descendant processes is rerouted correctly. This setup is crucial for interactive use cases.
+
+Each OTP application has an application master process acting as a group leader. This has two main uses:
+1. It allows processes to access their application's environment configuration using `application:get_env(Var)`.
+2. During application shutdown, the application master scans and terminates all processes with the same group leader, effectively garbage collecting application processes.
+
+Group leaders are also used to capture I/O during tests by `common_test` and `eunit`, and the interactive shell sets the group leader to manage I/O.
+
+===== Group Leader Functions
+
+- `group_leader() -> pid()`: Returns the PID of the process's group leader.
+- `group_leader(GroupLeader, Pid) -> true`: Sets the group leader of `Pid` to `GroupLeader`.
+
+The group leader of a process is typically not changed in applications with a supervision tree, as OTP assumes the group leader is the application master.
+
+The 'group_leader/2' function uses the 'group_leader' signal to set the group leader of a process. This signal is sent to the process, which then sets its group leader to the specified PID. The group leader can be any process, but it is typically a shell process or an application master.
+
+===== Example Usage
+
+```erlang
+1> group_leader().
+<0.24.0>
+
+2> self().
+<0.42.0>
+
+3> group_leader(self(), <0.43.0>).
+true
+```
+
+Understanding group leaders and the difference between the bif 'display' and the function 'io:format' will help you manage basic I/O in Erlang.
+* 'erlang:display/1': A BIF that writes directly to the standard output, bypassing the Erlang I/O system.
+* 'io:format/1,2': Sends I/O requests to the group leader. If performed via rpc:call/4, the output goes to the calling process's standard output.
+
+==== Redirecting Standard IO at Startup (Detached Mode)
+
+In Erlang, redirecting standard I/O (stdin, stdout, and stderr) at startup, especially when running in detached mode, allows you to control where the input and output are directed. This is particularly useful in production environments where you might want to log output to files or handle input from a different source.
+
+===== Detached Mode
+
+Detached mode in Erlang can be activated by using the `-detached` flag. This flag starts the Erlang runtime system as a background process, without a connected console. Here’s how to start an Erlang node in detached mode:
+
+```sh
+erl -sname mynode -setcookie mycookie -detached
+```
+When running in detached mode, you need to redirect standard I/O manually, as there is no attached console. This can be done by specifying redirection options for the Erlang runtime.
+
+===== Redirecting Standard Output and Error
+
+To redirect standard output and standard error to a file, use shell redirection or Erlang’s built-in options. Here’s an example of redirecting stdout and stderr to separate log files:
+
+```sh
+erl -sname mynode -setcookie mycookie -detached > mynode_stdout.log 2> mynode_stderr.log
+```
+This command starts an Erlang node in detached mode and redirects standard output to `mynode_stdout.log` and standard error to `mynode_stderr.log`.
+
+Alternatively, you can configure this within an Erlang script or startup configuration:
+
+```erlang
+init() ->
+    % Redirect stdout and stderr
+    file:redirect(standard_output, "mynode_stdout.log"),
+    file:redirect(standard_error, "mynode_stderr.log").
+```
+
+===== Redirecting Standard Input
+
+Redirecting standard input involves providing an input source when starting the Erlang node. For example, you can use a file as the input source:
+
+```sh
+erl -sname mynode -setcookie mycookie -detached < input_commands.txt
+```
+
+==== Standard Input and Output Summary
+
+Standard output ('stdout') is managed by the group leader and is typically directed to the console or a specified log file. Functions such as io:format/1 and io:put_chars/2 send output to the group leader, which handles writing it to the designated output device or file. Standard error ('stderr') is similarly managed by the group leader and can also be redirected to log files or other output destinations. Standard input ('stdin') is read by processes from the group leader. In detached mode, input can be redirected from a file or another input source.
+
+You can implement your own I/O server using the I/O protocol and you can
+use that I/O server as a file descriptor or set it as the group leader of
+a process and redirect I/O through that server.
+
+
 
 === Ports ===
 
@@ -64,7 +246,6 @@ handle to the port and can send messages to the port. The processes
 and the port reside in an Erlang node. The file lives in the file and
 operating system on the outside of the Erlang node.
 
-
 If the port owner dies or is terminated the port is also killed.
 When a port terminates all external resources should also be cleaned
 up. This is true for all ports that come with Erlang and if you
@@ -85,7 +266,9 @@ PortSettings)+.
 A file descriptor port is opened with +{fd, In, Out}+ as the
 +PortName+. This class of ports is used by some internal ERTS servers
 like the old shell. They are considered to not be very efficient and
-hence seldom used.
+hence seldom used. Also the filedescriptors are non negative intgers
+representing open file descriptors in the OS. The file descriptor can
+not be an erlang I/O server.
 
 An external program port can be used to execute any program in the
 native OS of the Erlang node. To open an external program port you
@@ -131,46 +314,207 @@ driver like: `multi_drv` and `sig_drv`.
  +--------------------------------------------------+---------+-------+-----------+++-------+++--------+
 ----
 
+Data sent to and from a port are byte streams. The packet size can be specified in the 'PortSettings' when opening a port. Since R16, ports support truly asynchronous communication, improving efficiency and performance.
 
-// Mention that data to from the port are byte streams
-// Packet size
-// R16 truly asynchronous.
-
-// Replacing the standard IO, Poll.
-// How ports are implemented.
-// How ports communicate.
-
+Ports can be used to replace standard IO and polling. This is useful when you need to interact with external programs or devices. By opening a port to a file descriptor, you can read and write data to the file. Similarly, you can open a port to an external program and communicate with it using the port interface.
 
 ===== Ports to file descriptors =====
 
-Creating
+File descriptor ports in Erlang provide an interface to interact with already opened file descriptors. Although they are not commonly used due to efficiency concerns, they can provide an easi interface to external resources.
 
-Commands
+To create a file descriptor port, you use the 'open_port/2' function with the '{fd, In, Out}'' tuple as the 'PortName'. Here, 'In' and 'Out' are the file descriptors for input and output, respectively.
 
-Examples
+Bad example:
+```erlang
+Port = open_port({fd, 0, 1}, []).
+```
+This opens a port that reads from the standard input (file descriptor 0) and writes to the standard output (file descriptor 1). Don't try this example
+since it will steal the IO from your erlang shell.
 
-Implementation
+File descriptor ports are implemented using the 'open_port/2' function, which creates a port object. The port object handles the communication between the Erlang process and the file descriptor.
+
+Internally, when 'open_port/2' is called with '{fd, In, Out}'', the Erlang runtime system sets up the necessary communication channels to interact with the specified file descriptors. The port owner process can then send and receive messages to/from the port, which in turn interacts with the file descriptor.
+
 
 ===== Ports to Spawned OS Processes =====
 
-Creating
+To create a port to a spawned OS process, you use the 'open_port/2' function with the '{spawn, Command}'' or '{spawn_executable, FileName}'' tuple as the 'PortName'. This method allows Erlang processes to interact with external programs by spawning them as separate OS processes.
 
-Commands
+The primary commands for interacting with a port include:
+* '{command, Data}'': Sends 'Data' to the external program.
+* '{control, Operation, Data}'': Sends a control command to the external program.
+* '{exit_status, Status}'': Receives the exit status of the external program.
 
-Implementation
-
-Windows
+See xref:CH-C[] for examples of how to spawn a and externa program as a port,
+you can also look at the official documentation: link:https://www.erlang.org/doc/system/c_port.html#content[erlang.org:c_port].
 
 ===== Ports to Linked in Drivers =====
 
-Creating
+Linked-in drivers in Erlang are created using the 'open_port/2' function with the '{spawn_driver, Command}'' tuple as the 'PortName'. This method requires the first token of the command to be the name of a loaded driver.
 
-Commands
+```erlang
+Port = open_port({spawn_driver, "my_driver"}, []).
+```
 
-Implementation
+Commands for interacting with a linked-in driver port typically include:
 
-See chapter xref:CH-C[] for details of how to implement your own
-linked in driver.
+* '{command, Data}'': Sends 'Data' to the driver.
+* '{control, Operation, Data}'': Sends a control command to the driver.
+Example:
+
+```erlang
+Port ! {self(), {command, <<"Hello, Driver!\n">>}}.
+```
+
+See xref:CH-C[] for examples of how to implement and spawn a linked in driver as a port, you can also look at the official documentation: link:https://www.erlang.org/doc/system/c_portdriver.html#content[erlang.org:c_portdriver].
+
+==== Flow Control in Erlang Ports
+
+Ports implement flow control mechanisms to manage backpressure and ensure efficient resource usage. One primary mechanism is the busy port functionality, which prevents a port from being overwhelmed by too many simultaneous operations. When a port is in a busy state, it can signal to the Erlang VM that it cannot handle more data until it processes existing data.
+
+When the port's internal buffer exceeds a specified high-water mark, the port enters a busy state. In this state, it signals to the VM to stop sending new data until it can process the buffered data.
+
+Processes attempting to send data to a busy port are suspended until the port exits the busy state. This prevents data loss and ensures that the port can handle all incoming data efficiently.
+
+Once the port processes enough data to fall below a specified low-water mark, it exits the busy state. Suspended processes are then allowed to resume sending data.
+
+By scheduling signals to/from the port asynchronously, Erlang ensures that processes sending data can continue executing without being blocked, improving system parallelism and responsiveness.
+
+Now this means that the erlang send operation is not always asyncronous. If the port is busy the send operation will block until the port is not busy anymore. This is a problem if you have a lot of processes sending data to the same port. The solution is to use a port server that can handle the backpressure and make sure that the send operation is always asyncronous.
+
+Lets do an example based on the offical port driver example:
+link:https://www.erlang.org/doc/system/c_portdriver.html#c-driver[erlang.org:c-driver].
+
+Let us use the original complex c function, adding 1 or multiplying by 2.
+[source, c]
+----
+include::../code/io_chapter/pg_example/src/example.c[]
+----
+
+And a slighly modified port driver. We have added an id to each message
+and return the id with the result. We also have a function
+that simulats a busy port by sleeping for a while and setting
+the busy port status if the id of the message is below 14 and the call is to the 'bar' function.
+
+[source, c]
+----
+include::../code/io_chapter/pg_example/src/busy_port.c[]
+----
+
+Now we can call this function from Erlang syncrounusly, or send
+asyncronus messages. In our port handler we have also added
+some tests that sends 10 messages to the port and then recives
+the results both syncronously and asyncronously.
+
+[source,erlang]
+----
+include::../code/io_chapter/pg_example/src/busy_port.erl[]
+----
+
+Lets try this in the shell:
+
+```erlang
+1> c(busy_port).
+{ok,busy_port}
+2> busy_port:start("busy_port_drv").
+<0.89.0>
+3> busy_port:test_sync_foo().
+Call: {foo,1}
+Received data: 2
+Call: {foo,2}
+Received data: 3
+Call: {foo,3}
+Received data: 4
+Call: {foo,4}
+Received data: 5
+Call: {foo,5}
+Received data: 6
+Call: {foo,6}
+Received data: 7
+Call: {foo,7}
+Received data: 8
+Call: {foo,8}
+Received data: 9
+Call: {foo,9}
+Received data: 10
+Call: {foo,10}
+Received data: 11
+[2,3,4,5,6,7,8,9,10,11]
+```
+That worked as expected; we did a syncrouns call and immediatley
+got a response. Now lets try the asyncronous call:
+
+```erlang
+4> busy_port:test_async_foo().
+Send: {foo,1}
+Send: {foo,2}
+Send: {foo,3}
+Send: {foo,4}
+Send: {foo,5}
+Send: {foo,6}
+Send: {foo,7}
+Send: {foo,8}
+Send: {foo,9}
+Send: {foo,10}
+Received data: 2
+Received data: 3
+Received data: 4
+Received data: 5
+Received data: 6
+Received data: 7
+Received data: 8
+Received data: 9
+Received data: 10
+Received data: 11
+[2,3,4,5,6,7,8,9,10,11]
+```
+That also worked as expected we sent 10 messages and got the results back in the same order also immediately.  Now lets try the busy port:
+
+```erlang
+5> busy_port:test_async_bar().
+Send: {bar,1}
+Shouldnt ! be async...
+Send: {bar,2}
+Shouldnt ! be async...
+Send: {bar,3}
+Shouldnt ! be async...
+Send: {bar,4}
+Shouldnt ! be async...
+Send: {bar,5}
+Shouldnt ! be async...
+Send: {bar,6}
+Send: {bar,7}
+Send: {bar,8}
+Send: {bar,9}
+Send: {bar,10}
+Received data: 2
+Received data: 4
+Received data: 6
+Received data: 8
+Received data: 10
+Received data: 12
+Received data: 14
+Received data: 16
+Received data: 18
+Received data: 20
+[timepout,2,4,6,8,10,12,14,16,18]
+```
+We see that the first 5 messages are not asyncronous, but the last 5 are. This is because the port is busy and the send operation is blocking. The port is busy because the id of the message is below 14 and the call is to the 'bar' function. The port is busy for 5 seconds and then the last 5 messages are sent asyncronously.
+
+==== Port Scheduling ====
+
+Erlang ports, similar to processes, execute code (drivers) to handle external communication, such as TCP. Originally, port signals were handled synchronously, causing issues with I/O event parallelism. This was problematic due to heavy lock contention and reduced parallelism potential.
+
+To address these issues, Erlang schedules all port signals, ensuring sequential execution by a single scheduler. This eliminates contention and allows processes to continue executing Erlang code in parallel.
+
+Ports have a task queue managed by a "semi-locked" approach with a public locked queue and a private lock-free queue. Tasks are moved between these queues to avoid lock contention. This system handles I/O signal aborts by marking tasks as aborted using atomic operations, ensuring tasks are safely deallocated without lock contention.
+
+Ports can enter a busy state when overloaded with command signals, suspending new signals until the queue is manageable. This ensures flow control, preventing the port from being overwhelmed before it can process signals.
+
+Signal data preparation occurs before acquiring the port lock, reducing latency. Non-contended signals are executed immediately, maintaining low latency, while contended signals are scheduled for later execution to preserve parallelism.
+
+See Chapter xref:CH-Scheduling[] for details of how the scheduler works
+and how ports fit into the general scheduling scheme.
 
 === Distributed Erlang ===
 
@@ -178,6 +522,65 @@ See chapter xref:CH-Distribution[] for details on the built in
 distribution layer.
 
 === Sockets, UDP and TCP ===
-// Sockets.
-// Getting info on ports and sockets.
-// Tweaking.
+Sockets are a fundamental aspect of network communication in Erlang. They allow processes to communicate over a network using protocols such as TCP and UDP. Here, we will explore how to work with sockets, retrieve information about sockets, and tweak socket behavior.
+
+Erlang provides a robust set of functions for creating and managing sockets. The gen_tcp and gen_udp modules facilitate the use of TCP and UDP protocols, respectively. Here is a basic example of opening a TCP socket:
+
+```erlang
+% Open a listening socket on port 1234
+{ok, ListenSocket} = gen_tcp:listen(1234, [binary, {packet, 0}, {active, false}, {reuseaddr, true}]),
+
+% Accept a connection
+{ok, Socket} = gen_tcp:accept(ListenSocket),
+
+% Send and receive data
+ok = gen_tcp:send(Socket, <<"Hello, World!">>),
+{ok, Data} = gen_tcp:recv(Socket, 0).
+```
+
+For UDP, the process is similar but uses the 'gen_udp' module:
+
+```erlang
+% Open a UDP socket on port 1234
+{ok, Socket} = gen_udp:open(1234, [binary, {active, false}]),
+
+% Send and receive data
+ok = gen_udp:send(Socket, "localhost", 1234, <<"Hello, World!">>),
+receive
+    {udp, Socket, Host, Port, Data} -> io:format("Received: ~p~n", [Data])
+end.
+
+```
+
+
+Erlang provides several functions to retrieve information about sockets. For instance, you can use inet:getopts/2 and inet:setopts/2 to get and set options on sockets. Here's an example:
+
+```erlang
+% Get options on a socket
+{ok, Options} = inet:getopts(Socket, [recbuf, sndbuf, nodelay]),
+
+% Set options on a socket
+ok = inet:setopts(Socket, [{recbuf, 4096}, {sndbuf, 4096}, {nodelay, true}]).
+```
+Additionally, you can use inet:peername/1 and inet:sockname/1 to get the remote and local addresses of a socket:
+
+```erlang
+% Get the remote address of a connected socket
+{ok, {Address, Port}} = inet:peername(Socket),
+
+% Get the local address of a socket
+{ok, {LocalAddress, LocalPort}} = inet:sockname(Socket).
+```
+To optimize socket performance and behavior, you can tweak various socket options. Commonly adjusted options include buffer sizes, timeouts, and packet sizes. Here's how you can tweak some of these options:
+
+```erlang
+% Set socket buffer sizes
+ok = inet:setopts(Socket, [{recbuf, 8192}, {sndbuf, 8192}]),
+
+% Set a timeout for receiving data
+ok = inet:setopts(Socket, [{recv_timeout, 5000}]),
+
+% Set packet size for a TCP socket
+ok = inet:setopts(Socket, [{packet, 4}]).
+
+```
