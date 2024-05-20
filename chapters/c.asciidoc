@@ -6,7 +6,7 @@
 === Introduction
 Interfacing C, C++, Ruby, or assembler provides an opportunity to extend the capabilities of the BEAM. In this chapter, we will use C for most examples, but the methods described can be used to interface almost any other programming language. We will give some examples of Ruby and Java in this chapter. In most cases, you can replace C with any other language in the rest of this chapter, but we will just use C for brevity.
 
-By integrating C code, developers can enhance their Erlang applications' performance, especially for computationally intensive tasks requiring direct access to system-level resources. Additionally, interfacing with C allows Erlang applications to interact directly with hardware and system-level resources. This capability is crucial for applications that require low-level operations, such as manipulating memory, accessing specialized hardware, or performing real-time data processing. Another advantage of integrating C with Erlang is using existing C libraries and codebases. Many powerful libraries and tools are available in C, and by interfacing with them, Erlang developers can incorporate these functionalities without having to reimplement them in Erlang. 
+By integrating C code, developers can enhance their Erlang applications' performance, especially for computationally intensive tasks requiring direct access to system-level resources. Additionally, interfacing with C allows Erlang applications to interact directly with hardware and system-level resources. This capability is crucial for applications that require low-level operations, such as manipulating memory, accessing specialized hardware, or performing real-time data processing. Another advantage of integrating C with Erlang is using existing C libraries and codebases. Many powerful libraries and tools are available in C, and by interfacing with them, Erlang developers can incorporate these functionalities without having to reimplement them in Erlang.
 
 Furthermore, interfacing with C can help when precise control over execution is necessary. While Erlang's virtual machine provides excellent concurrency management, certain real-time applications may require more deterministic behavior that can be better achieved with C. By integrating C code, developers can fine-tune the performance and behavior of their applications to meet specific requirements.
 
@@ -15,9 +15,53 @@ C code can also extend ERTS and BEAM since they are written in C.
 In previous chapters, we have seen how you can safely interface other applications
 and services over sockets or ports. This chapter will look at ways to interface low-level code more directly, which also means using it more unsafely.
 
+The official documentation contains a tutorial on interoperability, see link:https://www.erlang.org/doc/tutorial/introduction[Interoperability Tutorial].
+
 ==== Safe Ways of Interfacing C Code
 
 Interfacing C code with Erlang can be done safely using several mechanisms that minimize the risk of destabilizing the BEAM virtual machine. Here are the primary methods.
+
+===== os:cmd
+The `os:cmd` function allows Erlang processes to execute shell commands and retrieve their output. This method is safe because it runs the command in a separate OS process, isolating it from the BEAM VM. By using `os:cmd`, developers can interact with external C programs without directly affecting the Erlang runtime environment. It comes with an overhead and the C program is expected to be a standalone program that can be run from the command line and return the result on standard output.
+
+Example:
+```C
+// system_time.c
+#include <stdio.h>
+#include <time.h>
+
+void get_system_time()
+{
+    time_t rawtime;
+    struct tm *timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    printf("Current Date and Time: %s", asctime(timeinfo));
+}
+
+int main()
+{
+    get_system_time();
+    return 0;
+}
+```
+
+```erlang
+> os:cmd("./time").
+"Current Date and Time: Mon May 20 04:46:37 2024\n"
+```
+
+===== 'open_port' 'spawn_executable'
+An even safer way to interact with a program, especially when arguments are based on user input, is to use open_port with the spawn_executable argument. This method mitigates the risk of argument injection by passing the arguments directly to the executable without involving an operating system shell. This direct passing prevents the shell from interpreting the arguments, thus avoiding potential injection attacks that could arise from special characters or commands in the user input.
+
+```erlang
+1> Port = open_port({spawn_executable, "./time"}, [{args, []}, exit_status]).
+#Port<0.7>
+2> receive {Port, {data, R}} -> R after 1000 -> timeout end.
+"Current Date and Time: Mon May 20 13:59:32 2024\n"
+```
 
 ===== Sockets
 Sockets provide a straightforward way to enable communication between Erlang and external C programs. By using TCP or UDP sockets, C applications can exchange data with Erlang processes over the network, ensuring that both systems remain isolated. This method is particularly useful for distributed systems and allows for asynchronous communication.
@@ -29,15 +73,16 @@ The next level is to use pure socket communication, which can be more efficient 
 See chapter xref:CH-IO[] for details on how sockets works.
 
 ===== Open Ports
-The `open_port` function in Erlang creates a communication channel between an Erlang process and an external C program. This method involves starting the C program as a separate OS process and communicating with it via standard input and output. This approach encapsulates the C code, preventing it from directly affecting the Erlang VM's stability. 
+The `open_port` function in Erlang creates a communication channel between an Erlang process and an external C program. This method involves starting the C program as a separate OS process and communicating with it via standard input and output. This approach encapsulates the C code, preventing it from directly affecting the Erlang VM's stability.
 
 Example:
+
 ```erlang
-Port = open_port({spawn, "./my_c_program"}, [binary]),
-port_command(Port, <<"Hello, C program!">>).
+Port = open_port({spawn, "./system_time"}, [binary]),
+port_command(Port, <<"get_time\n">>).
 ```
 
-2. Overview of BIFs, NIFs, and Linked-in Drivers
+=== Overview of BIFs, NIFs, and Linked-in Drivers
    * Definitions and primary uses.
    * Comparison of safety and complexity.
 
