@@ -377,6 +377,7 @@ available options for redbug, you can ask the tool itself:
 18> redbug:help().
 ----
 
+[[crash_dumps]]
 ==== Crash dumps
 ===== Understanding and reading crash dumps
 ===== Investigating why crash dumps may not be generated
