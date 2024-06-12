@@ -26,18 +26,17 @@ most basic tool, the shell and the ability to connect
 a shell to node.
 
 In order to connect two nodes they need to share or
-know a secret pass phrase, called a cookie. As long
+know a secret passphrase, called a cookie. As long
 as you are running both nodes on the same machine
 and the same user starts them they will automatically
 share the cookie (in the file `$HOME/.erlang.cookie`).
 
 We can see this in action by starting two nodes, one Erlang node
 and one Elixir node. First we start an Erlang node called
-`node1`.
+`node1`. We see that it has no connected nodes:
 
-[source,erlang]
+[source,bash]
 ----
-
 $ erl -sname node1
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
               [async-threads:10] [hipe] [kernel-poll:false]
@@ -46,10 +45,9 @@ Eshell V8.1  (abort with ^G)
 (node1@GDC08)1> nodes().
 []
 (node1@GDC08)2>
-
 ----
 
-Then we start an Elixir node called `node2`:
+Then in another terminal window we start an Elixir node called `node2`. (Note that the command line flags have to be specified with double dashes in Elixir!)
 
 [source, bash]
 ----
@@ -59,20 +57,29 @@ Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
 
 Interactive Elixir (1.4.0) - press Ctrl+C to exit (type h() ENTER for help)
 iex(node2@GDC08)1>
-
 ----
 
 In Elixir we can connect the nodes by running the command `Node.connect`
-name. In Erlang you do this with `net_kernel:connect(Name)`.
+name. In Erlang you do this with `net_kernel:connect_node(Name)`.
 The node connection is bidirectional so you only
 need to run the command on one of the nodes.
 
-
-
+[source,elixir]
 ----
 iex(node2@GDC08)1> Node.connect :node1@GDC08
 true
-iex(node2@GDC08)2>
+iex(node2@GDC08)2> Node.list
+[:node1@GDC08]
+iex(node2@GDC08)3> 
+----
+
+And from the Erlang side we can see that now both nodes know about each other. (Note that the result from `nodes()` does not contain the local node itself.)
+
+[source,erlang]
+----
+(node1@GDC08)2> nodes().
+[node2@GDC08]
+(node1@GDC08)3>
 ----
 
 In the distributed case this is somewhat more complicated since we
@@ -87,17 +94,22 @@ The last alternative, to have the same cookie
 in the cookie file of each machine in the system is usually the best
 option since it makes it easy to connect to the nodes from a local OS
 shell. Just set up some secure way of logging in to the machine either
-through VPN or ssh. In the next section we will see how to then
-connect a shell to a running node.
+through VPN or ssh.
 
-Using the second option it might look like this:
+Let's create a node on a separate machine, and connect it to the nodes we have running. We start a third terminal window, check the contents of our local cookie file, and ssh to the other machine:
 
 [source, bash]
 ----
 happi@GDC08:~$ cat ~/.erlang.cookie
 pepparkaka
 happi@GDC08:~$ ssh gds01
+happi@gds01:~$ 
+----
 
+We launch a node on the remote machine, telling it to use the same cookie passphrase, and then we are able to connect to our existing nodes. (Note that we have to specify `node1@GDC08` so Erlang knows where to find these nodes.)
+
+[source, bash]
+----
 happi@gds01:~$ erl -sname node3 -setcookie pepparkaka
 Erlang/OTP 18 [erts-7.3] [source-d2a6d81] [64-bit] [smp:8:8]
               [async-threads:10] [hipe] [kernel-poll:false]
@@ -110,18 +122,28 @@ true
 (node3@gds01)3>
 ----
 
+Even though we did not explicitly talk to node 2, it has automatically been informed that node 3 has joined, as we can see:
 
-NOTE: A Potential Problem with Different Cookies
-  Note that the default for the Erlang distribution is to create a
-  fully connected network. That is, all nodes are connected to all
-  other nodes in the network. In the example, once node3 connects to
-  node1 it also is connected to node2.
-  If each node has its own cookie you will have to tell each node the
-  cookies of each other node before you try to connect them.  You can
-  start up a node with the flag `-connect_all false` in order to
-  prevent the system from trying to make a fully connected network.
-  Alternatively, you can start a node as hidden with the flag
-  `-hidden`, which makes node connections to that node non transitive.
+[source,elixir]
+----
+iex(node2@GDC08)3> Node.list
+[:node1@GDC08,:node3@gds01]
+iex(node2@GDC08)4> 
+----
+
+In the same way, if we terminate one of the nodes, the remaining nodes will remove that node from their lists automatically. If the node gets restarted, it can simply rejoin the network again.
+
+[NOTE]
+.A Potential Problem with Different Cookies
+====
+Note that the default for the Erlang distribution is to create a fully connected network.
+That is, all nodes become connected to all other nodes in the network. 
+If each node has its own cookie, you will have to tell each node the cookies of every other node before you try to connect them.  You can
+start up a node with the flag `-connect_all false` in order to
+prevent the system from trying to make a fully connected network.
+Alternatively, you can start a node as hidden with the flag
+`-hidden`, which makes node connections to that node non-transitive.
+====
 
 Now that we know how to connect nodes, even on different machines,
 to each other, we can look at how to connect a shell to a node.
@@ -131,7 +153,7 @@ to each other, we can look at how to connect a shell to a node.
 The Elixir and the Erlang shells works much the same way as a shell or
 a terminal window on your computer, except that they give you a
 terminal window directly into your runtime system. This gives you an
-extremely powerful tool, a basically CLI with full access to the runtime.
+extremely powerful tool, a CLI with full access to the runtime.
 This is fantastic for operation and maintenance.
 
 In this section we will look at different ways of connecting to
@@ -157,32 +179,36 @@ You can also execute arbitrary code in the shell context.
 
 When the Erlang runtime system starts, it first interprets the
 code in the Erlang configuration file. The default location
-of this file is in the users home directory `~/.erlang`.
+of this file is in the users home directory `~/.erlang`. It can contain any Erlang expressions, each terminated by a dot and a newline.
 
-This file is usually used to load the user default settings for
-the shell by adding the line
+This file is typically used to add directories to the code path for loading Erlang modules:
+
+----
+code:add_path("/home/happi/hacks/ebin").
+----
+
+as well as to load the custom `user_default` module (a `.beam` file) which you can use to extend the Erlang shell with user-defined functions:
 
 ----
 code:load_abs("/home/happi/.config/erlang/user_default").
 ----
 
-Replace "/home/happi/.config/erlang/" with the absolute path
-you want to use.
+Just replace the paths above to match your own system. Do not include the `.beam` extension in the `load_abs` command.
 
-If you call a local function from the shell it will try to
-call this function first in the module `user_default` and
-then in the module `shell_default` (located in `stdlib`).
-This is how command such as `ls()` and `help()` are implemented.
+If you call a function from the shell without specifying a module name, for example `foo(bar)`, it will try to
+find the function first in the module `user_default` (if it exists) and
+then in the module `shell_default` (which is part of `stdlib`).
+This is how shell commands such as `ls()` and `help()` are implemented, and you are free to add your own or override the existing ones.
 
 ==== Connecting a Shell to a Node
 
 When running a production system you will want to start the nodes in
-daemon mode through `run_erl`. We will go through how to start a node
+daemon mode through `run_erl`. We will go through how to do this,
 and some of the best practices for deployment and running in
 production in [xxx](#ch.live). Fortunately, even when you have started
-a system in daemon mode, without a shell, you can connect a shell to
+a system in daemon mode, which implies it does not have a default shell, you can connect another shell to
 the system. There are actually several ways to do that. Most of these
-methods rely on the normal distribution mechnaisms and hence require
+methods rely on the normal distribution mechanisms and hence require
 that you have the same Erlang cookie on both machines as described
 in the previous section.
 
@@ -191,69 +217,89 @@ in the previous section.
 The easiest and probably the most common way to connect to an Erlang
 node is by starting a named node that connects to the system node
 through a remote shell. This is done with the `erl` command line flag
-`-remsh Name`.  Note that you need to start a named node in order to
-be able to connect to another node, so you also need the `-name` or
-`-sname` flag. Also, note that these are arguments to the Erlang
-runtime so if you are starting an Elixir shell you need to add an
-extra `-` to the flags, like this:
+`-remsh NodeName`.  Note that you need to be running a named node in order to
+be able to connect to another node. If you don't specify the `-name` or
+`-sname` flag when you use `-remsh`, Erlang will generate a random name for the new node. In either case, you will typically not see this name printed, since your shell will get connected directly to the remote node. For example:
 
 [source, bash]
 ----
-$ iex --sname node4 --remsh node2@GDC08
+$ erl -sname node4 -remsh node2
+Erlang/OTP 18 [erts-7.3] [source-d2a6d81] [64-bit] [smp:8:8]
+              [async-threads:10] [hipe] [kernel-poll:false]
+
+Eshell V7.3  (abort with ^G)
+(node2@GDC08)1> 
+----
+
+Or using Elixir:
+
+[source, bash]
+----
+$ iex --sname node4 --remsh node2
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
               [async-threads:10] [hipe] [kernel-poll:false]
 
 Interactive Elixir (1.4.0) - press Ctrl+C to exit (type h() ENTER for help)
 iex(node2@GDC08)1>
-
 ----
 
-Another thing to note here is that in order to start a remote Elixir shell
-you need to have IEx running on that node. There is no problem to connect
-Elixr and Erlang nodes to each other as we saw in the previous section,
-but you need to have the code of the shell you want to run loaded on the
-node you connect to.
+Note that an Erlang node can typically start a shell on an Elixir node (`node2` above), but starting an Elixir shell on an Erlang node (`node1`) will not work, because the Erlang node will be missing the necessary Elixir libraries:
 
-It is also worth noting that there is no security built into either
+[source, bash]
+----
+$ iex --remsh node1
+Could not start IEx CLI due to reason: nofile
+$ 
+----
+
+[NOTE]
+.No Default Security
+====
+There is no security built into either
 the normal Erlang distribution or to the remote shell implementation.
-You do not want to have your system node exposed to the internet and
-you do not want to connect from your local machine to a node. The safest
-way is probably to have a VPN tunnel to your live environment and use ssh
-to connect a machine running one of your live nodes. Then you can connect
+You should not leave your system node exposed to the internet, and
+you do not want to connect from a node on your development machine to a live node. You would typically access your live environment through a VPN tunnel or ssh via a bastion host, so you can log in to a machine that runs one of your live nodes. Then from there you can connect
 to one of the nodes using `remsh`.
+====
 
 It is important to understand that there are actually two nodes
 involved when you start a remote shell. The local node, named `node4`
-in the previous example and the remote node `node2`. These nodes can
+in the previous example, and the remote node `node2`. These nodes can
 be on the same machine or on different machines. The local node is
 always running on the machine on which you gave the `iex` or `erl`
-command. On the local node there is a process running the `tty`
+command with `remsh`. On the local node there is a process running the `tty`
 program which interacts with the terminal window. The actual shell
 process runs on the remote node. This means, first of all, that the
-code for the shell you want to run (i.e. iex or the Erlang shell) has
+code for the shell you want to run (Iex or the Erlang shell) has
 to exist at the remote node. It also means that code is executed on
 the remote node. And it also means that any shell default settings are
 taken from the settings of the remote machine.
 
 Imagine that we have the following `.erlang` file in our home directory
 on the machine GDC08.
-
+----
 include::../code/ops_chapter/src/.erlang[]
+----
 
-And the <filename>user_default.erl</filename>
+And the `user_default.erl`
 file looks like this:
-
+----
 include::../code/ops_chapter/src/user_default.erl[]
-
+----
 Then we create two directories `~/example/dir1` and `~/example/dir2`
-and we put two different `.iex.exs` files in those directories.
-
+and we put two different `.iex.exs` files in those directories, which will set the prompt to show either `<d1>` or `<d2>`, respectively.
+----
+# File 1
 include::../code/ops_chapter/src/example/dir1/.iex.exs[]
+----
 
+----
+# File 2
 include::../code/ops_chapter/src/example/dir2/.iex.exs[]
+----
 
 Now if we start four different nodes from these directories we
-will see how the shell configurations are loaded.
+will see how the shell configurations are loaded. First `node1` in `dir1`:
 
 [source, bash]
 ----
@@ -269,12 +315,11 @@ iEx starting in
 iEx starting on 
 node1@GDC08
 (node1@GDC08)iex<d1> 
-
 ----
 
+Then `node2` in `dir2`:
 [source, bash]
 ----
-
 GDC08:~/example/dir2$ iex --sname node2
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit]
               [smp:4:4] [async-threads:10] [hipe] [kernel-poll:false]
@@ -287,13 +332,11 @@ iEx starting in
 iEx starting on 
 node2@GDC08
 (node2@GDC08)iex<d2> 
-
 ----
 
-
+Then `node3` in `dir1`, but launching a remote shell on `node2`:
 [source, bash]
 ----
-
 GDC08:~/example/dir1$ iex --sname node3 --remsh node2@GDC08
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
               [async-threads:10] [hipe] [kernel-poll:false]
@@ -308,10 +351,10 @@ node2@GDC08
 (node2@GDC08)iex<d2> 
 ----
 
+As we see, the remote shell started up in `dir2`, since that is the directory of `node2`. Finally, we start an Erlang node and check that the function we defined in our `user_default` module can be called from the shell:
 
 [source, bash]
 ----
-
 GDC08:~/example/dir2$ erl -sname node4
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
               [async-threads:10] [hipe] [kernel-poll:false]
@@ -322,25 +365,22 @@ Eshell V8.1  (abort with ^G)
 (node4@GDC08)1> tt().
 test
 (node4@GDC08)2> 
-
 ----
 
-The shell configuration is loaded from the node running
-the shell, as you can see from the previous examples.
+These shell configurations are loaded from the node running
+the shell, as you can see from the above examples.
 If we were to connect to a node on a different machine,
 these configurations would not be present.
 
-You can actually change which node and shell you are connected to
+Passing the `-remsh` flag at startup is not the only way to launch a remote shell. You can actually change which node and shell you are connected to on the fly
 by going into job control mode.
 
 ===== Job Control Mode
 
-By pressing control+G (ctrl-G) you enter the job control mode (JCL).
+By pressing Ctrl+G you enter the job control mode (JCL).
 You are then greeted by another prompt:
 
-
 ----
-
 User switch command
  -->
 ----
@@ -380,6 +420,8 @@ iEx starting on
 node1@GDC08
 ----
 
+Starting a new local shell with `s` and connecting to that instead is useful if you have started a very long running command and want to do something else in the meantime. If your command seems to be stuck, you can interrupt it with `i`, or you can kill that shell with `k` and start a fresh one.
+
 See the [Erlang Shell manual](http://erlang.org/doc/man/shell.html)
 for a full description of JCL mode.
 
@@ -412,19 +454,14 @@ If you start your system with run_erl, something like:
 
 [source, bash]
 ----
-
 > run_erl -daemon log/erl_pipe log "erl -sname node1"
-
 ----
 
 or
 
 [source, bash]
 ----
-
-
 > run_erl -daemon log/iex_pipe log "iex --sname node2"
-
 ----
 
 You can then attach to the system through the
@@ -432,42 +469,38 @@ named pipe (the first argument to run_erl).
 
 [source, bash]
 ----
-
-
 > to_erl dir1/iex_pipe
 
 iex(node2@GDC08)1>
-
 ----
 
 You can exit the shell by sending EOF (`ctrl+d`) and leave the system
-running in the background.  Note that with `to_erl` the terminal is
-connected directly to the live node so if you exit with `ctrl-G q
-[enter]` you will bring down that node, probably not what you want.
+running in the background.
+
+NOTE:  With `to_erl` the terminal is
+connected directly to the live node so if you type `ctrl-C` or `ctrl-G q
+[enter]` you will bring down that node - probably not what you want! When using `run_erl`, it can be a good idea to also use the flag `+Bi`, which disables the `ctrl-C` signal and removes the `q` option from the `ctrl-G` menu.
 
 The last method for connecting to the node is through ssh.
 
 ===== Connecting through SSH
 
-Erlang comes with a built in ssh server which you can start
-on your node and then connect to directly. The
+Erlang comes with a built in SSH server which you can start
+on your node and then connect to directly. This is completely separate from the Erlang distribution mechanism, so you do not need to start the system with `-name` or `-sname`. The
 [documentation for the ssh module](http://erlang.org/doc/man/ssh.html) explains
 all the details. For a quick test all you need is a server key which you
-can generate with ssh-keygen:
+can generate with `ssh-keygen`:
 
 [source, bash]
 ----
-
 > mkdir ~/ssh-test/
 > ssh-keygen -t rsa -f ~/ssh-test/ssh_host_rsa_key
-
 ----
 
 Then you start the ssh daemon on the Erlang node:
 
 [source, bash]
 ----
-
 gds01> erl
 Erlang/OTP 18 [erts-7.3] [source-d2a6d81] [64-bit] [smp:8:8]
               [async-threads:10] [hipe] [kernel-poll:false]
@@ -475,31 +508,33 @@ Erlang/OTP 18 [erts-7.3] [source-d2a6d81] [64-bit] [smp:8:8]
 Eshell V7.3  (abort with ^G)
 1> ssh:start().
 {ok,<0.47.0>}
-2> ssh:daemon(8021, [{system_dir, "/home/happi/.ssh/ehost/"},
+2> ssh:daemon(8021, [{system_dir, "/home/happi/ssh-test"},
                      {auth_methods, "password"},
                      {password, "pwd"}]).
 ----
 
-You can now connect from another machine:
+NOTE: The `system_dir` defaults to `/etc/ssh`, but those keys are only readable the root user, which is why we create our own in this example.
+
+You can now connect from another machine. Note that even though you're using the plain `ssh` command to connect, you land directly in an Erlang shell on the node:
 
 [source, bash]
 ----
-
 happi@GDC08:~> ssh -p 8021 happi@gds01
 happi@gds01's password: [pwd]
 Eshell V7.3  (abort with ^G)
 1>
-
 ----
 
 In a real world setting you would want to set up your
 server and user ssh keys as described in the documentation.
-At least you would want to have a better password.
+At a minimum you would want to have a better password.
 
-To disconnect from the shell you need to shut down your terminal
-window. Using `q()` or `init:stop()` would bring down the node.
-In this shell you do not have access to neither JCL mode (`ctrl+g`)
-nor the BREAK mode (`ctrl+c`).
+In this shell you do not have access to neither JCL mode (`Ctrl+G`)
+nor the BREAK mode (`Ctrl+C`). Entering `q()`, `halt()` or `init:stop()`
+will bring down the remote node. To disconnect from the shell you
+can enter `exit().` to terminate the shell session, or you can shut
+down your terminal window.
+
 
 The break mode is really powerful when developing,
 profiling and debugging. We will take a look at it next.
@@ -508,28 +543,28 @@ profiling and debugging. We will take a look at it next.
 ==== Breaking (out or in).
 
 When you press `ctrl+c` you enter BREAK mode. This is most
-often used just to break out of the shell by either tying
-`a [enter]` for abort or by hitting `ctrl+c` once more.
-But you can actually use this mode to break in to the
+often used just to terminate the node by either typing
+`a [enter]` for abort, or simply by hitting `ctrl+c` once more.
+But you can actually use this mode to look in to the
 internals of the Erlang runtime system.
 
 When you enter BREAK mode you get a short menu:
 
 ----
-
-BREAK: (a)bort (c)ontinue (p)roc info (i)nfo (l)oaded
-       (v)ersion (k)ill (D)b-tables (d)istribution
+BREAK: (a)bort (A)bort with dump (c)ontinue (p)roc info (i)nfo
+       (l)oaded (v)ersion (k)ill (D)b-tables (d)istribution
 ----
 
-Abort exits the node and continue takes you back in to
-the shell. Hitting `p [enter]` will give you internal
+`c [enter]` (continue) takes you back to
+the shell. You can also terminate the node with a forced crash dump (different from a core dump - see xref:CH-Debugging[]) for debugging purposes with `A [enter]` .
+
+Hitting `p [enter]` will give you internal
 information about all processes in the system. We
 will look closer at what this information means
 in the next chapter (See [xxx](#ch.processes)).
 
 You can also get information about the memory and
-the memory allocators in the node through the
-info choice (`i [enter]`). In [xxx](#ch.memory)
+the memory allocators in the node through `i [enter]`. In [xxx](#ch.memory)
 we will look at how to decipher this information.
 
 You can see all loaded modules and their sizes with
@@ -537,14 +572,16 @@ You can see all loaded modules and their sizes with
 while `k [enter]` will let you step through all processes
 and inspect them and kill them. Capital `D [enter]` will
 show you information about all the ETS tables in the
-system and lower case `d [enter]` will show you
-information about the distribution. That is basically
-just the node name.
+system, and lower case `d [enter]` will show you
+information about the distribution (basically
+just the node name).
 
 If you have built your runtime with OPPROF or DEBUG you will be able
 to get even more information.  We will look at how to do this in
-xref:AP-BuildingERTS[]. The code for the break mode can be found in
+xref:AP-BuildingERTS[]. The code that implements the break mode can be found in
 <filename>[OTP_SOURCE]/erts/emulator/beam/break.c</filename>.
+
+NOTE: If you prefer that the node shuts down immediately on `ctrl+c` instead of bringing up the BREAK menu, you can pass the option `+Bd` to `erl`. This is typically what you want for running Erlang in Docker or similar. There is also the variant `+Bc` which makes `ctrl-c` just interrupt the current shell command - this can be nice for interactive work.
 
 Note that going into break mode freezes the node. This is
 not something you want to do on a production system.
