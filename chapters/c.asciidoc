@@ -63,6 +63,18 @@ An even safer way to interact with a program, especially when arguments are base
 "Current Date and Time: Mon May 20 13:59:32 2024\n"
 ```
 
+You can also spawn a port with a program that reads from standard input and writes to standard output,
+and send and receive data to and from the port.
+
+Example:
+
+```erlang
+Port = open_port({spawn, "./system_time"}, [binary]),
+port_command(Port, <<"get_time\n">>).
+```
+
+See xref:CH-IO[] for more details on how to use port drivers to connect to external programs.
+
 ===== Sockets
 Sockets provide a straightforward way to enable communication between Erlang and external C programs. By using TCP or UDP sockets, C applications can exchange data with Erlang processes over the network, ensuring that both systems remain isolated. This method is particularly useful for distributed systems and allows for asynchronous communication.
 
@@ -72,21 +84,13 @@ The next level is to use pure socket communication, which can be more efficient 
 
 See chapter xref:CH-IO[] for details on how sockets works.
 
-===== Open Ports
-The `open_port` function in Erlang creates a communication channel between an Erlang process and an external C program. This method involves starting the C program as a separate OS process and communicating with it via standard input and output. This approach encapsulates the C code, preventing it from directly affecting the Erlang VM's stability.
-
-Example:
-
-```erlang
-Port = open_port({spawn, "./system_time"}, [binary]),
-port_command(Port, <<"get_time\n">>).
-```
-
 === Overview of BIFs, NIFs, and Linked-in Drivers
    * Definitions and primary uses.
    * Comparison of safety and complexity.
 
 === Linked-in Drivers
+
+
 1. Concept and Purpose
    * Asynchronous communication with external resources.
    * Handling complex I/O operations.
@@ -110,6 +114,302 @@ port_command(Port, <<"get_time\n">>).
    * Complexity.
    * Risk of crashing the VM.
    * Maintenance challenges.
+
+Linked-in drivers in Erlang allow for the integration of C code directly into the Erlang runtime system, enabling high-performance operations and seamless interaction with external resources.
+
+Linked-in drivers offer faster communication between Erlang and C code compared to external ports,
+as they operate within the same process space, eliminating the overhead of inter-process communication.
+
+For applications with stringent timing constraints, such as hardware interfacing or real-time data processing, linked-in drivers provide the necessary responsiveness.
+
+However, linked-in drivers come with a higher risk of destabilizing the Erlang VM due to direct memory access and potential programming errors.
+
+==== How to Implement a Linked-In Driver
+Lets look at how to implement a linked-in driver in Erlang on three levels, first int the abstract what need to be done, then in some genarl psuedo code and finally in a full example.
+
+To implement a linked-in driver in Erlang, follow these steps:
+
+1. Write the C code for the driver, handling:
+   A. Driver initialization
+      * Define the `erl_drv_entry` struct with pointers to callback functions.
+      * Register the driver using the `DRIVER_INIT` macro.
+   B. Implement asynchronous operations
+      * Handle driver callbacks for start, stop, and output operations.
+      * Manage I/O events using functions like `driver_select`.
+   C. Manage resource allocation and deallocation
+      * Define a struct to hold driver-specific data.
+      * Allocate resources during driver start and release them during stop.
+2. Integrate with Erlang
+   * Load the driver using `erl_ddll:load_driver/2`.
+   * Create a port in Erlang to communicate with the driver.
+
+Let os look at some psuedo code for a linked in driver going into a bit more detail of the steps above.
+
+1. Write the C code for the driver:
+A. **Driver Initialization:**
+
+   - **Define the `erl_drv_entry` Struct:** This structure contains pointers to callback functions that the Erlang runtime system will invoke.
+
+   - **Register the Driver:** Implement the `DRIVER_INIT` macro to initialize and register your driver with the Erlang runtime.
+
+```c
+   static ErlDrvEntry example_driver_entry = {
+       NULL,                   // init
+       example_drv_start,      // start
+       example_drv_stop,       // stop
+       example_drv_output,     // output
+       NULL,                   // ready_input
+       NULL,                   // ready_output
+       "example_drv",          // driver_name
+       NULL,                   // finish
+       NULL,                   // handle
+       NULL,                   // control
+       NULL,                   // timeout
+       NULL,                   // outputv
+       NULL,                   // ready_async
+       NULL,                   // flush
+       NULL,                   // call
+       NULL,                   // event
+       ERL_DRV_EXTENDED_MARKER, // extended_marker
+       ERL_DRV_EXTENDED_MAJOR_VERSION, // major_version
+       ERL_DRV_EXTENDED_MINOR_VERSION, // minor_version
+       0,                      // driver_flags
+       NULL,                   // handle2
+       NULL,                   // process_exit
+       NULL                    // stop_select
+   };
+
+   DRIVER_INIT(example_drv) {
+       return &example_driver_entry;
+   }
+```
+
+
+B. **Asynchronous Operations:**
+
+   - **Handle Driver Callbacks:** Implement the necessary callback functions such as `example_drv_start`, `example_drv_stop`, and `example_drv_output` to manage driver operations.
+
+   - **Manage I/O Events:** Utilize functions like `driver_select` to handle asynchronous I/O operations efficiently.
+
+```c
+   static ErlDrvData example_drv_start(ErlDrvPort port, char *command) {
+       example_data* d = (example_data*)driver_alloc(sizeof(example_data));
+       d->port = port;
+       return (ErlDrvData)d;
+   }
+
+   static void example_drv_stop(ErlDrvData handle) {
+       driver_free((char*)handle);
+   }
+
+   static void example_drv_output(ErlDrvData handle, char *buff, ErlDrvSizeT bufflen) {
+       example_data* d = (example_data*)handle;
+       // Process the input and produce output
+       driver_output(d->port, output_data, output_len);
+   }
+```
+
+C. **Resource Management:**
+
+   - **Allocation and Deallocation:** Ensure proper memory management by allocating resources during driver start and releasing them during driver stop to prevent memory leaks.
+
+```c
+   typedef struct {
+       ErlDrvPort port;
+       // Additional driver-specific data
+   } example_data;
+```
+
+2. **Integration with Erlang:**
+
+   - **Loading the Driver:** Use `erl_ddll:load_driver/2` to load the shared library containing your driver.
+
+   - **Opening the Port:** Create a port in Erlang using `open_port/2` with the `{spawn, DriverName}` tuple to communicate with the driver.
+
+```erlang
+   start(SharedLib) ->
+       case erl_ddll:load_driver(".", SharedLib) of
+           ok -> ok;
+           {error, already_loaded} -> ok;
+           _ -> exit({error, could_not_load_driver})
+       end,
+       Port = open_port({spawn, SharedLib}, []),
+       loop(Port).
+```
+
+**Example Implementation**
+Now lets look at a full example of a linked in driver that doubles an integer.
+
+
+1. **C Driver:**
+
+```c
+#include "erl_driver.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+typedef struct {
+    ErlDrvPort port;
+} double_data;
+
+// Start function: initialize driver state
+static ErlDrvData double_drv_start(ErlDrvPort port, char *command) {
+    double_data* d = (double_data*)driver_alloc(sizeof(double_data));
+    d->port = port;
+    return (ErlDrvData)d;
+}
+
+// Stop function: clean up resources
+static void double_drv_stop(ErlDrvData handle) {
+    driver_free((char*)handle);
+}
+
+// Output function: process data sent from Erlang
+static void double_drv_output(ErlDrvData handle, char *buff, ErlDrvSizeT bufflen) {
+    double_data* d = (double_data*)handle;
+
+    // Convert input buffer to an integer
+    int input = atoi(buff);
+
+    // Perform the operation (double the input value)
+    int result = input * 2;
+
+    // Convert the result back to a string
+    char result_str[32];
+    snprintf(result_str, sizeof(result_str), "%d", result);
+
+    // Send the result back to Erlang
+    driver_output(d->port, result_str, strlen(result_str));
+}
+
+// Define the driver entry struct
+static ErlDrvEntry double_driver_entry = {
+    NULL,                      // init
+    double_drv_start,          // start
+    double_drv_stop,           // stop
+    double_drv_output,         // output
+    NULL,                      // ready_input
+    NULL,                      // ready_output
+    "double_drv",              // driver_name
+    NULL,                      // finish
+    NULL,                      // handle
+    NULL,                      // control
+    NULL,                      // timeout
+    NULL,                      // outputv
+    NULL,                      // ready_async
+    NULL,                      // flush
+    NULL,                      // call
+    NULL,                      // event
+    ERL_DRV_EXTENDED_MARKER,   // extended marker
+    ERL_DRV_EXTENDED_MAJOR_VERSION, // major version
+    ERL_DRV_EXTENDED_MINOR_VERSION, // minor version
+    0,                         // driver flags
+    NULL,                      // handle2
+    NULL,                      // process_exit
+    NULL                       // stop_select
+};
+
+// Driver initialization macro
+DRIVER_INIT(double_drv) {
+    return &double_driver_entry;
+}
+```
+
+2. **Erlang Module:**
+
+```erlang
+-module(double).
+-export([start/0, stop/0, double/1]).
+
+start() ->
+      SharedLib = "double_drv",
+      case erl_ddll:load_driver(".", SharedLib) of
+         ok -> ok;
+         {error, already_loaded} -> ok;
+         _ -> exit({error, could_not_load_driver})
+      end,
+      register(double_server, spawn(fun() -> init(SharedLib) end)).
+
+init(SharedLib) ->
+      Port = open_port({spawn, SharedLib}, []),
+      loop(Port).
+
+loop(Port) ->
+      receive
+         {double, Caller, N} ->
+            Port ! {self(), {command, integer_to_list(N)}},
+            receive
+                  {Port, {data, Result}} ->
+                     Caller ! {double_result, list_to_integer(Result)}
+            end,
+            loop(Port);
+         stop ->
+            Port ! {self(), close},
+            receive
+                  {Port, closed} -> exit(normal)
+            end
+      end.
+
+double(N) ->
+      double_server ! {double, self(), N},
+      receive
+         {double_result, Result} -> Result
+      end.
+
+stop() ->
+      double_server ! stop.
+```
+
+The `double_drv_output` function is responsible for processing data sent from the Erlang runtime to the driver. It begins by converting the input string to an integer using `atoi`, performs the required operation of doubling the value, and then formats the result back into a string using `snprintf`. Finally, the result is sent back to the Erlang runtime using the `driver_output` function, enabling seamless communication between Erlang and the native code.
+
+The `double_driver_entry` struct acts as the central definition for the driver, linking the Erlang runtime to the driver's core functionality. It contains pointers to callback functions such as `start`, `stop`, and `output`, which handle various aspects of the driver's lifecycle and interactions. Additionally, the `driver_name` field specifies the identifier used when loading the driver from Erlang. To complete the integration, the `DRIVER_INIT` macro registers the driver with the Erlang runtime by returning a pointer to the `double_driver_entry` struct, enabling the runtime to recognize and manage the driver effectively.
+
+To test the Linked-In Driver first compile the C code into a shared library:
+
+```bash
+gcc -o double_drv.so -fPIC -shared double_drv.c -I /path/to/erlang/erts/include
+```
+
+If you are running the code in the devcontainer of the book:
+
+```bash
+cd /code/c_chapter
+gcc -o double_drv.so -fPIC -shared -I /usr/local/lib/erlang/usr/include/ double_drv.c
+```
+
+Load the driver in Erlang:
+
+Start the Erlang shell:
+```bash
+erl
+```
+Load the driver:
+```erlang
+1> c(double).
+{ok,double}
+2> double:start().
+true
+```
+
+Call the Functionality:
+
+```erlang
+3> Result = double:double(21).
+42
+4> io:format("Doubled result: ~p~n", [Result]).
+Double result: 42
+ok
+```
+
+Stop the driver
+```erlang
+5> double:stop().
+stop
+6>
+```
+
+
 
 === Native Implemented Functions (NIFs)
 1. Concept and Purpose
