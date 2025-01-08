@@ -335,6 +335,8 @@ Port = open_port({fd, 0, 1}, []).
 This opens a port that reads from the standard input (file descriptor 0) and writes to the standard output (file descriptor 1). Don't try this example
 since it will steal the IO from your erlang shell.
 
+You tried it anyway didn't you? Now you have to restart the shell.
+
 File descriptor ports are implemented using the `open_port/2` function, which creates a port object. The port object handles the communication between the Erlang process and the file descriptor.
 
 Internally, when `open_port/2` is called with `{fd, In, Out}`, the Erlang runtime system sets up the necessary communication channels to interact with the specified file descriptors. The port owner process can then send and receive messages to/from the port, which in turn interacts with the file descriptor.
