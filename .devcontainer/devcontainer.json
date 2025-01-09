@@ -16,15 +16,14 @@
         "ms-vscode.cpptools-extension-pack",
         "ms-vscode.cpptools-themes",
         "ms-vscode.makefile-tools",
-        "pgourlain.erlang",
-        "rebornix.ruby",
+        "erlang-language-platform.erlang-language-platform",
         "twxs.cmake",
-        "wingrunr21.vscode-ruby",
+        "editorconfig.editorconfig",
+        "Shopify.ruby-lsp"
       ]
     },
     "settings": {
       "terminal.integrated.shell.linux": "/bin/bash"
     }
-  },
-  "postCreateCommand": ". /workspace/venv/bin/activate && pip install -r requirements.txt"
+  }
 }

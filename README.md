@@ -136,28 +136,72 @@ an issue declaring what you intend to do.
 
 ## Building the PDF locally from source
 
-The project contains a makefile which
+The project contains a Makefile which
 will let you build your own PDF from the source, provided
-that you have all the needed tools installed.
-
-### Docker
-
-You can build the project locally using docker by first building the docker image
-```
-make docker-build
-```
-And then building the project by
-```
-make docker
-```
-
-### Linux
-WIP, to be updated
+that you have all the needed tools installed. Just running
+the command
 ```shell
 make
 ```
+will build the file `beam-book.pdf` in the top directory
+as well as the HTML version under the `site` directory.
+
+We assume that you already have an Erlang installation of
+your choice for running examples etc. Apart from that, see
+below for what you need in order to build the book.
+
+### Docker
+
+You can build the project locally via Docker without having to
+install any addtional software, by first building the docker
+ image. Assuming you have Docker installed, run:
+```shell
+make docker-build
+```
+And then you can build the book by running
+```shell
+make docker
+```
+(Note: On Linux, the resulting files will be created with
+User ID 1000, regardless of what your current user ID is
+outside Docker. This is due to how Docker integrates with
+the file system.)
+
+#### Devcontainers in the IDE
+
+If you use VSCode or any other editor that has support for
+Devcontainers, this repository contains a configuration that
+can be used out of the box. By opening the project in the dev
+container, you get a shell inside the container with all the
+tools pre-installed and with access to the project files so
+that all you need to do is run `make`.
+
+For a tutorial on devcontainers, see
+[Introduction to Dev Containers](https://happihacking.com/blog/posts/2023/dev-containers/),
+[Decvontainer setup](https://happihacking.com/blog/posts/2023/dev-containers-emacs/),
+and [Devcontainers, UIDs and file permissions](https://happihacking.com/blog/posts/2024/dev-containers-uids/).
+
+If you prefer to build natively rather than use Docker,
+see the following sections depending on your system.
+
+### Linux
+
+The following should work on a Debian based system, such as Ubuntu:
+1. `apt install git rsync wget curl make`
+1. `apt install ruby ruby-dev default-jre`
+1. `apt install asciidoctor graphviz`
+1. `gem install asciidoctor-pdf asciidoctor-diagram rouge`
+1. `make`
 
 ### Mac OSX
+
+#### Using Homebrew
+
+1. `brew install asciidoctor graphviz wget ditaa`
+1. `gem install asciidoctor-pdf asciidoctor-diagram rouge`
+1. `make`
+
+#### Manual installation
 
 1. Install [asciidoc](https://github.com/asciidoctor/asciidoctor)
 1. Install [asciidoctor-pdf](https://github.com/asciidoctor/asciidoctor-pdf)
@@ -166,17 +210,6 @@ make
 1. Install [graphviz](https://www.graphviz.org/)
 1. Install [rouge](https://asciidoctor.org/docs/user-manual/#rouge)
 1. Install [wget](https://www.gnu.org/software/wget/)
-1. `make`
-
-### Mac OSX (using brew etc)
-
-1. `brew install asciidoctor`
-1. `gem install asciidoctor-pdf`
-1. `gem install asciidoctor-diagram`
-1. `brew install ditaa`
-1. `brew install graphviz`
-1. `gem install rouge`
-1. `brew install wget`
 1. `make`
 
 ## License

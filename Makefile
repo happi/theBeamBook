@@ -1,8 +1,10 @@
 ASSET_CHAPTERS = $(shell find chapters -type f)
 
-.PHONY: docker
+.PHONY: all pdf html docker docker-build clean serve
 
-all: chapters/contributors.txt beam-book.pdf index.html
+all: pdf html
+
+pdf: beam-book.pdf
 
 chapters/contributors.txt: .git
 	git --no-pager log | git --no-pager shortlog -s -n | awk '{$$1=""}1' | grep -v "Your Name" > $@
@@ -10,7 +12,7 @@ chapters/contributors.txt: .git
 beam-book.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
 	asciidoctor-pdf  -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram -r ./style/custom-admonition-block.rb  -a config=./style/ditaa.cfg --doctype=book -a pdf-style=./style/pdf-theme.yml book.asciidoc -o $@
 
-index.html: $(ASSET_CHAPTERS)
+html: chapters/contributors.txt $(ASSET_CHAPTERS)
 	cp -r images site
 	asciidoctor -r asciidoctor-diagram  -r ./style/custom-admonition-block.rb -a config=style/ditaa.cfg --backend=html5 --doctype=book -o site/index.html book.asciidoc --trace
 	rsync -R code/*/*.png site
@@ -27,8 +29,8 @@ genop.tab:
 
 clean:
 	find site -type f -name '.[^gitignore]*' -delete
-	rm -rfv beam-book.pdf site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml ./images/diag-*.png site/code/*/*.png site/images/*
-	rmdir site/code/* site/images site/code
+	rm -f beam-book.pdf site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml images/diag-*.png
+	rm -rf site/code site/images .asciidoctor site/.asciidoctor
 
 serve: all
 	cd site && python3 -m http.server
