@@ -1,6 +1,4 @@
 [[CH-C]]
-//First Draft
-
 == Chapter: Interfacing other languages and extending BEAM and ERTS
 
 === Introduction
@@ -26,7 +24,7 @@ The `os:cmd` function allows Erlang processes to execute shell commands and retr
 
 Example:
 ```C
-// system_time.c
+// time.c
 #include <stdio.h>
 #include <time.h>
 
@@ -89,32 +87,6 @@ See chapter xref:CH-IO[] for details on how sockets works.
    * Comparison of safety and complexity.
 
 === Linked-in Drivers
-
-
-1. Concept and Purpose
-   * Asynchronous communication with external resources.
-   * Handling complex I/O operations.
-2. Advantages and Drawbacks
-   * High flexibility and performance.
-   * Increased complexity and potential for VM destabilization.
-3. Implementation Steps
-   * Driver Initialization
-     ** Defining the `erl_drv_entry` struct.
-     ** Registering the driver.
-   * Asynchronous Operations
-     ** Handling driver callbacks.
-     ** Example of managing I/O events.
-   * Resource Management
-     ** Proper allocation and deallocation of resources.
-4. Example Implementation
-   * Step-by-step guide to creating a simple driver.
-   * Code snippets illustrating each step.
-   * Explanation of key functions and their roles.
-5. Why You Shouldn’t Use Linked-in Drivers
-   * Complexity.
-   * Risk of crashing the VM.
-   * Maintenance challenges.
-
 Linked-in drivers in Erlang allow for the integration of C code directly into the Erlang runtime system, enabling high-performance operations and seamless interaction with external resources.
 
 Linked-in drivers offer faster communication between Erlang and C code compared to external ports,
@@ -129,7 +101,8 @@ Lets look at how to implement a linked-in driver in Erlang on three levels, firs
 
 To implement a linked-in driver in Erlang, follow these steps:
 
-1. Write the C code for the driver, handling:
+Step 1. Write the C code for the driver, handling:
+
    A. Driver initialization
       * Define the `erl_drv_entry` struct with pointers to callback functions.
       * Register the driver using the `DRIVER_INIT` macro.
@@ -139,13 +112,16 @@ To implement a linked-in driver in Erlang, follow these steps:
    C. Manage resource allocation and deallocation
       * Define a struct to hold driver-specific data.
       * Allocate resources during driver start and release them during stop.
-2. Integrate with Erlang
+
+Step 2. Integrate with Erlang
+
    * Load the driver using `erl_ddll:load_driver/2`.
    * Create a port in Erlang to communicate with the driver.
 
 Let os look at some psuedo code for a linked in driver going into a bit more detail of the steps above.
 
-1. Write the C code for the driver:
+Step 1. Write the C code for the driver:
+
 A. **Driver Initialization:**
 
    - **Define the `erl_drv_entry` Struct:** This structure contains pointers to callback functions that the Erlang runtime system will invoke.
@@ -183,8 +159,6 @@ A. **Driver Initialization:**
        return &example_driver_entry;
    }
 ```
-
-
 B. **Asynchronous Operations:**
 
    - **Handle Driver Callbacks:** Implement the necessary callback functions such as `example_drv_start`, `example_drv_stop`, and `example_drv_output` to manage driver operations.
@@ -241,7 +215,7 @@ C. **Resource Management:**
 Now lets look at a full example of a linked in driver that doubles an integer.
 
 
-1. **C Driver:**
+Step 1. write the C Driver.
 
 ```c
 #include "erl_driver.h"
@@ -316,7 +290,7 @@ DRIVER_INIT(double_drv) {
 }
 ```
 
-2. **Erlang Module:**
+Step 2 wrtte the Erlang module.
 
 ```erlang
 -module(double).
@@ -395,20 +369,16 @@ true
 Call the Functionality:
 
 ```erlang
-3> Result = double:double(21).
+3> double:double(21).
 42
-4> io:format("Doubled result: ~p~n", [Result]).
-Double result: 42
-ok
 ```
 
 Stop the driver
 ```erlang
-5> double:stop().
+4> double:stop().
 stop
-6>
+5>
 ```
-
 
 
 === Native Implemented Functions (NIFs)
@@ -460,6 +430,119 @@ stop
 6. Why You Shouldn’t Overuse BIFs
    * Risk of blocking schedulers.
    * Complexity in maintaining native code.
+
+### Built-In Functions (BIFs)
+
+Built-in functions (BIFs) are a set of predefined, native functions integrated into the BEAM virtual machine. They implement some basic operations within Erlang, such as bignum arithmetic computations, process management, and handling data types like lists and tuples. BIFs are implemented in C.
+
+It is good to have a clear understanding of the differences between beam instructions, BIFs, Operators, and Library Functions.
+
+Beam instructions are the instructions that the BEAM virtual machine executes.
+The code for beam instructuins is usually kept small and can in later Erlang versions be inlined by the JIT loader. (More on this in the chapter on JIT).
+
+BIFs are implemented in C and are part of the BEAM virtual machine. They are
+usually either operators such as bignum '+' that are quite big compared to a beam instruction, or they are library functions that are implemented in C for performance reasons such as 'lists:reverse/1'. Some BIFs provide essential low-level functionality that would be *challenging* to implement purely in Erlang. Like for example 'erlang:send/2' that is used to send messages between processes.
+
+Operators are syntactic language constructs that are mapped to a library
+function. For example the oprator '+' is mapped by the compiler
+to 'erlang:+/2'. These functions can in term be implemented as
+either beam instructions or BIFs, depending on thier complexity.
+
+Library functions are basic Erlang functions such as 'lists:length/1' that are part of the Erlang language. They could be implemented as BEAM instructions,
+BIFS or in Erlang.
+
+BIFs are efficienct as they are writeen in C and optimized for performance within the BEAM.
+The dissadvantages with BIFs are thet long-running BIFs can block BEAM schedulers, affecting system responsiveness. They have limited extensibility as they are fixed within the runtime system.
+
+Most Erlang users will never need to write a BIF, but it is good to know what they are and how they work. Also if you are writing an EEP (Erlang Enhancement Proposal) you might need to write a BIF to implement the new functionality.
+
+The following sections will go through some of the detalils of how to implement a BIF.
+
+#### Implementation Steps
+
+1. **Creating a BIF**:
+   - Write the function in C, adhering to the BEAM's internal API for memory and process safety.
+   - Implement a thread-safe, efficient algorithm for the function's purpose.
+   - Add the function to the BEAM source code and compile it with the runtime system.
+   - Calculate the number of reductions the BIF should use in relartion to the time complexity of the function.
+   - If the function can take a long time consider adding the possibility to
+   yield.
+
+2. **Performance Considerations**:
+   - Avoid long-running operations within the BIF.
+   - Ensure memory safety and proper handling of Erlang terms to maintain system stability.
+
+#### Example Implementation
+Imagine implementing a simple BIF to calculate the factorial of a number. The BIF would:
+1. Parse the input arguments to ensure validity.
+2. Perform the computation efficiently in C.
+3. Return the result to the Erlang environment.
+
+Find the code in erts where bifs are defined:
+https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.c
+
+A BIF has a special signature that is different from a normal C function. It is defined as:
+
+```c
+BIF_RETTYPE [NAME]_[ARITY](BIF_ALIST_[ARITY])
+```
+
+Code Snippet:
+```c
+
+BIF_RETTYPE factorial_1(BIF_ALIST_1)
+{
+   /* Calculate factorial = n!
+      for n >= 0
+    */
+   int i, n;
+   long factorital = 1;
+   Eterm result;
+
+   /* Check the arguemnt and return an error if it is not a positiv integer */
+   if (is_not_small(BIF_ARG_1) || (n = signed_val(BIF_ARG_1)) < 0) {
+      BIF_ERROR(BIF_P, BADARG);
+   }
+
+   /* Calculate the factorial */
+   for (i = 1; i <= n; ++i) factorial *= i;
+
+   /* Convert the result to an Erlang term */
+   result = erts_make_integer(hash, BIF_P)
+
+   /* Return the result and a nuber of reductions equal to the number of iterations of the calculation loop. */
+   BIF_RET2(result, n);
+}
+
+```
+Don't forget to add the header to `bif.h` and then add the BIF to the list of BIFs in the file `bif.tab` (https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.tab).
+
+```c
+bif math:factorial/1
+```
+
+Then add a stub to the Erlang module `math.erl` (https://github.com/erlang/otp/blob/master/lib/stdlib/src/math.erl):
+
+```erlang
+-doc "The factorial of `X`.".
+-doc(#{since => <<"OTP 29.0">>}).
+-spec factorial(X) -> integer() when
+      X :: pos_integer().
+factorial(_) ->
+    erlang:nif_error(undef).
+```
+
+Now you should be able to recompile the BEAM and run the new BIF in Erlang.
+
+```erlang
+-module(test_fast_fact).
+-export([f/1]).
+
+f(X) ->
+    math:factorial(X).
+```
+
+
 
 === Case Study: Klarna and `term_to_binary`
 1. Problem Description
