@@ -480,6 +480,7 @@ Imagine implementing a simple BIF to calculate the factorial of a number. The BI
 
 Find the code in erts where bifs are defined:
 https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.c
+or in this case perhaps in https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_math.c
 
 A BIF has a special signature that is different from a normal C function. It is defined as:
 
@@ -490,31 +491,41 @@ BIF_RETTYPE [NAME]_[ARITY](BIF_ALIST_[ARITY])
 Code Snippet:
 ```c
 
-BIF_RETTYPE factorial_1(BIF_ALIST_1)
+BIF_RETTYPE math_factorial_1(BIF_ALIST_1)
 {
-   /* Calculate factorial = n!
-      for n >= 0
-    */
-   int i, n;
-   long factorital = 1;
-   Eterm result;
+    /* Calculate factorial = n!
+       for n >= 0
+     */
+    int i, n, reds;
+    long factorial = 1;
+    Eterm result;
 
-   /* Check the arguemnt and return an error if it is not a positiv integer */
-   if (is_not_small(BIF_ARG_1) || (n = signed_val(BIF_ARG_1)) < 0) {
-      BIF_ERROR(BIF_P, BADARG);
-   }
+    /* Check the arguemnt and return an error if it is not a positiv integer */
+    if (is_not_small(BIF_ARG_1) || (n = signed_val(BIF_ARG_1)) < 0)
+    {
+        BIF_ERROR(BIF_P, BADARG);
+    }
 
-   /* Calculate the factorial */
-   for (i = 1; i <= n; ++i) factorial *= i;
+    /* Calculate the factorial */
+    for (i = 1; i <= n; ++i)
+        factorial *= i;
 
-   /* Convert the result to an Erlang term */
-   result = erts_make_integer(hash, BIF_P)
+    /* Convert the result to an Erlang term */
+    result = erts_make_integer(factorial, BIF_P);
 
-   /* Return the result and a nuber of reductions equal to the number of iterations of the calculation loop. */
-   BIF_RET2(result, n);
+    /* Calculate reductions relative to the number of iterations of the calculation loop.*/
+    reds = n / 1000 + 1;
+
+    /* Return the result and a number of reductions. */
+    BIF_RET2(result, reds);
 }
 
 ```
+
+Note that this toy example does not handle large numbers well, factorial(66),
+will overflow a 64 bit integer ('long'). A real implementation would use the bignum library.
+
+
 Don't forget to add the header to `bif.h` and then add the BIF to the list of BIFs in the file `bif.tab` (https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.tab).
 
 ```c
@@ -531,17 +542,14 @@ Then add a stub to the Erlang module `math.erl` (https://github.com/erlang/otp/b
 factorial(_) ->
     erlang:nif_error(undef).
 ```
+Don't forget to export your function.
 
 Now you should be able to recompile the BEAM and run the new BIF in Erlang.
 
 ```erlang
--module(test_fast_fact).
--export([f/1]).
-
-f(X) ->
-    math:factorial(X).
+1> math:factorial(42).
+7538058755741581312
 ```
-
 
 
 === Case Study: Klarna and `term_to_binary`
