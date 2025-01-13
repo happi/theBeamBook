@@ -82,10 +82,6 @@ The next level is to use pure socket communication, which can be more efficient 
 
 See chapter xref:CH-IO[] for details on how sockets works.
 
-=== Overview of BIFs, NIFs, and Linked-in Drivers
-   * Definitions and primary uses.
-   * Comparison of safety and complexity.
-
 === Linked-in Drivers
 Linked-in drivers in Erlang allow for the integration of C code directly into the Erlang runtime system, enabling high-performance operations and seamless interaction with external resources.
 
@@ -380,30 +376,451 @@ stop
 5>
 ```
 
+=== Built-In Functions (BIFs)
 
-=== Native Implemented Functions (NIFs)
-1. Concept and Purpose
-   * Extending Erlang capabilities with custom native code.
-   * High performance for computationally intensive tasks.
-2. Advantages and Drawbacks
-   * Performance benefits.
-   * Risks of destabilizing the VM.
-3. Implementation Steps
-   * Defining a NIF
-     ** Writing C functions.
-     ** Using the Erlang NIF API to register functions.
-   * Loading a NIF
-     ** Compiling and loading the shared library.
-   * Error Handling
-     ** Implementing robust error handling.
-4. Example Implementation
-   * Creating a NIF for a mathematical operation.
-   * Detailed code walkthrough.
-   * Key considerations for stability and performance.
-5. Why You Shouldn’t Use NIFs
-   * Complexity.
-   * Risk of crashing the VM.
-   * Maintenance challenges.
+Built-in functions (BIFs) are a set of predefined, native functions integrated into the BEAM virtual machine. They implement some basic operations within Erlang, such as bignum arithmetic computations, process management, and handling data types like lists and tuples. BIFs are implemented in C.
+
+It is good to have a clear understanding of the differences between beam instructions, BIFs, Operators, and Library Functions.
+
+Beam instructions are the instructions that the BEAM virtual machine executes.
+The code for beam instructuins is usually kept small and can in later Erlang versions be inlined by the JIT loader. (More on this in the chapter on JIT).
+
+BIFs are implemented in C and are part of the BEAM virtual machine. They are
+usually either operators such as bignum '+' that are quite big compared to a beam instruction, or they are library functions that are implemented in C for performance reasons such as 'lists:reverse/1'. Some BIFs provide essential low-level functionality that would be *challenging* to implement purely in Erlang. Like for example 'erlang:send/2' that is used to send messages between processes.
+
+Operators are syntactic language constructs that are mapped to a library
+function. For example the oprator '+' is mapped by the compiler
+to 'erlang:+/2'. These functions can in term be implemented as
+either beam instructions or BIFs, depending on thier complexity.
+
+Library functions are basic Erlang functions such as 'lists:length/1' that are part of the Erlang language. They could be implemented as BEAM instructions,
+BIFS or in Erlang.
+
+BIFs are efficienct as they are writeen in C and optimized for performance within the BEAM.
+The dissadvantages with BIFs are thet long-running BIFs can block BEAM schedulers, affecting system responsiveness. They have limited extensibility as they are fixed within the runtime system.
+
+Most Erlang users will never need to write a BIF, but it is good to know what they are and how they work. Also if you are writing an EEP (Erlang Enhancement Proposal) you might need to write a BIF to implement the new functionality.
+
+The following sections will go through some of the detalils of how to implement a BIF.
+
+==== Implementation Steps
+
+1. **Creating a BIF**:
+   - Write the function in C, adhering to the BEAM's internal API for memory and process safety.
+   - Implement a thread-safe, efficient algorithm for the function's purpose.
+   - Add the function to the BEAM source code and compile it with the runtime system.
+   - Calculate the number of reductions the BIF should use in relartion to the time complexity of the function.
+   - If the function can take a long time consider adding the possibility to
+   yield.
+
+2. **Performance Considerations**:
+   - Avoid long-running operations within the BIF.
+   - Ensure memory safety and proper handling of Erlang terms to maintain system stability.
+
+==== Example Implementation
+Imagine implementing a simple BIF to calculate the factorial of a number. The BIF would:
+1. Parse the input arguments to ensure validity.
+2. Perform the computation efficiently in C.
+3. Return the result to the Erlang environment.
+
+Find the code in erts where bifs are defined:
+https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.c
+or in this case perhaps in https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_math.c
+
+A BIF has a special signature it is defined as:
+
+```c
+BIF_RETTYPE [NAME]_[ARITY](BIF_ALIST_[ARITY])
+```
+
+Note that the name contains the module name and the function name, separated by an underscore. The arity is the number of arguments the function takes. The BIF_ALIST_X macro is used to define the arguments. The BIF_RETTYPE macro is used to define the return type of the function.
+
+Code Snippet:
+```c
+
+BIF_RETTYPE math_factorial_1(BIF_ALIST_1)
+{
+    /* Calculate factorial = n!
+       for n >= 0
+     */
+    int i, n, reds;
+    long factorial = 1;
+    Eterm result;
+
+    /* Check the arguemnt and return an error if it is not a positiv integer.
+       When defining a BIF with BIF_ALIST_X the arguments are named
+       BIF_ARG_1, BIF_ARG_2 etc.
+       To signal ann error use BIF_ERROR(BIF_P, BADARG);
+       The macro BIF_P is a pointer to the process struct (PCB) of the process
+       that called the BIF, containing all the information about the process,
+       such as heap pointers, stack pointers, registers etc.
+    */
+    if (is_not_small(BIF_ARG_1) || (n = signed_val(BIF_ARG_1)) < 0)
+    {
+        BIF_ERROR(BIF_P, BADARG);
+    }
+
+    /* Calculate the factorial */
+    for (i = 1; i <= n; ++i) factorial *= i;
+
+    /* Convert the result to an Erlang term */
+    result = erts_make_integer(factorial, BIF_P);
+
+    /* Calculate reductions relative to the number of iterations of the calculation loop.*/
+    reds = n / 1000 + 1;
+
+    /* Return the result and a number of reductions.
+      The BIF_RET2 macro is used to return the result and the number of reductions.
+      The first argument is the result and the second is the number of reductions.
+    */
+    BIF_RET2(result, reds);
+}
+
+```
+
+Note that this toy example does not handle large numbers well, factorial(66),
+will overflow a 64 bit integer ('long'). A real implementation would use the bignum library. We will show how to do this in the next section.
+
+
+
+Add the BIF to the list of BIFs in the file `bif.tab` (https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.tab).
+
+```c
+bif math:factorial/1
+```
+
+If you want to make the bif available to the rest of the runtime don't forget to add the header to e.g. `bif.h`.
+
+Then add a stub to the Erlang module `math.erl` (https://github.com/erlang/otp/blob/master/lib/stdlib/src/math.erl):
+
+```erlang
+-doc "The factorial of `X`.".
+-doc(#{since => <<"OTP 29.0">>}).
+-spec factorial(X) -> integer() when
+      X :: pos_integer().
+factorial(_) ->
+    erlang:nif_error(undef).
+```
+Don't forget to export your function.
+
+Now you should be able to recompile the BEAM and run the new BIF in Erlang.
+
+```erlang
+1> math:factorial(7).
+5040
+```
+
+If you want to add functionallity to the kernel modules you need to handle
+the preloaded modules in the `erl_prim_loader.c` file. See xref:CH-Beam_loader[] for details.
+
+If you try it out wirth some larger numbers that are bigger than what your machines small integer can handle you will get the wrong result.
+Let us move on to a more complex example that uses bignums.
+
+```c
+BIF_RETTYPE math_factorial_1(BIF_ALIST_1)
+{
+    /* Calculate factorial = n! for n >= 0 */
+    Sint64 i, n, reds;
+    Uint64 factorial = 1;
+    Eterm result;
+    Eterm *hp;
+    Eterm big_factorial;
+    ErtsDigit *temp_digits_a;
+    ErtsDigit *temp_digits_b;
+    ErtsDigit *src;
+    ErtsDigit *dest;
+    ErtsDigit *temp;
+    dsize_t temp_size;
+    dsize_t curr_size;
+    dsize_t new_size;
+
+    if (is_not_integer(BIF_ARG_1) || (!term_to_Sint64(BIF_ARG_1, &n)) || n < 0)
+    {
+        BIF_ERROR(BIF_P, BADARG);
+    }
+
+    /* We do not want to use heap space for intermediate resultst sine we are
+       going to do a lot of them. So we use a temporary buffer.
+       We create two buffers one to keep (n-1)! and one to keep n!.
+
+    */
+
+    /* Initial allocation of buffers, this will be large enough for most n,
+       that is up to ~ 50.000. Then we will start increasing the buffer.  */
+    temp_size = 2 * (n + 1);
+    temp_digits_a = (ErtsDigit *)erts_alloc(ERTS_ALC_T_TMP, temp_size * sizeof(ErtsDigit));
+    temp_digits_b = (ErtsDigit *)erts_alloc(ERTS_ALC_T_TMP, temp_size * sizeof(ErtsDigit));
+    src = temp_digits_a;
+    dest = temp_digits_b;
+
+    for (i = 1; i <= n; ++i)
+    {
+        /* We  want to avoid heap allocation for small numbers.
+           These we do on the C stack and just return a small_int. */
+        if (!IS_USMALL(0, factorial * i))
+        {
+            // Initial conversion to bignum in our temp buffer
+            hp = (Eterm *)src;
+            big_factorial = uint_to_big(factorial, hp);
+            curr_size = BIG_SIZE(big_val(big_factorial));
+
+            for (; i <= n; ++i)
+            {
+                new_size = curr_size + 1;
+
+                if (new_size > temp_size)
+                {
+                    dsize_t alloc_size = new_size * 2;
+                    src = (ErtsDigit *)erts_realloc(ERTS_ALC_T_TMP, src, alloc_size * sizeof(ErtsDigit));
+                    dest = (ErtsDigit *)erts_realloc(ERTS_ALC_T_TMP, dest, alloc_size * sizeof(ErtsDigit));
+                    temp_size = alloc_size;
+                }
+
+                big_factorial = big_times_small(big_factorial, i, (Eterm *)dest);
+
+                temp = src;
+                src = dest;
+                dest = temp;
+            }
+
+            // We are done.
+            // Only now allocate on process heap and copy the final result
+            hp = HAlloc(BIF_P, BIG_SIZE(big_val(big_factorial)) + 1);
+            sys_memcpy(hp, big_val(big_factorial), (BIG_SIZE(big_val big_factorial)) + 1) * sizeof(Eterm));
+            result = make_big(hp);
+
+            erts_free(ERTS_ALC_T_TMP, temp_digits_a);
+            erts_free(ERTS_ALC_T_TMP, temp_digits_b);
+
+            goto done;
+        }
+        factorial *= i;
+    }
+
+    result = make_small(factorial);
+
+done:
+    reds = n / 1000 + 1;
+    BIF_RET2(result, reds);
+}
+```
+
+Now we can calcualte really large factorials. like 1000!
+
+```erlang
+1> math:factorial(1000).
+402387260077093773543702433923003985719374864210714632543799910429938512398629020592044208486969404800479988610197196058631666872994808558901323829669944590997424504087073759918823627727188732519779505950995276120874975462497043601418278094646496291056393887437886487337119181045825783647849977012476632889835955735432513185323958463075557409114262417474349347553428646576611667797396668820291207379143853719588249808126867838374559731746136085379534524221586593201928090878297308431392844403281231558611036976801357304216168747609675871348312025478589320767169132448426236131412508780208000261683151027341827977704784635868170164365024153691398281264810213092761244896359928705114964975419909342221566832572080821333186116811553615836546984046708975602900950537616475847728421889679646244945160765353408198901385442487984959953319101723355556602139450399736280750137837615307127761926849034352625200015888535147331611702103968175921510907788019393178114194545257223865541461062892187960223838971476088506276862967146674697562911234082439208160153780889893964518263243671616762179168909779911903754031274622289988005195444414282012187361745992642956581746628302955570299024324153181617210465832036786906117260158783520751516284225540265170483304226143974286933061690897968482590125458327168226458066526769958652682272807075781391858178889652208164348344825993266043367660176999612831860788386150279465955131156552036093988180612138558600301435694527224206344631797460594682573103790084024432438465657245014402821885252470935190620929023136493273497565513958720559654228749774011413346962715422845862377387538230483865688976461927383814900140767310446640259899490222221765904339901886018566526485061799702356193897017860040811889729918311021171229845901641921068884387121855646124960798722908519296819372388642614839657382291123125024186649353143970137428531926649875337218940694281434118520158014123344828015051399694290153483077644569099073152433278288269864602789864321139083506217095002597389863554277196742822248757586765752344220207573630569498825087968928162753848863396909959826280956121450994871701244516461260379029309120889086942028510640182154399457156805941872748998094254742173582401063677404595741785160829230135358081840096996372524230560855903700624271243416909004153690105933983835777939410970027753472000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+```
+
+We can even calcualte 100000! but it will take some time. In order to not block the BEAM scheduler we should yield every now and then.
+
+We can do this by calling `BIF_TRAP1` with the state we want to save and the function we want to return to. In this case we want to return to the `math_factorial_trap_1` function.
+
+We need to define a structure to hold the state we want to save and the function we want to return to in math_factorial_trap_export.
+We also need to initialize this export structure. We do this in the `math_factorial_trap_init` function by calling `erts_init_trap_export`.
+Then we need to ad a call to `math_factorial_trap_init` in the erl_init
+function in erl_init.c. We also need to add the new atom  'am_math_factorial_trap' to atom.names.
+
+When we yield we store the state in a tuple with the current i, the current factorial and the original n. So the argument to the trap function is a tuple with these values. In the original BIF 'math_factorial_1' we create this
+tuple and call 'math_factorial_trap_1'.
+
+Now when we come back from a yield we might already have a bignum so we
+restructure the code a bit to handle this case.
+
+We check our iterator and every 1000 interations we save the state and yield. We also save the state and yield when we have a bignum.
+
+```c
+static Export math_factorial_trap_export;
+
+static BIF_RETTYPE math_factorial_trap_1(BIF_ALIST_1)
+{
+    Sint64 n, i;
+    Uint64 factorial;
+    Eterm big_factorial = THE_NON_VALUE;
+    ErtsDigit *temp_digits_a = NULL;
+    ErtsDigit *temp_digits_b = NULL;
+    ErtsDigit *src;
+    ErtsDigit *dest;
+    ErtsDigit *temp;
+    dsize_t temp_size;
+    dsize_t curr_size;
+    dsize_t new_size;
+    dsize_t big_size;
+    Eterm result;
+    Eterm *hp;
+    Eterm *big_hp;
+    Eterm *tp = tuple_val(BIF_ARG_1);
+    Eterm state;
+
+    // Extract current state
+    i = signed_val(tp[1]); // Current i
+    n = signed_val(tp[3]); // Original n
+
+    temp_size = (n * 4);
+    temp_digits_a = (ErtsDigit *)erts_alloc(ERTS_ALC_T_TMP, temp_size * sizeof(ErtsDigit));
+    temp_digits_b = (ErtsDigit *)erts_alloc(ERTS_ALC_T_TMP, temp_size * sizeof(ErtsDigit));
+    src = temp_digits_a;
+    dest = temp_digits_b;
+
+    // Handle both small and bignum factorial cases
+    if (is_small(tp[2]))
+    {
+        factorial = unsigned_val(tp[2]);
+    }
+    else
+    {
+        // We're already in bignum territory, skip the small number loop
+        big_factorial = tp[2];
+        goto bignum_loop;
+    }
+
+
+    for (; i <= n; ++i)
+    {
+        if (!IS_USMALL(0, factorial * i))
+        {
+            // Initial conversion to bignum in our temp buffer
+            big_factorial = uint_to_big(factorial, (Eterm *)src);
+            goto bignum_loop;
+        }
+        factorial *= i;
+    }
+
+    if (temp_digits_a)
+        erts_free(ERTS_ALC_T_TMP, temp_digits_a);
+    if (temp_digits_b)
+        erts_free(ERTS_ALC_T_TMP, temp_digits_b);
+
+    BIF_RET(make_small(factorial));
+
+bignum_loop:
+    // Continue multiplying using bignums
+
+    for (; i <= n; ++i)
+    {
+        curr_size = BIG_SIZE(big_val(big_factorial));
+        new_size = curr_size + 1;
+        if (new_size > temp_size)
+        {
+            dsize_t alloc_size = new_size * 2;
+            src = (ErtsDigit *)erts_realloc(ERTS_ALC_T_TMP, src,
+                                            alloc_size * sizeof(ErtsDigit));
+            dest = (ErtsDigit *)erts_realloc(ERTS_ALC_T_TMP, dest,
+                                             alloc_size * sizeof(ErtsDigit));
+            temp_size = alloc_size;
+        }
+
+        big_factorial = big_times_small(big_factorial, i, (Eterm *)dest);
+
+        if ((i % 1000) == 0)
+        {
+            // Increment i so we don't get stuck in a loop. with i % 1000 == 0.
+            // Save state: {(i+1), i!, n} and yield.
+
+            // Store the tuple with the sate on the heap
+            big_size = BIG_SIZE(big_val(big_factorial));
+            hp = HAlloc(BIF_P, 4 + big_size + 1);
+            big_hp = hp + 4;
+            sys_memcpy(big_hp, big_val(big_factorial), (big_size + 1) * sizeof(Eterm));
+            state = TUPLE3(hp, make_small(i + 1), make_big(big_hp), tp[3]);
+
+            // Free the temporary buffers
+            erts_free(ERTS_ALC_T_TMP, temp_digits_a);
+            erts_free(ERTS_ALC_T_TMP, temp_digits_b);
+
+            // Yield giving the state to the trap function
+            BIF_TRAP1(&math_factorial_trap_export, BIF_P, state);
+        }
+
+        temp = src;
+        src = dest;
+        dest = temp;
+    }
+
+    hp = HAlloc(BIF_P, BIG_SIZE(big_val(big_factorial)) + 1);
+    sys_memcpy(hp, big_val(big_factorial),
+               (BIG_SIZE(big_val(big_factorial)) + 1) * sizeof(Eterm));
+    result = make_big(hp);
+
+    erts_free(ERTS_ALC_T_TMP, temp_digits_a);
+    erts_free(ERTS_ALC_T_TMP, temp_digits_b);
+
+    BIF_RET(result);
+}
+
+BIF_RETTYPE math_factorial_1(BIF_ALIST_1)
+{
+    Sint64 n;
+    Eterm *hp;
+    Eterm state;
+    Eterm args[1];
+
+    if (is_not_integer(BIF_ARG_1) || (!term_to_Sint64(BIF_ARG_1, &n)) || n < 0)
+    {
+        BIF_ERROR(BIF_P, BADARG);
+    }
+
+    // Create initial state
+    hp = HAlloc(BIF_P, 4);
+    state = TUPLE3(hp, make_small(1), make_small(1), BIF_ARG_1); // {i, factorial, n}
+
+    // Call the continuation function with initial state
+    args[0] = state;
+    return math_factorial_trap_1(BIF_P, args, A__I);
+}
+
+void erts_init_math_factorial(void)
+{
+    erts_init_trap_export(&math_factorial_trap_export,
+                          am_erts_internal, am_math_factorial_trap, 1,
+                          &math_factorial_trap_1);
+    return;
+}
+```
+
+Now we can handle really large factorials without blocking the BEAM scheduler.
+
+
+
+==== One Calm Night: A Tale of term_to_binary and Non-Yielding BIFs
+
+It was a calm night, one of those rare occasions where everything in the system seemed to hum along perfectly. But then, without warning, the unthinkable happened—the system crashed.
+
+In the aftermath, the investigation revealed a peculiar sequence of events. The BEAM schedulers, designed to gracefully balance work and sleep, had been too eager to shut down when the workload diminished. Only a single scheduler remained active, handling the entirety of the system's operations.
+
+As fate would have it, this lone scheduler stumbled upon a task: converting a 4MB term into a binary for logging purposes. This seemingly routine operation invoked the term_to_binary function—a built-in function (BIF). Instead of breaking its workload into manageable chunks, it perfomed all the work until done and then reported it had used only 20 reductions.
+
+This non-yielding nature proved to be a fatal flaw. The single scheduler became entirely consumed, unable to handle other tasks or respond to the system's needs. Erlang's HEART mechanism, ever vigilant, detected the unresponsiveness and concluded that the node was beyond saving. With grim efficiency, it killed the node.
+
+*Fixing the Problem*
+
+Fix 1: Keep Schedulers Alive
+
+The first step was to ensure that schedulers remained alert, even during periods of low activity. Introduced in June 2013, this fix involved tweaking Erlang's startup flags:
+
+* '+sfwi 50': Adjusted the scheduler forced wakeup interval to keep them responsive.
+* '+scl false': Prevented scheduler compaction, maintaining an even workload distribution.
+* '+sub true': Ensured utilization spread across the system.
+
+These adjustments breathed new life into the schedulers, making them resilient to lulls in activity.
+
+See xref:CH-Scheduling[] and xref:CH-Tweak[] for detials on tweaking your scheduler settings.
+
+Fix 2: Rewriting 'term_to_binary'
+
+The second and more intricate fix targeted the 'term_to_binary' function itself. Developers rewrote the BIF to yield periodically, spreading its workload over multiple reductions. This approach ensured that the function played nicely with the scheduler, avoiding prolonged monopolization of system resources.
+
+The fix, implemented in the same period, introduced chunked processing to the function. It also depended on advancements in garbage collection within BIFs.
+See https://github.com/erlang/otp/commit/47d6fd3ccf35a4d921591dd0a9b5e69b9804b5b0
+
+==== Summary of Built In Functions (BIFs)
+
+Most developers will never have to write or even read the code
+of a BIF. But it is good to know what they are and how they work.
+Also if you ever look into the Erlang code of some standard libraries
+you might now know why they don't contain any real code, only stubs.
+
+
 
 === Built-In Functions (BIFs)
 1. Concept and Purpose
@@ -431,146 +848,6 @@ stop
    * Risk of blocking schedulers.
    * Complexity in maintaining native code.
 
-### Built-In Functions (BIFs)
-
-Built-in functions (BIFs) are a set of predefined, native functions integrated into the BEAM virtual machine. They implement some basic operations within Erlang, such as bignum arithmetic computations, process management, and handling data types like lists and tuples. BIFs are implemented in C.
-
-It is good to have a clear understanding of the differences between beam instructions, BIFs, Operators, and Library Functions.
-
-Beam instructions are the instructions that the BEAM virtual machine executes.
-The code for beam instructuins is usually kept small and can in later Erlang versions be inlined by the JIT loader. (More on this in the chapter on JIT).
-
-BIFs are implemented in C and are part of the BEAM virtual machine. They are
-usually either operators such as bignum '+' that are quite big compared to a beam instruction, or they are library functions that are implemented in C for performance reasons such as 'lists:reverse/1'. Some BIFs provide essential low-level functionality that would be *challenging* to implement purely in Erlang. Like for example 'erlang:send/2' that is used to send messages between processes.
-
-Operators are syntactic language constructs that are mapped to a library
-function. For example the oprator '+' is mapped by the compiler
-to 'erlang:+/2'. These functions can in term be implemented as
-either beam instructions or BIFs, depending on thier complexity.
-
-Library functions are basic Erlang functions such as 'lists:length/1' that are part of the Erlang language. They could be implemented as BEAM instructions,
-BIFS or in Erlang.
-
-BIFs are efficienct as they are writeen in C and optimized for performance within the BEAM.
-The dissadvantages with BIFs are thet long-running BIFs can block BEAM schedulers, affecting system responsiveness. They have limited extensibility as they are fixed within the runtime system.
-
-Most Erlang users will never need to write a BIF, but it is good to know what they are and how they work. Also if you are writing an EEP (Erlang Enhancement Proposal) you might need to write a BIF to implement the new functionality.
-
-The following sections will go through some of the detalils of how to implement a BIF.
-
-#### Implementation Steps
-
-1. **Creating a BIF**:
-   - Write the function in C, adhering to the BEAM's internal API for memory and process safety.
-   - Implement a thread-safe, efficient algorithm for the function's purpose.
-   - Add the function to the BEAM source code and compile it with the runtime system.
-   - Calculate the number of reductions the BIF should use in relartion to the time complexity of the function.
-   - If the function can take a long time consider adding the possibility to
-   yield.
-
-2. **Performance Considerations**:
-   - Avoid long-running operations within the BIF.
-   - Ensure memory safety and proper handling of Erlang terms to maintain system stability.
-
-#### Example Implementation
-Imagine implementing a simple BIF to calculate the factorial of a number. The BIF would:
-1. Parse the input arguments to ensure validity.
-2. Perform the computation efficiently in C.
-3. Return the result to the Erlang environment.
-
-Find the code in erts where bifs are defined:
-https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.c
-or in this case perhaps in https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_math.c
-
-A BIF has a special signature that is different from a normal C function. It is defined as:
-
-```c
-BIF_RETTYPE [NAME]_[ARITY](BIF_ALIST_[ARITY])
-```
-
-Code Snippet:
-```c
-
-BIF_RETTYPE math_factorial_1(BIF_ALIST_1)
-{
-    /* Calculate factorial = n!
-       for n >= 0
-     */
-    int i, n, reds;
-    long factorial = 1;
-    Eterm result;
-
-    /* Check the arguemnt and return an error if it is not a positiv integer */
-    if (is_not_small(BIF_ARG_1) || (n = signed_val(BIF_ARG_1)) < 0)
-    {
-        BIF_ERROR(BIF_P, BADARG);
-    }
-
-    /* Calculate the factorial */
-    for (i = 1; i <= n; ++i)
-        factorial *= i;
-
-    /* Convert the result to an Erlang term */
-    result = erts_make_integer(factorial, BIF_P);
-
-    /* Calculate reductions relative to the number of iterations of the calculation loop.*/
-    reds = n / 1000 + 1;
-
-    /* Return the result and a number of reductions. */
-    BIF_RET2(result, reds);
-}
-
-```
-
-Note that this toy example does not handle large numbers well, factorial(66),
-will overflow a 64 bit integer ('long'). A real implementation would use the bignum library.
-
-
-Don't forget to add the header to `bif.h` and then add the BIF to the list of BIFs in the file `bif.tab` (https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.tab).
-
-```c
-bif math:factorial/1
-```
-
-Then add a stub to the Erlang module `math.erl` (https://github.com/erlang/otp/blob/master/lib/stdlib/src/math.erl):
-
-```erlang
--doc "The factorial of `X`.".
--doc(#{since => <<"OTP 29.0">>}).
--spec factorial(X) -> integer() when
-      X :: pos_integer().
-factorial(_) ->
-    erlang:nif_error(undef).
-```
-Don't forget to export your function.
-
-Now you should be able to recompile the BEAM and run the new BIF in Erlang.
-
-```erlang
-1> math:factorial(42).
-7538058755741581312
-```
-
-
-=== Case Study: Klarna and `term_to_binary`
-1. Problem Description
-   * Performance issues with `term_to_binary`.
-   * Impact on BEAM schedulers.
-2. Analysis
-   * How long-running BIFs can block schedulers.
-   * Consequences for system responsiveness.
-3. Solution: Dirty Schedulers
-   * Introduction and purpose of dirty schedulers.
-   * History and development (EEP).
-4. Implementation of Dirty Schedulers
-   * Dirty CPU Schedulers
-     ** Handling CPU-intensive tasks.
-   * Dirty I/O Schedulers
-     ** Managing I/O-bound operations.
-5. Impact and Benefits
-   * Improved system stability.
-   * Enhanced performance and responsiveness.
-
 === Conclusion
 1. Summary of Key Points
    * Importance of interfacing C with Erlang.
@@ -580,10 +857,3 @@ Now you should be able to recompile the BEAM and run the new BIF in Erlang.
    * Ensuring stability and performance.
 3. Future Directions
    * Ongoing innovations and improvements in the BEAM ecosystem.
-
-
-// What is a bif, difference between bifs and operators and library
-// functions, how are bifs implemented. What is a nif, how to implement a
-// nif. What is a linked in driver, how to implement a linked in
-// driver. Why you shouldn&rsquo;t do this.
-
