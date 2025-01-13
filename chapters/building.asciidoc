@@ -108,10 +108,14 @@ check out the source through git:
 
 [source,sh]
 ----
-> cd ~/otp
-> git clone https://github.com/erlang/otp.git source
-> cd source
+> git clone https://github.com/erlang/otp.git
+> cd otp
 > export ERL_TOP=`pwd`
+----
+
+If you build an older version of Erlang you might need to run autoconf.
+[source,sh]
+----
 > ./otp_build autoconf
 ----
 
