@@ -840,7 +840,7 @@ Erlang.org site: link:http://erlang.org/doc/apps/syntax_tools/chapter.html[http:
 
 Another approach to writing your own language on top of the Beam is to use
 the meta programming tools in Elixir. Elixir compiles to Beam code through
-the Erlang abstraxt syntax tree.
+the Erlang abstract syntax tree.
 
 With Elixir's defmacro you can define your own Domain Specific Language,
 directly in Elixir.
