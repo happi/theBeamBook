@@ -22,10 +22,12 @@ About this book
 ~~~~~~~~~~~~~~~
 
 
-For anyone who: Want to tune an Erlang installation. Want to know how
-to debug VM crashes. Want to improve performance of Erlang
-applications. Want to understand how Erlang really works. Want to
-learn how to build your own runtime environment.
+For anyone who:
+* Wants to tune an Erlang installation.
+* Wants to know how to debug VM crashes.
+* Wants to improve the performance of Erlang applications.
+* Wants to understand how Erlang really works.
+* Wants to learn how to build your own runtime environment.
 
 If you want to debug the VM If you want to extend the VM If you want
 to do performance tweaking--jump to the last chapter … but to really
