@@ -41,8 +41,6 @@ include::chapters/calls.asciidoc[]
 
 include::chapters/beam_loader.asciidoc[]
 
-include::chapters/beam_internal_instructions.asciidoc[]
-
 include::chapters/scheduling.asciidoc[]
 
 include::chapters/memory.asciidoc[]
@@ -54,8 +52,6 @@ include::chapters/io.asciidoc[]
 include::chapters/distribution.asciidoc[]
 
 include::chapters/c.asciidoc[]
-
-include::chapters/hipe.asciidoc[]
 
 // Part II
 [[P-Running]]
