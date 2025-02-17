@@ -1,6 +1,6 @@
 [[CH-beam_modules]]
 
-== Modules and The BEAM File Format (16p)
+== Modules and The BEAM File Format
 
 [[modules]]
 

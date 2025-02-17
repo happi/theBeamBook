@@ -1,18 +1,47 @@
 [[CH-Calls]]
-== Different Types of Calls, Linking and Hot Code Loading (5p)
+== Different Types of Calls, Linking and Hot Code Loading
 
-****
-Local calls, remote calls, closure calls, tuple calls, p-mod
-calls. The code server. Linking. Hot code loading, purging. (Overlap
-with Chapter 4, have to see what goes where.) Higher order functions,
-Implementation of higher order functions. Higher order functions and
-hot code loading. Higher order functions in a distributed system.
-****
+Function calls in BEAM can be categorized into different types.
+
+=== Local Calls
+A local call occurs when a function is invoked within the same module without explicitly specifying the module name. These calls are resolved at compile time and are guaranteed to execute within the same version of the module as the caller.
+
+Example:
+```erlang
+foo() -> bar(). % Local call within the same module
+```
+
+=== Remote Calls
+A remote call explicitly specifies the module name, ensuring that the latest loaded version of the module is used.
+
+Example:
+```erlang
+foo() -> ?MODULE:bar(). % Remote call ensuring latest module version
+```
+
+Remote calls facilitate **hot code loading**, enabling live updates to modules without requiring system restarts.
+
+=== Code Loading
+In the Erlang Runtime System the code loading is handled by the
+code server. The code server will call the lower level BIFs in the
++erlang+ module for the actual loading. But the code server also
+determines the purging policy.
+
+The runtime system can keep two versions of each module, a _current_
+version and an _old_ version. All fully qualified (remote) calls go
+to the current version. Local calls in the old version and return
+addresses on the stack can still go to the old version.
+
+If a third version of a module is loaded and there are still processes
+running (have pointers on the stack to) the code server
+will kill those processes and purge the old code. Then the current
+version will become old and the third version will be loaded as the
+current version.
 
 === Hot Code Loading
-
-In Erlang there is a semantic difference between a local function call
-and a remote function call. A remote call, that is a call to a
+As we saw there is not only a syntactic difference but 
+also a semantic difference between a local function call and a remote function call.
+A remote call, or a "fully quallified call", that is a call to a
 function in a named module, is guaranteed to go to the latest loaded
 version of that module. A local call, an unqualified call to a function
 within the same module, is guaranteed to go to the same version
@@ -20,7 +49,7 @@ of the code as the caller.
 
 A call to a local function can be turned into a remote call by
 specifying the module name at the call site. This is usually
-done with the ?MODULE macro as in +?MODULE:foo()+.
+done with the +?MODULE+ macro as in +?MODULE:foo()+.
 A remote call to a non local module can not be turned into
 a local call, i.e. there is no way to guarantee the version
 of the callee in the caller.
@@ -40,9 +69,12 @@ a remote call and possibly a state upgrade:
 loop(State) ->
   receive
     upgrade ->
+       %% Force a call to the latest version of the code.
        NewState = ?MODULE:code_upgrade(State),
        ?MODULE:loop(NewState);
      Msg ->
+       %% In other cases we call the old version of the code.
+       %% That is the version of the code that also handles old data.
        NewState = handle_msg(Msg, State),
        loop(NewState)
    end.
@@ -67,27 +99,103 @@ do whole program optimization across module boundaries. (Hard but not
 impossible, there are solutions but so far I have not seen one fully
 implemented).
 
-=== Code Loading
 
-++++
-<!--
-Shouldn't Code Loading come before Hot Code Loading? Or are the two topics not related in that way? - bmacdonald
--->
-++++
+=== Closure Calls
+
+Closures in Erlang allow functions to be passed as values, capturing variables from their defining scope.
+
+Example:
+```erlang
+make_adder(N) -> fun(X) -> X + N end.
+```
+Calling a Closure
+
+Once a closure is created, it can be called like any other function.
+
+Example:
+
+```erlang
+Adder = make_adder(5),
+Result = Adder(10). % Returns 15
+```
+
+Passing Closures as Arguments
+
+Closures can be passed to higher-order functions for more flexible behavior.
+
+Example:
+
+```erlang
+apply_fun(F, X) -> F(X).
+
+Result = apply_fun(make_adder(3), 7). % Returns 10
+```
+
+Returning Closures from Functions
+
+Functions can return closures, allowing dynamic function generation.
+
+Example:
+
+```erlang
+make_multiplier(N) -> fun(X) -> X * N end.
+
+Multiplier = make_multiplier(2),
+Result = Multiplier(4). % Returns 8
+```
+
+Closures enable dynamic execution and are commonly used in higher-order functions.
+
+=== Dynamic Invocation
+You can use variables to dynamically invoke functions at runtime.
+
+Example:
+```erlang
+M = lists,
+F = map,
+Result = M:F(fun(X) -> X * 2 end, [1,2,3]).
+```
+
+This dynamic invocation technique is less efficient than direct calls but provides flexibility in selecting execution paths at runtime.
+This can be used to implement a callback system where the a module that exports a specific set of functions and you just pass the module name around.
+This technique makes it much harder for analytic tools like Dialyzer to find errors in the code since the call graph is not known at compile time.
 
 
-In the Erlang Runtime System the code loading is handled by the
-code server. The code server will call the lower level BIFs in the
-+erlang+ module for the actual loading. But the code server also
-determines the purging policy.
+=== Higher-Order Functions and Hot Code Loading
 
-The runtime system can keep two versions of each module, a _current_
-version and an _old_ version. All fully qualified (remote) calls go
-to the current version. Local calls in the old version and return
-addresses on the stack can still go to the old version.
+Higher-order functions allow passing behavior dynamically, which interacts uniquely with hot code loading.
 
-If a third version of a module is loaded and there are still processes
-running (have pointers on the stack to) the code server
-will kill those processes and purge the old code. Then the current
-version will become old and the third version will be loaded as the
-current version.
+Example:
+```erlang
+init() ->
+  F = ?MODULE:foo/1,
+  L = fun(X) -> foo(X) end,
+  loop(F, L).
+
+foo(X) -> X + 1.
+
+loop(F, L) ->
+  F(1),
+  L(2),
+  loop(F, L).
+```
+
+Since L is a local function it will always retun X + 1. If the module is reloaded and foo/1 is changed to return X + 2 then F will return X + 2. If the module is reloaded twice
+then the process will crash since L refers to a purged version of the module.
+
+=== Conclusion
+
+Function call efficiency in Erlang follows a clear hierarchy, as outlined in the [Efficiency Guide](https://www.erlang.org/doc/system/eff_guide_functions.html#function-calls):
+
+Explicit calls, both local and remote (`foo()`, `m:foo()`) are the most efficient.
+I would like to add that the most efficient call is a local call to a function in the same module. This is because the call can be resolved at compile time and the function can be inlined. This is not possible for a remote call since the module can be changed at runtime.
+Even though the JIT compiler can do a good job with remote calls it does not inline them as of OTP 27. 
+
+Calling a closure (`Fun()`, `apply(Fun, [])`) is slightly slower but still efficient.
+
+Applying a function () (`Mod:Name()`, `apply(Mod, Name, [])`) with a known number of arguments at compile time is next in efficiency. (You can not apply a function that is not exported from a module.) 
+
+Applying an exported function with an unknown number of arguments (`apply(Mod, Name, Args)`)  is the least efficient.
+
+The Erlang runtime system is optimized for local calls and remote calls to the current version of a module. Hot code loading is a powerful feature that enables live updates to running systems, but it comes with performance trade-offs. It is also imoprtant to understand that reloading a module two times will purge the old version of the module and any references to it will crash the process holding the reference.
+

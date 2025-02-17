@@ -2,7 +2,7 @@
 == Chapter: Interfacing other languages and extending BEAM and ERTS
 
 === Introduction
-Interfacing C, C++, Ruby, or assembler provides an opportunity to extend the capabilities of the BEAM. In this chapter, we will use C for most examples, but the methods described can be used to interface almost any other programming language. We will give some examples of Ruby and Java in this chapter. In most cases, you can replace C with any other language in the rest of this chapter, but we will just use C for brevity.
+Interfacing C, C++, Rust, or assembler provides an opportunity to extend the capabilities of the BEAM. In this chapter, we will use C for most examples, but the methods described can be used to interface almost any other programming language. We will give some examples of Rust and Java in this chapter. In most cases, you can replace C with any other language in the rest of this chapter, but we will just use C for brevity.
 
 By integrating C code, developers can enhance their Erlang applications' performance, especially for computationally intensive tasks requiring direct access to system-level resources. Additionally, interfacing with C allows Erlang applications to interact directly with hardware and system-level resources. This capability is crucial for applications that require low-level operations, such as manipulating memory, accessing specialized hardware, or performing real-time data processing. Another advantage of integrating C with Erlang is using existing C libraries and codebases. Many powerful libraries and tools are available in C, and by interfacing with them, Erlang developers can incorporate these functionalities without having to reimplement them in Erlang.
 
@@ -821,39 +821,65 @@ Also if you ever look into the Erlang code of some standard libraries
 you might now know why they don't contain any real code, only stubs.
 
 
+=== NIFs
 
-=== Built-In Functions (BIFs)
-1. Concept and Purpose
-   * Pre-defined functions for common operations.
-   * Integrated directly into the BEAM.
-2. Differences Between BIFs, Operators, and Library Functions
-   * BIFs: Native, efficient, implemented in C.
-   * Operators: Built-in syntactic elements.
-   * Library Functions: Implemented in Erlang, less efficient.
-3. Advantages and Drawbacks
-   * High efficiency.
-   * Potential to block schedulers if not managed carefully.
-4. Implementation Steps
-   * Creating a BIF
-     ** Writing the C implementation.
-     ** Integrating with the BEAM.
-   * Performance Considerations
-     ** Ensuring efficient execution.
-     ** Avoiding long-running operations that block schedulers.
-5. Example Implementation
-   * Implementing a custom BIF.
-   * Code examples demonstrating the integration process.
-   * Testing and performance evaluation.
-6. Why You Shouldn’t Overuse BIFs
-   * Risk of blocking schedulers.
-   * Complexity in maintaining native code.
+A slightly more common, and safer, task for Erlang developers is writing NIFs (Native Implemented Functions).
+NIFs are functions implemented in C or C++ (or other languages) that are called from Erlang code.
+They provide a way to dynamically extend Erlang with native code for performance-critical operations or interfacing with external libraries.
+Improper use can still destabilize the VM, so they should be used cautiously.
 
-=== Conclusion
-1. Summary of Key Points
-   * Importance of interfacing C with Erlang.
-   * Differences and use cases for Linked-in Drivers, NIFs, and BIFs.
-2. Best Practices
-   * Choosing the right tool for the task.
-   * Ensuring stability and performance.
-3. Future Directions
-   * Ongoing innovations and improvements in the BEAM ecosystem.
+How to use Nifs is nowadays well documented in the link:https://www.erlang.org/doc/tutorial/introduction[Interoperability Tutorial] in the
+link:https://www.erlang.org/doc/system/nif.html[Nif section], but we will go through the basics here. 
+
+==== Implementing a Simple NIF
+A simple C-based NIF for fast integer addition:
+
+**C Code (nif_add.c):**
+```c
+#include "erl_nif.h"
+
+static ERL_NIF_TERM nif_add(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+    int a, b;
+    if (!enif_get_int(env, argv[0], &a) || !enif_get_int(env, argv[1], &b)) {
+        return enif_make_badarg(env);
+    }
+    return enif_make_int(env, a + b);
+}
+
+static ErlNifFunc nif_funcs[] = {
+    {"add", 2, nif_add}
+};
+
+ERL_NIF_INIT(my_nif, nif_funcs, NULL, NULL, NULL, NULL);
+```
+
+**Erlang Wrapper Module (my_nif.erl):**
+```erlang
+-module(my_nif).
+-export([add/2, load/0]).
+
+-on_load(load/0).
+
+load() ->
+    erlang:load_nif("./my_nif", 0).
+
+add(_A, _B) ->
+    erlang:nif_error("NIF not loaded").
+```
+
+**Compiling and Running the NIF**
+```sh
+gcc -shared -fPIC -o my_nif.so nif_add.c -I /usr/lib/erlang/usr/include
+```
+
+Then in Erlang:
+```erlang
+> my_nif:add(10, 20).
+30
+```
+
+Keep NIF execution **short** to avoid blocking the BEAM scheduler. Use NIFs for **performance-critical** operations and **interfacing with external libraries**.
+**Use dirty schedulers** for long-running operations.
+Always **validate inputs** to prevent crashes.
+
