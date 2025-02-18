@@ -1,13 +1,5 @@
 [[CH-Debugging]]
-== Debugging
-
-[WARNING]
-This chapter is still a stub and it's being heavily worked
-on. If planning a major addition to this chapter, please synchronize
-with the authors to avoid conflicts or duplicated efforts. You are
-still welcome to submit your feedback using a GitHub Issue. You can
-use the same mechanism to suggest sections that you believe should be
-included in this chapter, too.
+== Debugging and Testing
 
 
 
@@ -73,24 +65,216 @@ EUnit captures standard output from test functions, so if your test code writes 
 
 For more information on checking the output produced by the unit under test, see the link:https://www.erlang.org/doc/apps/eunit/chapter.html[EUnit documentation] on macros for checking output.
 
-
 ==== Common Test
-TODO
-===== Basics and setup
-TODO
-===== Writing test cases and test suites
-TODO
-===== Running tests and analyzing results
-TODO
+
+===== Basics and Setup
+Common Test (CT) is a powerful testing framework included in Erlang/OTP for writing and executing test suites. It supports both white-box and black-box testing, making it a flexible choice for testing Erlang applications, distributed systems, and even interacting with external systems.
+
+====== Installing Common Test
+If you have an Erlang installation, Common Test should already be included. However, if you are working with a minimal installation or custom build, you can ensure it’s available by adding the `common_test` application to your dependencies.
+
+To check if `common_test` is installed:
+```erlang
+1> application:ensure_all_started(common_test).
+```
+
+If using `rebar3`, ensure it is added to your dependencies:
+```erlang
+{deps, [common_test]}.
+```
+
+===== Creating a Basic Test Suite
+A Common Test suite is simply an Erlang module following a specific structure. Start by creating a file named `sample_SUITE.erl` in a `test/` directory.
+
+Example `sample_SUITE.erl`:
+```erlang
+-module(sample_SUITE).
+-compile(export_all).
+
+% Common Test includes these callbacks
+-include_lib("common_test/include/ct.hrl").
+
+% Test suite information
+suite() ->
+    [{timetrap, {seconds, 10}}].  % Time limit for tests
+
+init_per_suite(Config) ->
+    io:format("Initializing test suite...~n"),
+    Config.
+
+end_per_suite(Config) ->
+    io:format("Cleaning up test suite...~n"),
+    Config.
+
+% Define test cases
+all() -> [simple_test].
+
+simple_test(_Config) ->
+    io:format("Running simple test case...~n"),
+    ?assertEqual(42, 21 + 21).
+```
+
+This test suite defines a test suite with `suite/0`, Sets up and cleans up using `init_per_suite/1` and `end_per_suite/1`, and defines a test case `simple_test/1` that asserts `21 + 21 = 42`.
+
+===== Writing Test Cases and Test Suites
+Test cases in Common Test are functions that execute assertions and checks. They follow a simple naming convention and must be listed in the `all/0` function.
+
+Common Test provides assertion macros in `ct.hrl`:
+```erlang
+?assert(Expression).
+?assertEqual(Expected, Actual).
+?assertNotEqual(Unexpected, Actual).
+?assertMatch(Pattern, Expression).
+?assertNotMatch(Pattern, Expression).
+```
+
+Example of multiple test cases:
+```erlang
+all() -> [math_test, string_test].
+
+math_test(_Config) ->
+    ?assertEqual(10, 5 * 2).
+
+string_test(_Config) ->
+    ?assertEqual("hello", string:to_lower("HELLO")).
+```
+
+Test cases can receive arguments from a configuration file or previous setup functions.
+```erlang
+init_per_testcase(math_test, Config) ->
+    [{base_value, 10} | Config];
+init_per_testcase(_, Config) -> Config.
+
+math_test(Config) ->
+    Base = proplists:get_value(base_value, Config),
+    ?assertEqual(Base * 2, 20).
+```
+
+
+===== Running Tests and Analyzing Results
+Tests are executed using `ct_run` or `rebar3`.
+
+From the Erlang shell:
+```erlang
+ct:run_test([{dir, "test/"}]).
+```
+
+Using `rebar3`:
+```sh
+rebar3 ct
+```
+
+===== Understanding Test Output
+Common Test generates detailed logs in the `_build/test/logs/` directory.
+
+Log files:
+
+* `ct_run.*.log` - Main test run log
+* `suite.log` - Logs specific test suite execution
+* `testcase.log` - Logs specific test case execution
+
+For real-time debugging, you can enable verbose output:
+```erlang
+ct:run_test([{dir, "test/"}, {verbosity, high}]).
+```
+
+==== Other Testing Frameworks and Techniques
+
+While Common Test is the standard testing framework included in Erlang/OTP, there are several other testing frameworks and methodologies that developers often use to improve test coverage, reliability, and automation. These tools provide additional capabilities such as **property-based testing** and **mocking**, which help validate complex behaviors and interactions in Erlang applications. Although a detailed exploration of these techniques is beyond the scope of this book, this section briefly introduces them for those interested in expanding their testing toolkit.
+
+===== Property-Based Testing
+Property-based testing differs from traditional unit tests by generating a vast number of test cases based on properties that the system should always satisfy. Instead of writing individual test cases, developers define properties, and the framework automatically generates inputs to verify that those properties hold across a wide range of scenarios. This approach is particularly useful for catching edge cases that may not be covered by manually written tests.
+
+Two widely used property-based testing libraries in the Erlang ecosystem are **QuickCheck** and **PropEr**:
+
+- **QuickCheck** (commercial and open-source versions) is a powerful tool for generating randomized test cases and shrinking failing cases to minimal counterexamples.
+- **PropEr** (Property-Based Testing for Erlang) is an open-source alternative with similar capabilities, supporting property definitions with type specifications, generators, and stateful testing.
+
+Property-based testing is highly effective for verifying algorithms, protocols, and systems with complex input spaces. However, it requires a mindset shift from writing explicit test cases to defining system invariants and constraints.
+
+===== Mocking
+Mocking is a technique used in testing to replace dependencies or external components with controlled stand-ins. This is particularly useful in **unit testing**, where isolating a function or module from its dependencies can make it easier to test specific behaviors without requiring full system integration.
+
+- Mocks allow for **testing code in isolation**, ensuring that a function behaves correctly regardless of the actual implementation of its dependencies.
+- They **speed up test execution** by avoiding interactions with external systems such as databases or network services.
+- Mocks enable **controlled testing of edge cases**, such as simulating timeouts, failures, or unexpected responses from dependencies.
+
+Unlike some object-oriented languages where mocking frameworks are common, Erlang’s functional nature and message-passing model require a different approach to mocking. Some common strategies include:
+
+- **Manual mocking with function overrides**: Using higher-order functions or explicit module replacement.
+- **Using `meck`**: A popular mocking library that allows replacing module functions at runtime for controlled testing.
+- **Process-based mocks**: Simulating external systems with lightweight processes that return predefined responses.
+
+====== Best Practices for Mocking
+When using mocking in Erlang testing, consider the following best practices:
+
+- Use mocks **only when necessary**—prefer real implementations when integration testing is feasible.
+- Keep mocked behavior **realistic** to avoid misleading test results.
+- Combine mocks with **property-based testing** where applicable, ensuring broader test coverage while controlling specific dependencies.
+
+While property-based testing and mocking can be invaluable in certain testing scenarios, they require deeper understanding and best-practice implementation to be effective. For more comprehensive discussions on these topics, readers are encouraged to explore dedicated resources such as link:https://pragprog.com/titles/fhproper/property-based-testing-with-proper-erlang-and-elixir/["Property-Based Testing with PropEr, Erlang, and Elixir"] and link:https://github.com/eproxus/meck[Meck].
+
+
+
 
 === Debugging Tools and Techniques
 
-==== The Erlang debugger (dbg)
-===== Getting started with dbg
-===== Tracing and breakpoints
-===== Analyzing debugger output
+Debugging is essential when dealing with unexpected behavior in Erlang applications. Several tools exist in the Erlang ecosystem.
+
+==== The Erlang Debugger (`dbg`)
+
+The `dbg` module provides powerful tracing capabilities for debugging live systems with minimal impact on performance.
+
+===== Getting Started with `dbg`
+To start the `dbg` tool:
+```erlang
+1> dbg:tracer().
+{ok,<0.85.0>}
+```
+This sets up a tracer process to collect debug information. You can choose different backends for output:
+
+- `dbg:tracer(console).` → Print to the shell
+- `dbg:tracer(port, file:open("trace.log", [write])).` → Write to a file
+
+Once tracing is enabled, you can attach tracers to processes or functions.
+
+Tracing All Function Calls
+
+```erlang
+dbg:p(all, c). % Trace all function calls in all processes
+```
+
+Tracing a Specific Function
+
+```erlang
+dbg:tpl(my_module, my_function, []). % Trace calls to my_function/0
+```
+
+Setting a Conditional Trace
+
+Trace only when a function argument matches:
+```erlang
+dbg:tpl(my_module, my_function, [{'_', [], [{message, "Function called"}]}]).
+```
 
 
+Breakpoints are useful when stepping through code execution. Start the graphical debugger:
+```erlang
+debugger:start().
+```
+Then, set breakpoints in a module:
+```erlang
+int:break(my_module, my_function, Arity).
+```
+
+Once a function is traced, calls and returns are logged.
+
+Example trace output:
+```
+(<0.85.0>) call my_module:my_function(42)
+(<0.85.0>) returned from my_function -> "Result: 42"
+```
+This allows you to track how values change throughout execution.
 
 
 ==== Redbug
@@ -377,54 +561,773 @@ available options for redbug, you can ask the tool itself:
 18> redbug:help().
 ----
 
-[[crash_dumps]]
-==== Crash dumps
-===== Understanding and reading crash dumps
-===== Investigating why crash dumps may not be generated
 
-==== Debugging the Runtime System
-===== Using GDB
-====== Basics of GDB for Erlang
-====== Using GDB macros
+=== Crash Dumps in Erlang
 
-===== SystemTap and DTrace
-====== Introduction to SystemTap and DTrace
-====== Using SystemTap and DTrace with Erlang
+Crash dumps provide information for diagnosing failures in Erlang systems. They contain details about system state, memory usage, process information, and call stacks at the time of a crash. Understanding how to interpret these files can significantly speed up debugging and prevent future crashes.
 
 
+==== Understanding and Reading Crash Dumps
 
-=== Mocking
-==== Overview and benefits
-==== Using mocks in Erlang tests
-==== Best practices for mocking
+A crash dump (`erl_crash.dump`) is a snapshot of the Erlang runtime system (ERTS) at the time of an abnormal termination. It includes:
 
-=== Property Based Testing
-==== QuickCheck and PropEr
+- System version and runtime parameters
+- Memory usage statistics
+- Loaded modules
+- Process states and call stacks
+- Port and driver information
+
+By analyzing crash dumps, you can determine why a system crashed—whether due to memory exhaustion, infinite loops, deadlocks, or other failures.
+
+By default, crash dumps are saved in the working directory where the Erlang system was started. The filename is typically:
+```
+erl_crash.dump
+```
+You can change the location by setting the environment variable:
+```sh
+export ERL_CRASH_DUMP=/var/log/erl_crash.dump
+```
+or at runtime:
+```erlang
+erlang:system_flag(crash_dump, "/var/log/erl_crash.dump").
+```
+
+==== Basic Structure of a Crash Dump
+
+A crash dump consists of multiple sections. Below is a truncated example:
+```
+=erl_crash_dump:0.5
+Sun Feb 18 13:45:52 2025
+Slogan: eheap_alloc: Cannot allocate 1048576 bytes of memory (of type "heap").
+System version: Erlang/OTP 26 [erts-13.1] [source] [64-bit]
+Compiled: Fri Jan 26 14:10:07 2025
+Taints: none
+Atoms: 18423
+Processes: 482
+Memory: 2147483648
+=memory
+total: 2147483648
+processes: 1807483648
+ets: 107374182
+binary: 32212254
+code: 5242880
+```
+This dump suggests that the system crashed due to a memory allocation failure (`Cannot allocate 1048576 bytes of memory`).
+
+===== Key Sections in a Crash Dump
+
+1. Slogan
+    Indicates the reason for the crash. Common slogans include:
+    - `eheap_alloc: Cannot allocate X bytes of memory` (Memory exhaustion)
+    - `Processes spawned too quickly` (Excessive process creation)
+    - `Badmatch error` (Pattern matching failure in a critical process)
+    - `No more system processes` (Scheduler issue)
+
+2. System Information
+    Contains details about the runtime:
+    - `System version`: The Erlang/OTP version and build details
+    - `Compiled`: When the system was built
+    - `Taints`: Whether external native code (NIFs) are running
+
+3. Memory Usage
+    Displays the memory distribution:
+
+    - **Total**: Total memory usage
+    - **Processes**: Memory used by processes (high values suggest memory leaks)
+    - **ETS**: Erlang Term Storage usage (can be a problem if growing uncontrollably)
+    - **Binary**: Memory allocated for binaries (can be a source of leaks)
+    - **Code**: Loaded code memory footprint
+
+4. Process List
+
+Provides details about active processes:
+    This section is crucial for identifying:
+    - Processes consuming excessive memory (`Stack+Heap` size)
+    - Processes stuck in an infinite loop (`Reductions` count abnormally high)
+    - Message queue overload (`Messages` field growing indefinitely)
+
+5. Ports and Drivers
+    This lists open ports and drivers, which can be useful if external system interactions (files, sockets, databases) are suspected as crash causes.
+
+6. Loaded Modules
+    This helps determine if dynamically loaded code (e.g., via `code:load_file/1`) caused the crash.
+
+
+==== Analyzing a Crash Dump
+Erlang provides a built-in tool for parsing crash dumps: `crashdump_viewer`.
+
+To start it:
+```erlang
+crashdump_viewer:start().
+```
+This provides a graphical interface to inspect the crash dump.
+
+Alternatively, you can use `crashdump_analyzer`, an open-source command-line tool that helps extract insights:
+```sh
+cd /var/log/
+crashdump_analyzer erl_crash.dump
+```
+
+
+==== Investigating Why Crash Dumps May Not Be Generated
+
+Sometimes, a system crash does not result in an `erl_crash.dump` file. Here’s why and how to fix it.
+
+===== Crash Dumps Disabled
+Erlang allows enabling/disabling crash dumps via:
+```erlang
+erlang:system_flag(dump_on_exit, true).
+```
+Ensure it’s enabled:
+```sh
+ERL_CRASH_DUMP=/var/log/erl_crash.dump
+```
+or via `sys.config`:
+```erlang
+[{kernel, [{error_logger, {file, "/var/log/erl_crash.dump"}}]}].
+```
+
+===== Insufficient Permissions
+Ensure the process running Erlang has write permissions to the intended dump directory:
+```sh
+sudo chmod 777 /var/log/erl_crash.dump
+```
+Check the ownership:
+```sh
+ls -l /var/log/erl_crash.dump
+```
+If needed, change ownership:
+```sh
+sudo chown erlang_user /var/log/erl_crash.dump
+```
+
+===== Crashing Before Dump Can Be Written
+If the system runs out of memory before writing the dump, you may need to reserve memory:
+```erlang
+erlang:system_flag(reserved_memory, 1000000).
+```
+Or increase swap space.
+
+===== System-Wide Limits
+Linux/macOS system limits may prevent dump generation. Check:
+```sh
+ulimit -a
+```
+If `core file size` is `0`, enable it:
+```sh
+ulimit -c unlimited
+```
+On macOS:
+```sh
+sudo launchctl limit core unlimited
+```
+
+===== Crash Inside NIFs
+If a Native Implemented Function (NIF) crashes, Erlang might not handle it gracefully. Running Erlang under `gdb` can help:
+```sh
+gdb --args erl
+```
+Then reproduce the crash and inspect the stack trace.
+
+
+=== Debugging the Runtime System
+
+Understanding and diagnosing issues within the Erlang runtime system (BEAM) can be challenging due to its complexity. However, utilizing tools like the GNU Debugger (GDB) can significantly aid in this process. This section provides an overview of using GDB to debug the BEAM, including setting up the environment and employing GDB macros to streamline the debugging workflow.
+
+==== Using GDB
+
+GDB is a powerful tool for debugging applications at the machine level, offering insights into the execution of compiled programs. When applied to the BEAM, GDB allows developers to inspect the state of the Erlang virtual machine during execution or after a crash.
+
+To effectively use GDB with the BEAM, it's beneficial to compile the Erlang runtime system with debugging symbols. This compilation provides detailed information during debugging sessions. 
+
+See the chapter on "Building Erlang from Source" for instructions on compiling Erlang with debugging symbols. Basically it involves adding the flag '-emu_type debug' to the build.
+
+After building, you can run the debug version of the BEAM using:
+```sh
+$ERL_TOP/bin/cerl -emu_type debug
+```
+
+This setup ensures that the BEAM is compiled with debugging symbols, making it compatible with GDB.
+
+Launch GDB and attach it to the BEAM process:
+```sh
+gdb $ERL_TOP/bin/x86_64-unknown-linux-gnu/beam.debug.smp
+```
+
+Once inside GDB, you can start the BEAM with:
+```gdb
+run -- -root $ERL_TOP
+```
+
+This command initializes the BEAM within the GDB environment, allowing you to set breakpoints, inspect memory, and analyze the execution flow.
+
+===== Using GDB Macros
+
+GDB macros can automate repetitive tasks and provide shortcuts for complex commands, enhancing the efficiency of your debugging sessions. The Erlang runtime includes a set of predefined GDB macros, known as the Erlang Pathologist Toolkit (ETP), which facilitate the inspection of internal BEAM structures.
+
+To load the ETP macros into your GDB session:
+
+```gdb
+source $ERL_TOP/erts/etc/unix/etp-commands
+```
+
+This command loads a suite of macros designed to inspect various aspects of the BEAM, such as process states, memory allocation, and scheduling information.
+
+
+After loading, you can use macros like `etp-process-info` to retrieve detailed information about a specific process:
+```gdb
+etp-process-info <process_pointer>
+```
+
+Replace `<process_pointer>` with the actual pointer to the process control block (PCB) you're interested in. These macros simplify the process of extracting meaningful data from the BEAM's internal structures.
+
+For a comprehensive guide on debugging the BEAM using GDB and employing these macros, refer to link:https://max-au.com/2022/03/29/debugging-the-beam/[Debugging the BEAM] and link:https://www.erlang.org/doc/system/debugging.html#debug-emulator[Debug emulator documentation]. These resources provide in-depth instructions and examples to assist you in effectively diagnosing and resolving issues within the Erlang runtime system. 
+
+
+==== SystemTap and DTrace
+
+SystemTap and DTrace are powerful dynamic tracing frameworks that allow developers to analyze and monitor system behavior in real-time without modifying application code. These tools are particularly useful for investigating performance bottlenecks, debugging issues, and understanding system interactions at a low level. While both tools serve a similar purpose, they are designed for different operating systems—SystemTap is widely used on Linux, while DTrace is predominantly used on Solaris, macOS, and BSD variants.
+
+Using these tools with Erlang can provide deep insights into the behavior of the BEAM virtual machine, process scheduling, garbage collection, and inter-process communication.
+
+===== Introduction to SystemTap and DTrace
+
+SystemTap and DTrace operate by inserting dynamically generated probes into running kernel and user-space applications. These probes capture real-time data, allowing developers to inspect and analyze program execution without stopping or modifying the application.
+
+- **SystemTap**: Developed for Linux, SystemTap enables monitoring of kernel events, user-space programs, and runtime behavior using scripting. It is commonly used for profiling, fault detection, and system introspection.
+  
+- **DTrace**: Originally developed by Sun Microsystems for Solaris, DTrace provides similar tracing capabilities with a robust scripting language. It is widely used on macOS, FreeBSD, and SmartOS.
+
+Both tools allow developers to measure function execution times, trace system calls, inspect memory usage, and capture event-based data critical for optimizing performance and debugging complex applications.
+
+===== Using SystemTap and DTrace with Erlang
+
+To use SystemTap and DTrace with Erlang, you need to enable the necessary tracing support in the BEAM runtime system. This allows inserting probes into the virtual machine to monitor function calls, message passing, garbage collection, and scheduling events.
+
+==== Using SystemTap with Erlang
+
+SystemTap scripts rely on user-space markers embedded in the BEAM emulator. These markers allow SystemTap to hook into various internal events. To use SystemTap with Erlang:
+
+- **Ensure SystemTap is installed** (on Linux distributions such as Ubuntu, Fedora, or CentOS):
+  
+```sh
+sudo apt-get install systemtap systemtap-sdt-dev
+```
+
+  or
+
+```sh
+sudo dnf install systemtap systemtap-devel
+```
+
+- **Enable Erlang’s SystemTap probes**: The BEAM VM includes support for SystemTap, but it must be compiled with `--enable-systemtap`:
+
+```sh
+./configure --enable-systemtap
+make
+```
+
+- **List available probes**: To check which probes are available in the BEAM runtime:
+
+```sh
+stap -L 'process("*beam.smp").mark("*")'
+```
+
+- **Write a SystemTap script**: The following example traces function calls in the BEAM VM:
+
+```systemtap
+probe process("beam.smp").mark("function_entry") {
+    printf("Function call in BEAM: %s\n", user_string($arg1))
+}
+```
+
+- **Run the script**: Execute the script to start tracing:
+
+```sh
+sudo stap my_script.stp
+```
+
+This allows developers to observe function calls, detect bottlenecks, and debug performance issues in real-time.
+
+==== **Using DTrace with Erlang**
+
+DTrace integrates directly with the BEAM runtime, offering deep visibility into system operations. It allows tracing function calls, memory allocation, garbage collection, and inter-process communication.
+
+- **Ensure DTrace is available**: On macOS, DTrace is pre-installed. On FreeBSD or Solaris, it can be enabled via:
+
+```sh
+sudo dtrace -l | grep erl
+```
+
+- **Enable DTrace probes in Erlang**: The BEAM VM includes built-in DTrace support. If needed, rebuild Erlang with DTrace support:
+
+```sh
+./configure --with-dtrace
+make
+```
+
+- **List available probes**: To check the available DTrace probes in the BEAM runtime:
+
+```sh
+sudo dtrace -l | grep beam
+```
+
+- **Write a simple DTrace script**: The following script traces Erlang function calls:
+
+```dtrace
+syscall::write:entry
+/execname == "beam.smp"/ {
+    printf("Erlang process writing output\n");
+}
+```
+
+- **Run the script**: Execute DTrace to start tracing:
+
+  ```sh
+  sudo dtrace -s my_script.d
+  ```
+
+This provides a non-intrusive way to monitor the internal behavior of the BEAM virtual machine in real-time.
+
 
 === The Usual Suspects: Common Sources of Bugs
+
+Software systems often exhibit recurring types of failures that can impact stability and performance. In Erlang, despite its design for fault tolerance, certain categories of bugs appear frequently. This section explores some of the most common sources of issues in Erlang applications, including **deadlocks, mailbox overflow, and memory issues**. Understanding these problems and learning how to diagnose and resolve them can help in writing more reliable and efficient Erlang programs.
+
+
 ==== Deadlocks
-===== Identifying and diagnosing deadlocks
-===== Techniques for resolving deadlocks
-==== Mailbox overflow
-===== Causes and symptoms
-===== Preventing and resolving mailbox overflow issues
-==== Memory issues
-===== Identifying memory leaks
-===== Managing binary memory usage
-===== Optimizing memory usage in Erlang systems
 
-=== Let it Crash Principle
+Deadlocks occur when two or more processes are waiting for each other to release resources, leading to a state where no progress can be made. This is a common problem in concurrent systems, including those built with Erlang’s lightweight processes.
 
-==== Overview and rationale
+Deadlocks in Erlang typically arise due to:
+
+- **Circular dependencies**: Two processes each waiting for a resource held by the other.
+- **Misused locks**: When using `gen_server` or `gen_fsm`, incorrect ordering of message handling can lead to deadlocks.
+- **Blocking calls inside `gen_server`**: Calling `gen_server:call/2` within a `handle_call/3` callback can cause the process to block indefinitely.
+
+To identify deadlocks:
+
+- **Process inspection**: Use `observer:start().` or `process_info(Pid, status).` to check for stuck processes.
+- **Tracing with `dbg`**: Enable function call tracing to determine where processes are waiting indefinitely.
+- **Message queue analysis**: If a process is waiting for a message that never arrives, check its mailbox using `process_info(Pid, messages).`
+
+
+Use timeouts in blocking operations:
+```erlang
+gen_server:call(Server, Request, Timeout).
+```
+Setting a reasonable timeout prevents indefinite blocking.
+
+Use asynchronous calls (`gen_server:cast/2`) or monitor messages (`erlang:monitor/2`) to avoid blocking.
+
+Ensure that all locks are acquired in a consistent order across processes to prevent cyclic dependencies.
+
+Implement periodic checks that monitor process status and forcefully restart deadlocked processes.
+
+==== Mailbox Overflow
+
+Erlang’s message-passing model allows processes to receive messages asynchronously via mailboxes. However, if a process accumulates messages faster than it can process them, the mailbox can grow indefinitely, leading to high memory consumption or crashes.
+
+There are some common causes and symptoms of message overflows:
+
+- **Slow message processing**: A `gen_server` that takes too long to handle requests can lead to unprocessed messages piling up.
+- **Excessive message generation**: Processes sending frequent messages without checking backpressure.
+- **Unprocessed system messages**: Failure to handle system messages like `gen_server:handle_info/2`.
+
+Symptoms include:
+
+- Increasing memory usage (`process_info(Pid, memory).`)
+- Long process message queues (`process_info(Pid, message_queue_len).`)
+- Unresponsive processes that appear idle but are overloaded.
+
+===== Preventing and Resolving Mailbox Overflow Issues
+**Monitor message queue length**:
+```erlang
+process_info(Pid, message_queue_len).
+```
+Use monitoring tools to trigger alerts when queues grow beyond a threshold.
+
+**Rate-limiting senders**
+
+   - Use **backpressure mechanisms**, such as asking for explicit acknowledgments before sending more messages.
+   - Implement **flow control**: Instead of blindly sending messages, a producer can check the consumer’s load.
+
+**Use selective receive properly**
+
+Avoid patterns like:
+```erlang
+receive {specific_message, Data} -> process(Data) end.
+```
+which ignores other pending messages, causing an ever-growing mailbox.
+An exception to this rule is when you use the Ref-trick for a rpc-type send and receive.
+See <<ref-trick,The Ref-trick>> for more information.
+
+**Offload heavy computation**:
+
+    - Offload expensive operations to worker processes instead of doing them in the main process loop.
+    - Use **`gen_server:reply/2`** to respond to messages asynchronously after processing.
+
+==== Memory Issues
+
+Erlang’s memory model relies on per-process heaps, garbage collection, and a binary allocator. While designed for efficiency, improper memory usage can lead to performance degradation.
+
+
+Memory leaks in Erlang often stem from:
+
+- **Long-lived processes accumulating state**: ETS tables, large lists, or unprocessed messages.
+- **Unbounded message queues**: Processes that receive but never consume messages.
+- **Binary data accumulation**: Large binaries can cause high memory fragmentation.
+
+===== How to detect memory leaks
+
+Check individual process memory usage:
+```erlang
+process_info(Pid, memory).
+```
+
+Use `observer:start().` and navigate to the "Processes" tab to identify processes consuming excessive memory.
+
+Enable tracing on memory allocations using:
+```erlang
+recon_alloc:memory(ets).
+```
+
+===== Managing Binary Memory Usage
+Large binaries are managed separately from process heaps using reference counting. Issues arise when:
+
+- Processes hold onto binary references longer than needed.
+- Unused large binaries remain due to delayed garbage collection.
+
+**Solutions:**
+
+**Convert large binaries to smaller chunks**:
+```erlang
+binary:split(BigBinary, <<"\n">>).
+```
+
+**Force garbage collection**:
+```erlang
+erlang:garbage_collect(Pid).
+```
+This reclaims memory used by binaries if the process is no longer referencing them.
+This can be important in relaying processes that are not using the binaries anymore,
+but they hang on to a reference to them. Remember that binaries are reference counted 
+and live across processes.
+
+**Monitor binary memory allocation**:
+```erlang
+erlang:memory(binary).
+```
+
+===== Optimizing Memory Usage in Erlang Systems
+
+Erlang provides several **system flags** that control heap allocation behavior.
+
+`min_heap_size` (Minimum Process Heap Size)
+
+- Defines the **initial heap size** for a newly created process.
+- Helps avoid frequent heap expansions if a process is expected to handle large amounts of data.
+- Default is typically **233 words**, but increasing it slightly (e.g., **256** or **512**) can improve performance for processes that grow quickly.
+
+**Example Usage**
+You can configure this setting for a process using:
+```erlang
+spawn_opt(fun() -> my_function() end, [{min_heap_size, 512}]).
+```
+or apply it globally via:
+```erlang
+erl +hms 512
+```
+This ensures that **all new processes** start with a heap of at least **512 words**, reducing the need for frequent heap expansions.
+
+
+`min_bin_vheap_size` (Minimum Binary Virtual Heap Size)**
+
+- Controls the **virtual heap size** for reference-counted binaries (binaries > 64 bytes).
+- Helps **optimize memory allocation** for processes dealing with large binary data.
+- Default is **46422**, but for binary-heavy workloads, you might tune it to **512** or higher.
+
+```erlang
+spawn_opt(fun() -> handle_large_binaries() end, [{min_bin_vheap_size, 100000}]).
+```
+
+This ensures the process starts with enough **binary heap space**, preventing frequent reallocations.
+
+Optimize full-sweep garbage collection thresholds (`fullsweep_after`).
+
+Use ETS efficiently
+
+- Regularly clean up unused entries to avoid memory bloat.
+- Prefer **`set`** tables over **`bag`** or **`ordered_set`** unless necessary.
+
+Be mindful of passing large terms, if they are long lived and shared. Instead of sending large terms between processes, use references (e.g., store large data in ETS or a database and send references).
+
+
+
+=== Let It Crash Principle
+
+Erlang’s **“Let It Crash”** principle is a fundamental philosophy in designing fault-tolerant and resilient systems. Instead of writing defensive code to handle every possible error, Erlang developers embrace failure and rely on **supervisor trees** to detect and recover from crashes. This approach simplifies code, improves maintainability, and ensures that systems remain robust even in the face of unexpected errors.
+
+==== Overview and Rationale
+
+In traditional programming, error handling often involves writing extensive `try-catch` statements and defensive code to anticipate failures. This approach, however, introduces complexity and can lead to hard-to-maintain codebases. Erlang takes a different approach by **accepting that failures will happen** and focusing on **automatic recovery** rather than exhaustive error prevention.
+
+The **rationale** behind "Let It Crash" is:
+
+- **Isolation of failures**: Since each Erlang process runs independently, a crash in one process does not affect others.
+- **Automatic recovery**: Supervisors monitor processes and restart them when they fail.
+- **Simpler code**: Developers write less defensive code and focus on business logic rather than error handling.
+- **Fault containment**: By letting processes crash and restart in a controlled manner, errors are prevented from spreading.
+
+This philosophy makes Erlang systems highly resilient, particularly in distributed environments where failures are inevitable.
 
 ==== Exceptions in Erlang
 
-==== Designing systems with supervisor trees
+Erlang provides built-in mechanisms for handling exceptions, but instead of focusing on recovering from every error locally, it encourages **process termination and restart** through supervision.
+
+===== **Types of Exceptions**
+
+Erlang has three main types of exceptions:
+
+- **Errors** (`error:Reason`) – Occur due to serious faults like division by zero or calling an undefined function.
+- **Throws** (`throw:Reason`) – Used for non-local returns and controlled exits.
+- **Exits** (`exit:Reason`) – Occur when a process terminates unexpectedly or intentionally.
+
+===== **Example of Exception Handling**
+
+While defensive programming discourages crashes, Erlang allows you to handle exceptions explicitly if needed:
+
+```erlang
+try 1 / 0 of
+    Result -> io:format("Result: ~p~n", [Result])
+catch
+    error:badarith -> io:format("Cannot divide by zero!~n")
+end.
+```
+This is useful in cases where immediate local handling is required, but most failures in Erlang are **left to crash** and be handled by supervisors.
+
+===== **Process Exits and Monitoring**
+
+If a process crashes, it sends an **exit signal** to linked processes. You can monitor or trap these exits if needed:
+
+```erlang
+spawn_monitor(fun() -> exit(died) end).
+```
+
+This allows another process to detect failures and react accordingly.
+
+==== Designing Systems with Supervisor Trees
+
+Instead of handling errors inside every function, Erlang applications rely on **supervisor trees**, a hierarchical structure where **supervisors** monitor worker processes and restart them upon failure.
+
+===== **Structure of a Supervisor Tree**
+
+A **supervisor tree** consists of:
+
+- **Supervisor**: A special process that manages worker processes and other supervisors.
+- **Workers**: The actual processes performing computations. If they crash, the supervisor decides how to restart them.
+
+```erlang
+-module(my_supervisor).
+-behaviour(supervisor).
+
+-export([start_link/0, init/1]).
+
+start_link() ->
+    supervisor:start_link(?MODULE, []).
+
+init([]) ->
+    {ok, {{one_for_one, 3, 10},
+          [{worker1, {my_worker, start_link, []}, permanent, 5000, worker, [my_worker]}]}}.
+```
+
+This supervisor ensures that if `my_worker` crashes, it will be restarted automatically.
+
+===== **Supervision Strategies**
+
+Supervisors can follow different restart strategies:
+
+- **one_for_one**: Restart only the crashed process (most common).
+- **one_for_all**: Restart all child processes if one fails.
+- **rest_for_one**: Restart the failed process and all those started after it.
+- **simple_one_for_one**: Used when dynamically spawning similar worker processes.
+
+===== **Benefits of Using Supervisor Trees**
+
+- **Automatic Fault Recovery**: If a worker crashes, it is restarted without manual intervention.
+- **Scalability**: Supervisors can manage thousands of processes efficiently.
+- **Separation of Concerns**: Business logic stays in workers, and fault recovery is handled separately.
+
 
 
 === Debugging Philosophy
-==== Systematic approaches to debugging
-==== Learning from mistakes and improving code quality
 
-=== Summary and Further Resources
+Debugging is an essential part of software development, and in Erlang, it takes on a unique approach due to the language’s **fault-tolerant** design. Rather than focusing solely on preventing failures, Erlang encourages a **reactive** debugging philosophy—detecting, diagnosing, and recovering from errors effectively. Debugging in Erlang involves leveraging **systematic approaches**, analyzing failures in production, and continuously improving code quality by learning from mistakes.
+
+==== Systematic Approaches to Debugging
+
+A structured approach to debugging can significantly reduce the time and effort required to identify and resolve issues. Debugging in Erlang follows a methodical process that involves observation, isolation, and testing.
+
+===== **1. Reproduce the Problem**
+
+Before fixing a bug, you need to **reproduce it consistently**. Some techniques for reproducing issues in Erlang systems include:
+
+- Running the system with **detailed logging** (`lager`, `logger`).
+- Using **tracing tools** like `dbg` or `recon` to capture function calls and message passing.
+- **Simulating failure scenarios** with controlled test environments.
+
+Example: Enabling tracing to inspect function calls in a module:
+```erlang
+dbg:tracer().
+dbg:p(all, c).
+dbg:tpl(my_module, my_function, []). % Trace all calls to my_function
+```
+
+If the issue occurs sporadically, running the system under **load testing** with tools like `prop_er` or `Common Test` can help uncover race conditions.
+
+===== **2. Isolate the Faulty Component**
+
+Once the issue is reproducible, the next step is **isolating the problem** to a specific module, process, or function:
+
+- Check **process message queues** using:
+  ```erlang
+  process_info(Pid, messages).
+  ```
+  A long message queue could indicate a performance bottleneck.
+  
+- Inspect **ETS tables** and memory usage:
+  ```erlang
+  ets:info(my_table, size).
+  erlang:memory().
+  ```
+
+- Use **selective tracing** to focus only on processes related to the issue:
+  ```erlang
+  dbg:p(self(), [m]).  % Trace only the current process
+  ```
+
+By isolating the faulty component, you **narrow the scope of debugging** and avoid unnecessary distractions.
+
+===== **3. Analyze Logs and Crash Dumps**
+
+Logs and crash dumps provide valuable information about system failures. When an Erlang node crashes, it generates an `erl_crash.dump` file containing details such as:
+
+- The **reason for the crash** (e.g., memory exhaustion, infinite loops, deadlocks).
+- Process states at the time of failure.
+- The **call stack of the crashing process**.
+
+Example: Checking a crash dump’s memory usage section:
+```
+=memory
+total: 2147483648
+processes: 1807483648
+ets: 107374182
+binary: 32212254
+code: 5242880
+```
+If process memory is abnormally high, it could indicate a memory leak.
+
+For real-time debugging, use `crashdump_viewer`:
+```erlang
+crashdump_viewer:start().
+```
+
+===== **4. Use Debugging Tools Effectively**
+
+Erlang provides powerful **runtime debugging tools** to analyze system behavior:
+
+- **Observer GUI** (`observer:start()`) – Interactive process monitoring.
+- **`dbg` and `recon`** – Low-level tracing and inspection.
+- **`SystemTap` or `DTrace`** – Kernel-level profiling for advanced debugging.
+
+Using the right tool for the job prevents unnecessary code modifications and speeds up debugging.
+
+===== **5. Verify the Fix and Write Regression Tests**
+
+Once the bug is identified and fixed, ensure it does not reappear:
+
+- **Write regression tests** in `Common Test` or `EUnit`.
+- **Run property-based tests** (`PropEr`, `QuickCheck`) to verify edge cases.
+- **Test in a staging environment** before deploying to production.
+
+
+==== Learning from Mistakes and Improving Code Quality
+
+Every bug presents an opportunity to **improve the codebase** and **prevent future issues**. Erlang’s philosophy of **resilience and self-healing** extends to how developers handle mistakes and refine their systems.
+
+===== **1. Conducting Post-Mortems**
+
+After fixing a critical bug, analyze **why it happened** and **how to prevent it**. A **post-mortem analysis** should answer:
+
+- What was the root cause of the issue?
+- How did it impact the system?
+- How can similar bugs be prevented?
+
+If a process crashed due to an **unexpected message**, ensure message filtering is robust:
+```erlang
+handle_info(_Unexpected, State) ->
+    {noreply, State}.
+```
+
+===== **2. Improving Logging and Observability**
+
+Many issues arise due to insufficient **logging and monitoring**. Improving system observability includes:
+
+- Using **structured logging** (`lager`, `logger`) with **log levels**:
+  ```erlang
+  logger:log(info, "User logged in: ~p", [UserId]).
+  ```
+
+- Implementing **real-time monitoring**:
+  ```erlang
+  recon:bin_leak(10). % Detects potential memory leaks.
+  ```
+
+Better logging helps detect anomalies **before they escalate** into major failures.
+
+===== **3. Enhancing Code Readability and Maintainability**
+
+Well-structured code is easier to debug. Following **Erlang best practices** improves maintainability:
+
+- **Use clear function names** (`handle_request/1` instead of `do_it/1`).
+- **Follow the OTP design principles** (`gen_server`, `supervisor`).
+- **Write modular code** to make debugging easier.
+
+Example: Instead of complex nested case statements:
+```erlang
+case Result of
+    {ok, Data} -> process(Data);
+    {error, _} -> handle_error()
+end.
+```
+Use **pattern matching** for clarity:
+```erlang
+process_request({ok, Data}) -> process(Data);
+process_request({error, _}) -> handle_error().
+```
+
+===== **4. Implementing Fail-Fast Mechanisms**
+
+Erlang’s **Let It Crash** philosophy means processes should **fail quickly** when an error occurs instead of propagating invalid state. 
+
+Example: Enforcing fail-fast behavior with guards:
+```erlang
+handle_request({ok, Data}) when is_list(Data) ->
+    process(Data);
+handle_request(_) ->
+    exit(bad_request).
+```
+
+Fail-fast mechanisms prevent **silent failures** and make debugging easier.
+
+===== **5. Learning from Open Source Erlang Systems**
+
+Many production-grade Erlang applications are open source. Studying their **debugging practices** provides valuable insights:
+
+- **RabbitMQ** – Uses structured logging and monitoring tools.
+- **MongooseIM** – Implements extensive tracing.
+- **Riak** – Employs distributed fault recovery techniques.
+
+Exploring these projects **improves debugging skills** and **enhances system design knowledge**.
+
 

@@ -1,6 +1,6 @@
 
 [[CH-Instructions]]
-== Generic BEAM Instructions (25p)
+== Generic BEAM Instructions
 
 Beam has two different instructions sets, an internal instructions
 set, called _specific_, and an external instruction set, called
@@ -416,6 +416,7 @@ The +timeout+ instruction resets the save point of the mailbox to the
 first element in the queue, and clears the timeout flag (F_TIMO) from
 the PCB.
 
+[[Ref-Trick]]
 ==== The Synchronous Call Trick (aka The Ref Trick)
 
 We have now come to the last version of our receive loop, where we
