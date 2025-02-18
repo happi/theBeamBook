@@ -23,6 +23,7 @@ About this book
 
 
 For anyone who:
+
 * Wants to tune an Erlang installation.
 * Wants to know how to debug VM crashes.
 * Wants to improve the performance of Erlang applications.

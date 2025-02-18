@@ -57,11 +57,11 @@ include::chapters/c.asciidoc[]
 [[P-Running]]
 = Running ERTS
 
+include::chapters/ops.asciidoc[]
+
 include::chapters/tracing.asciidoc[]
 
 include::chapters/debugging.asciidoc[]
-
-include::chapters/ops.asciidoc[]
 
 include::chapters/tweak.asciidoc[]
 
