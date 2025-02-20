@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y \
     asciidoctor \
     default-jre \
     graphviz \
+    systemtap systemtap-sdt-dev \
     && apt-get clean
 
 # Additional Ruby packages

@@ -124,88 +124,89 @@ A. **Driver Initialization:**
 
    - **Register the Driver:** Implement the `DRIVER_INIT` macro to initialize and register your driver with the Erlang runtime.
 
-```c
-   static ErlDrvEntry example_driver_entry = {
-       NULL,                   // init
-       example_drv_start,      // start
-       example_drv_stop,       // stop
-       example_drv_output,     // output
-       NULL,                   // ready_input
-       NULL,                   // ready_output
-       "example_drv",          // driver_name
-       NULL,                   // finish
-       NULL,                   // handle
-       NULL,                   // control
-       NULL,                   // timeout
-       NULL,                   // outputv
-       NULL,                   // ready_async
-       NULL,                   // flush
-       NULL,                   // call
-       NULL,                   // event
-       ERL_DRV_EXTENDED_MARKER, // extended_marker
-       ERL_DRV_EXTENDED_MAJOR_VERSION, // major_version
-       ERL_DRV_EXTENDED_MINOR_VERSION, // minor_version
-       0,                      // driver_flags
-       NULL,                   // handle2
-       NULL,                   // process_exit
-       NULL                    // stop_select
-   };
+        ```c
+        static ErlDrvEntry example_driver_entry = {
+            NULL,                   // init
+            example_drv_start,      // start
+            example_drv_stop,       // stop
+            example_drv_output,     // output
+            NULL,                   // ready_input
+            NULL,                   // ready_output
+            "example_drv",          // driver_name
+            NULL,                   // finish
+            NULL,                   // handle
+            NULL,                   // control
+            NULL,                   // timeout
+            NULL,                   // outputv
+            NULL,                   // ready_async
+            NULL,                   // flush
+            NULL,                   // call
+            NULL,                   // event
+            ERL_DRV_EXTENDED_MARKER, // extended_marker
+            ERL_DRV_EXTENDED_MAJOR_VERSION, // major_version
+            ERL_DRV_EXTENDED_MINOR_VERSION, // minor_version
+            0,                      // driver_flags
+            NULL,                   // handle2
+            NULL,                   // process_exit
+            NULL                    // stop_select
+        };
 
-   DRIVER_INIT(example_drv) {
-       return &example_driver_entry;
-   }
-```
+        DRIVER_INIT(example_drv) {
+            return &example_driver_entry;
+        }
+        ```
+
 B. **Asynchronous Operations:**
 
    - **Handle Driver Callbacks:** Implement the necessary callback functions such as `example_drv_start`, `example_drv_stop`, and `example_drv_output` to manage driver operations.
 
    - **Manage I/O Events:** Utilize functions like `driver_select` to handle asynchronous I/O operations efficiently.
 
-```c
-   static ErlDrvData example_drv_start(ErlDrvPort port, char *command) {
-       example_data* d = (example_data*)driver_alloc(sizeof(example_data));
-       d->port = port;
-       return (ErlDrvData)d;
-   }
+        ```c
+        static ErlDrvData example_drv_start(ErlDrvPort port, char *command) {
+            example_data* d = (example_data*)driver_alloc(sizeof(example_data));
+            d->port = port;
+            return (ErlDrvData)d;
+        }
 
-   static void example_drv_stop(ErlDrvData handle) {
-       driver_free((char*)handle);
-   }
+        static void example_drv_stop(ErlDrvData handle) {
+            driver_free((char*)handle);
+        }
 
-   static void example_drv_output(ErlDrvData handle, char *buff, ErlDrvSizeT bufflen) {
-       example_data* d = (example_data*)handle;
-       // Process the input and produce output
-       driver_output(d->port, output_data, output_len);
-   }
-```
+        static void example_drv_output(ErlDrvData handle, char *buff, ErlDrvSizeT bufflen) {
+            example_data* d = (example_data*)handle;
+            // Process the input and produce output
+            driver_output(d->port, output_data, output_len);
+        }
+        ```
 
 C. **Resource Management:**
 
    - **Allocation and Deallocation:** Ensure proper memory management by allocating resources during driver start and releasing them during driver stop to prevent memory leaks.
 
-```c
-   typedef struct {
-       ErlDrvPort port;
-       // Additional driver-specific data
-   } example_data;
-```
+    ```c
+    typedef struct {
+        ErlDrvPort port;
+        // Additional driver-specific data
+    } example_data;
+    ```
 
-2. **Integration with Erlang:**
+Step 2. **Integration with Erlang:**
 
    - **Loading the Driver:** Use `erl_ddll:load_driver/2` to load the shared library containing your driver.
 
    - **Opening the Port:** Create a port in Erlang using `open_port/2` with the `{spawn, DriverName}` tuple to communicate with the driver.
 
-```erlang
-   start(SharedLib) ->
-       case erl_ddll:load_driver(".", SharedLib) of
-           ok -> ok;
-           {error, already_loaded} -> ok;
-           _ -> exit({error, could_not_load_driver})
-       end,
-       Port = open_port({spawn, SharedLib}, []),
-       loop(Port).
-```
+        ```erlang
+        start(SharedLib) ->
+            case erl_ddll:load_driver(".", SharedLib) of
+                ok -> ok;
+                {error, already_loaded} -> ok;
+                _ -> exit({error, could_not_load_driver})
+            end,
+            Port = open_port({spawn, SharedLib}, []),
+            loop(Port).
+        ```
 
 **Example Implementation**
 Now lets look at a full example of a linked in driver that doubles an integer.

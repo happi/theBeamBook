@@ -59,9 +59,13 @@ include::chapters/c.asciidoc[]
 
 include::chapters/ops.asciidoc[]
 
+include::chapters/debugging.asciidoc[]
+
 include::chapters/tracing.asciidoc[]
 
-include::chapters/debugging.asciidoc[]
+include::chapters/testing.asciidoc[]
+
+include::chapters/profiling.asciidoc[]
 
 include::chapters/tweak.asciidoc[]
 
