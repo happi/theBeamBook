@@ -576,6 +576,8 @@ A crash dump (`erl_crash.dump`) is a snapshot of the Erlang runtime system (ERTS
 
 By analyzing crash dumps, you can determine why a system crashed—whether due to memory exhaustion, infinite loops, deadlocks, or other failures.
 
+The official documentation provides a detailed explanation of the crash dump format: link:https://erlang.org/doc/apps/erts/crash_dump.html[How to Interpret the Erlang Crash Dumps]. We will cover the basics here.
+
 By default, crash dumps are saved in the working directory where the Erlang system was started. The filename is typically:
 ```
 erl_crash.dump
@@ -616,9 +618,8 @@ This dump suggests that the system crashed due to a memory allocation failure (`
 1. Slogan
     Indicates the reason for the crash. Common slogans include:
     - `eheap_alloc: Cannot allocate X bytes of memory` (Memory exhaustion)
-    - `Processes spawned too quickly` (Excessive process creation)
-    - `Badmatch error` (Pattern matching failure in a critical process)
-    - `No more system processes` (Scheduler issue)
+    - `Init terminating in do_boot ()` (Pobably an erro in the boot script)
+    - `Could not start kernel pid` (Probably a bad argument in config)
 
 2. System Information
     Contains details about the runtime:
@@ -629,11 +630,11 @@ This dump suggests that the system crashed due to a memory allocation failure (`
 3. Memory Usage
     Displays the memory distribution:
 
-    - **Total**: Total memory usage
-    - **Processes**: Memory used by processes (high values suggest memory leaks)
-    - **ETS**: Erlang Term Storage usage (can be a problem if growing uncontrollably)
-    - **Binary**: Memory allocated for binaries (can be a source of leaks)
-    - **Code**: Loaded code memory footprint
+    - `Total`: Total memory usage
+    - `Processes`: Memory used by processes (high values suggest memory leaks)
+    - `ETS`: Erlang Term Storage usage (can be a problem if growing uncontrollably)
+    - `Binary`: Memory allocated for binaries (can be a source of leaks)
+    - `Code`: Loaded code memory footprint
 
 4. Process List
 
@@ -658,12 +659,6 @@ To start it:
 crashdump_viewer:start().
 ```
 This provides a graphical interface to inspect the crash dump.
-
-Alternatively, you can use `crashdump_analyzer`, an open-source command-line tool that helps extract insights:
-```sh
-cd /var/log/
-crashdump_analyzer erl_crash.dump
-```
 
 
 ==== Investigating Why Crash Dumps May Not Be Generated
@@ -811,7 +806,7 @@ SystemTap scripts rely on user-space markers embedded in the BEAM emulator. Thes
 sudo apt-get install systemtap systemtap-sdt-dev
 ```
 
-  or
+or
 
 ```sh
 sudo dnf install systemtap systemtap-devel
@@ -846,28 +841,23 @@ sudo stap my_script.stp
 
 This allows developers to observe function calls, detect bottlenecks, and debug performance issues in real-time.
 
-==== **Using DTrace with Erlang**
+==== Using DTrace with Erlang
 
 DTrace integrates directly with the BEAM runtime, offering deep visibility into system operations. It allows tracing function calls, memory allocation, garbage collection, and inter-process communication.
 
-- **Ensure DTrace is available**: On macOS, DTrace is pre-installed. On FreeBSD or Solaris, it can be enabled via:
+On macOS, DTrace is pre-installed. On Ubuntu, it can be installed via:
 
 ```sh
-sudo dtrace -l | grep erl
+sudo apt-get install systemtap-sdt-dev
 ```
 
-- **Enable DTrace probes in Erlang**: The BEAM VM includes built-in DTrace support. If needed, rebuild Erlang with DTrace support:
+The BEAM VM includes built-in DTrace support. If needed, rebuild Erlang with DTrace support:
 
 ```sh
 ./configure --with-dtrace
 make
 ```
 
-- **List available probes**: To check the available DTrace probes in the BEAM runtime:
-
-```sh
-sudo dtrace -l | grep beam
-```
 
 - **Write a simple DTrace script**: The following script traces Erlang function calls:
 
@@ -880,9 +870,9 @@ syscall::write:entry
 
 - **Run the script**: Execute DTrace to start tracing:
 
-  ```sh
-  sudo dtrace -s my_script.d
-  ```
+```sh
+sudo dtrace -s my_script.d
+```
 
 This provides a non-intrusive way to monitor the internal behavior of the BEAM virtual machine in real-time.
 
@@ -957,7 +947,7 @@ receive {specific_message, Data} -> process(Data) end.
 ```
 which ignores other pending messages, causing an ever-growing mailbox.
 An exception to this rule is when you use the Ref-trick for a rpc-type send and receive.
-See <<ref-trick,The Ref-trick>> for more information.
+See xref:Ref-Trick[] for more information.
 
 **Offload heavy computation**:
 
