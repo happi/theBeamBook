@@ -31,75 +31,61 @@ later in this chapter.
 ==== Prerequisites
 
 You will need a number of tools in order to fetch, unpack and
-build from source. The file Install.md lists some of the most
+build from source. The file `HOWTO/INSTALL.md` lists the most
 important ones.
 
-Gven that we have a recent Ubuntu installation to start with
-many of the needed tools such as tar, make, perl and gcc should
-already be installed. But some tools like git, m4 and ncurses
+Given that we have a recent Ubuntu installation to start with
+some of the tools such as sed, tar, and perl should
+already be installed. But others like git, make, gcc, m4 and ncurses
 will probably need to be installed.
 
-
-
-If you add a source URI to your apt configuration you will
-be able to use the build-dep command to get the needed sources
-to build erlang. You can do this by uncommenting the deb-src
-line for your distribution in /etc/apt/sources.list.
-
-For the Yakkety Yak release you could add the line by:
+On a recent Ubuntu installation, the following command will get most of the
+tools you need:
 
 [source,sh]
 ----
-> sudo cat "deb-src http://se.archive.ubuntu.com/ubuntu/ \
-yakkety main restricted" >> /etc/apt/sources.list
+> sudo apt-get install build-essential git autoconf m4 \
+>   zlib1g-dev ncurses-dev libssl-dev
 ----
 
-Then the following commands will get almost all the tools you need:
+If you want to build with support for wxWidgets you need to also install
+the wx libraries:
 
 [source,sh]
 ----
-> sudo apt-get install git autoconf m4
-> sudo apt-get build-dep erlang
+> sudo apt-get install libwxgtk3.2-dev wx3.2-i18n \
+>   wx3.2-examples wx3.2-doc
 ----
 
-If you have a slightly older version of Ubuntu like Saucy and you
-want to build with wx support, you need to get the wx libraries:
+and optionally for WebView support in WX:
 
 [source,sh]
 ----
-> sudo apt-key adv --fetch-keys http://repos.codelite.org/CodeLite.asc
-> sudo apt-add-repository 'deb http://repos.codelite.org/wx3.0/ubuntu/ saucy universe'
-> sudo apt-get update
-> sudo apt-get install libwxbase3.0-0-unofficial libwxbase3.0-dev libwxgtk3.0-0-unofficial \
-libwxgtk3.0-dev wx3.0-headers wx-common libwxbase3.0-dbg libwxgtk3.0-dbg wx3.0-i18n \
-wx3.0-examples wx3.0-doc
+> sudo apt-get install libwxgtk-webview3.2-1t64
 ----
 
-
-You might also want to create a directory where you keep the
-source code and also install your home built version without
-interfering with any pre built and system wide installations.
+If you also want to be able to build the Erlang/OTP documentation, you'll
+need some more tools:
 
 [source,sh]
 ----
-> cd
-> mkdir otp
+> sudo apt-get install xsltproc libxml2-utils
 ----
 
-=== Getting the source
+==== Getting the source
 There are two main ways of getting the source. You can download a
 tarball from http://www.erlang.org/download.html[erlang.org] or you
-can check out the source code directly from Github.
+can check out the source code directly from
+https://github.com/erlang/otp[Github].
 
 If you want to quickly download a stable version of the source try:
 
 [source,sh]
 ----
 > cd ~/otp
-> wget http://erlang.org/download/otp_src_19.1.tar.gz
-> tar -xzf otp_src_19.1.tar.gz
-> cd otp_src_19.1
-> export ERL_TOP=`pwd`
+> wget http://erlang.org/download/otp_src_27.0.tar.gz
+> tar -xzf otp_src_27.0.tar.gz
+> cd otp_src_27.0
 ----
 
 or if you want to be able to easily update to the latest bleeding
@@ -110,7 +96,6 @@ check out the source through git:
 ----
 > git clone https://github.com/erlang/otp.git
 > cd otp
-> export ERL_TOP=`pwd`
 ----
 
 If you build an older version of Erlang you might need to run autoconf.
@@ -119,18 +104,44 @@ If you build an older version of Erlang you might need to run autoconf.
 > ./otp_build autoconf
 ----
 
-Now you are ready to build and install Erlang:
+==== Configuring and building
+Now you are ready to build and install Erlang. To avoid interfering with
+any system wide installation, you'll probably want to configure the
+installation prefix to be some directory private to you:
 
 [source,sh]
 ----
-> export LANG=C
-> ./configure --prefix=$HOME/otp/install
+> ./configure --prefix=$HOME/.local
 > make
 > make install
-> export PATH=$HOME/otp/install/bin/:$PATH
-> export ROOTDIR=$HOME/otp/install/
-
+> export PATH="$HOME/.local/bin:$PATH"
 ----
+
+==== Alternative Beam emulator builds
+You can build differently instrumented variants of the Beam emulator.
+At runtime, calling `erlang:system_info(build_type)` will tell you how the
+currently running emulator was built. The standard build is called `opt`.
+
+To build one of the alternative emulator types, you need to use the
+makefile in the `erts/emulator` subdirectory directly:
+
+[source,sh]
+----
+> export ERL_TOP=`pwd`
+> (cd $ERL_TOP/erts/emulator && make debug)
+----
+
+A special launch script `$ERL_TOP/bin/cerl` should be used to start an
+instrumented emulator:
+
+[source,sh]
+----
+> $ERL_TOP/bin/cerl -debug
+----
+
+There are several such instrumented variants that can be built, for example
+`valgrind`. See `HOWTO/INSTALL.md` for details.
+
 
 === Building with Kerl
 
