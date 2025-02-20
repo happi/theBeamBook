@@ -516,8 +516,9 @@ This allows you to track how values change throughout execution.
 
 The Erlang Debugger (EDB) is a modern, feature-rich debugger for Erlang applications. It provides a language server interface for setting breakpoints, inspecting variables, and stepping through code execution. See https://whatsapp.github.io/edb/
 
-Getting, the source and build, including a special build of the Erlang runtime system.
+In order to use EDB, you need to build Erlang from source with EDB support.
 Future versions of Erlang OTP might be shipped with EDB support.
+Here is a guide on how to build Erlang from source with EDB support:
 
 ```bash
 git clone https://github.com/WhatsApp/edb.git
@@ -530,6 +531,11 @@ popd
 rebar3 escriptize
 ```
 
+Then you can start EDB with:
+
+```bash
+_build/default/bin/edb dap
+```
 
 === Crash Dumps in Erlang
 
