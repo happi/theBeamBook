@@ -1,0 +1,199 @@
+[[CH-Testing]]
+== Testing in the BEAM Ecosystem
+
+=== Introduction
+In this Chapter, we will explore how to ensure the reliability and robustness of your Erlang code, while developing. We will start with EUnit, a popular testing framework that makes it easy to write and run tests on your applications.
+
+==== EUnit
+EUnit is an Erlang unit testing framework that allows you to test individual program units. These units can range from functions and modules to processes and even whole applications. EUnit helps you write, run, and analyze the results of tests, ensuring your code is correct and reliable.
+
+===== Basics and setup
+To use EUnit in your Erlang module, include the following line after the -module declaration:
+
+
+[source,erlang]
+----
+-include_lib("eunit/include/eunit.hrl").
+----
+
+This line provides access to EUnit's features and exports a `test()` function for running all the unit tests in your module.
+
+===== Writing test cases and test suites
+To create a simple test function, define a function with a name ending in `_test()` that takes no arguments. It should succeed by returning a value or fail by throwing an exception.
+
+Use pattern matching with = to create more advanced test cases. For example:
+
+[source,erlang]
+----
+reverse_nil_test() -> [] = lists:reverse([]).
+----
+
+Alternatively, you can use the `?assert(Expression)` macro to write test cases that evaluate expressions:
+
+[source,erlang]
+----
+length_test() -> ?assert(length([1,2,3]) =:= 3).
+----
+
+===== Running tests and analyzing results
+If you've included the EUnit declaration in your module, compile the module and run the automatically exported `test()` function. For example, if your module is named `m`, call `m:test()` to run EUnit on all the tests in the module.
+
+EUnit can also run tests using the `eunit:test/1` function. For instance, calling `eunit:test(m)` is equivalent to calling `m:test()`.
+
+To separate your test code from your normal code, write the test functions in a module named `m_tests` if your module is named `m`. When you ask EUnit to test the module `m`, it will also look for the module `m_tests` and run those tests.
+
+EUnit captures standard output from test functions, so if your test code writes to the standard output, the text will not appear on the console. To bypass this, use the EUnit debugging macros or write to the user output stream, like `io:format(user, "~w", [Term])`.
+
+For more information on checking the output produced by the unit under test, see the link:https://www.erlang.org/doc/apps/eunit/chapter.html[EUnit documentation] on macros for checking output.
+
+==== Common Test
+
+===== Basics and Setup
+Common Test (CT) is a powerful testing framework included in Erlang/OTP for writing and executing test suites. It supports both white-box and black-box testing, making it a flexible choice for testing Erlang applications, distributed systems, and even interacting with external systems.
+
+====== Installing Common Test
+If you have an Erlang installation, Common Test should already be included. However, if you are working with a minimal installation or custom build, you can ensure it’s available by adding the `common_test` application to your dependencies.
+
+To check if `common_test` is installed:
+```erlang
+1> application:ensure_all_started(common_test).
+```
+
+If using `rebar3`, ensure it is added to your dependencies:
+```erlang
+{deps, [common_test]}.
+```
+
+===== Creating a Basic Test Suite
+A Common Test suite is simply an Erlang module following a specific structure. Start by creating a file named `sample_SUITE.erl` in a `test/` directory.
+
+Example `sample_SUITE.erl`:
+```erlang
+-module(sample_SUITE).
+-compile(export_all).
+
+% Common Test includes these callbacks
+-include_lib("common_test/include/ct.hrl").
+
+% Test suite information
+suite() ->
+    [{timetrap, {seconds, 10}}].  % Time limit for tests
+
+init_per_suite(Config) ->
+    io:format("Initializing test suite...~n"),
+    Config.
+
+end_per_suite(Config) ->
+    io:format("Cleaning up test suite...~n"),
+    Config.
+
+% Define test cases
+all() -> [simple_test].
+
+simple_test(_Config) ->
+    io:format("Running simple test case...~n"),
+    ?assertEqual(42, 21 + 21).
+```
+
+This test suite defines a test suite with `suite/0`, Sets up and cleans up using `init_per_suite/1` and `end_per_suite/1`, and defines a test case `simple_test/1` that asserts `21 + 21 = 42`.
+
+===== Writing Test Cases and Test Suites
+Test cases in Common Test are functions that execute assertions and checks. They follow a simple naming convention and must be listed in the `all/0` function.
+
+Common Test provides assertion macros in `ct.hrl`:
+```erlang
+?assert(Expression).
+?assertEqual(Expected, Actual).
+?assertNotEqual(Unexpected, Actual).
+?assertMatch(Pattern, Expression).
+?assertNotMatch(Pattern, Expression).
+```
+
+Example of multiple test cases:
+```erlang
+all() -> [math_test, string_test].
+
+math_test(_Config) ->
+    ?assertEqual(10, 5 * 2).
+
+string_test(_Config) ->
+    ?assertEqual("hello", string:to_lower("HELLO")).
+```
+
+Test cases can receive arguments from a configuration file or previous setup functions.
+```erlang
+init_per_testcase(math_test, Config) ->
+    [{base_value, 10} | Config];
+init_per_testcase(_, Config) -> Config.
+
+math_test(Config) ->
+    Base = proplists:get_value(base_value, Config),
+    ?assertEqual(Base * 2, 20).
+```
+
+
+===== Running Tests and Analyzing Results
+Tests are executed using `ct_run` or `rebar3`.
+
+From the Erlang shell:
+```erlang
+ct:run_test([{dir, "test/"}]).
+```
+
+Using `rebar3`:
+```sh
+rebar3 ct
+```
+
+===== Understanding Test Output
+Common Test generates detailed logs in the `_build/test/logs/` directory.
+
+Log files:
+
+* `ct_run.*.log` - Main test run log
+* `suite.log` - Logs specific test suite execution
+* `testcase.log` - Logs specific test case execution
+
+For real-time debugging, you can enable verbose output:
+```erlang
+ct:run_test([{dir, "test/"}, {verbosity, high}]).
+```
+
+==== Other Testing Frameworks and Techniques
+
+While Common Test is the standard testing framework included in Erlang/OTP, there are several other testing frameworks and methodologies that developers often use to improve test coverage, reliability, and automation. These tools provide additional capabilities such as **property-based testing** and **mocking**, which help validate complex behaviors and interactions in Erlang applications. Although a detailed exploration of these techniques is beyond the scope of this book, this section briefly introduces them for those interested in expanding their testing toolkit.
+
+===== Property-Based Testing
+Property-based testing differs from traditional unit tests by generating a vast number of test cases based on properties that the system should always satisfy. Instead of writing individual test cases, developers define properties, and the framework automatically generates inputs to verify that those properties hold across a wide range of scenarios. This approach is particularly useful for catching edge cases that may not be covered by manually written tests.
+
+Two widely used property-based testing libraries in the Erlang ecosystem are **QuickCheck** and **PropEr**:
+
+- **QuickCheck** (commercial and open-source versions) is a powerful tool for generating randomized test cases and shrinking failing cases to minimal counterexamples.
+- **PropEr** (Property-Based Testing for Erlang) is an open-source alternative with similar capabilities, supporting property definitions with type specifications, generators, and stateful testing.
+
+Property-based testing is highly effective for verifying algorithms, protocols, and systems with complex input spaces. However, it requires a mindset shift from writing explicit test cases to defining system invariants and constraints.
+
+===== Mocking
+Mocking is a technique used in testing to replace dependencies or external components with controlled stand-ins. This is particularly useful in **unit testing**, where isolating a function or module from its dependencies can make it easier to test specific behaviors without requiring full system integration.
+
+- Mocks allow for **testing code in isolation**, ensuring that a function behaves correctly regardless of the actual implementation of its dependencies.
+- They **speed up test execution** by avoiding interactions with external systems such as databases or network services.
+- Mocks enable **controlled testing of edge cases**, such as simulating timeouts, failures, or unexpected responses from dependencies.
+
+Unlike some object-oriented languages where mocking frameworks are common, Erlang’s functional nature and message-passing model require a different approach to mocking. Some common strategies include:
+
+- **Manual mocking with function overrides**: Using higher-order functions or explicit module replacement.
+- **Using `meck`**: A popular mocking library that allows replacing module functions at runtime for controlled testing.
+- **Process-based mocks**: Simulating external systems with lightweight processes that return predefined responses.
+
+====== Best Practices for Mocking
+When using mocking in Erlang testing, consider the following best practices:
+
+- Use mocks **only when necessary**—prefer real implementations when integration testing is feasible.
+- Keep mocked behavior **realistic** to avoid misleading test results.
+- Combine mocks with **property-based testing** where applicable, ensuring broader test coverage while controlling specific dependencies.
+
+While property-based testing and mocking can be invaluable in certain testing scenarios, they require deeper understanding and best-practice implementation to be effective. For more comprehensive discussions on these topics, readers are encouraged to explore dedicated resources such as link:https://pragprog.com/titles/fhproper/property-based-testing-with-proper-erlang-and-elixir/["Property-Based Testing with PropEr, Erlang, and Elixir"] and link:https://github.com/eproxus/meck[Meck].
+
+
+
