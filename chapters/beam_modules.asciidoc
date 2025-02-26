@@ -67,10 +67,6 @@ BEAMChunk = <<
 
 This file format prepends all areas with the size of the following area making it easy to parse the file directly while reading it from disk. To illustrate the structure and content of beam files, we will write a small program that extract all the chunks from a beam file. To make this program as simple and readable as possible we will not parse the file while reading, instead we load the whole file in memory as a binary, and then parse each chunk. The first step is to get a list of all chunks:
 
-++++
-<!-- While this is reasonably simple code, is it going to be obvious to readers what's going on here? It may require a bit of explanation as to how this code works. - bmacdonald -->
-++++
-
 
 [source,erlang]
 ----
@@ -81,22 +77,22 @@ include::../code/beam_modules_chapter/src/beamfile1.erl[]
 A sample run might look like:
 
 ----
-> beamfile:read("beamfile.beam").
-{848,
-[{"Atom",103,
-  <<0,0,0,14,4,102,111,114,49,4,114,101,97,100,4,102,105,
-    108,101,9,114,101,97,...>>},
- {"Code",341,
-  <<0,0,0,16,0,0,0,0,0,0,0,132,0,0,0,14,0,0,0,4,1,16,...>>},
+> beamfile1:read("beamfile1.beam").
+{1116, [{"AtU8",127,
+ <<0,0,0,16,9,98,101,97,109,102,105,108,101,49,4,114,101,
+ 97,100,4,102,105,108,...>>}, {"Code",362,
+ <<0,0,0,16,0,0,0,0,0,0,0,178,0,0,0,16,0,0,0,5,1,16,...>>},
  {"StrT",8,<<"FOR1BEAM">>},
- {"ImpT",88,<<0,0,0,7,0,0,0,3,0,0,0,4,0,0,0,1,0,0,0,7,...>>},
- {"ExpT",40,<<0,0,0,3,0,0,0,13,0,0,0,1,0,0,0,13,0,0,0,...>>},
- {"LocT",16,<<0,0,0,1,0,0,0,6,0,0,0,2,0,0,0,6>>},
- {"Attr",40,
-  <<131,108,0,0,0,1,104,2,100,0,3,118,115,110,108,0,0,...>>},
- {"CInf",130,
-  <<131,108,0,0,0,4,104,2,100,0,7,111,112,116,105,111,...>>},
- {"Abst",0,<<>>}]}
+ {"ImpT",88,<<0,0,0,7,0,0,0,3,0,0,0,4,0,0,0,1,0,0,0,8,...>>},
+ {"ExpT",40,<<0,0,0,3,0,0,0,15,0,0,0,1,0,0,0,15,0,0,0,...>>}, {"Meta",29,
+ <<131,108,0,0,0,1,104,2,100,0,16,101,110,97,98,108,101, 100,...>>},
+ {"LocT",28,<<0,0,0,2,0,0,0,10,0,0,0,1,0,0,0,11,0,...>>}, {"Attr",40,
+ <<131,108,0,0,0,1,104,2,100,0,3,118,115,110,108,0,...>>}, {"CInf",122,
+ <<131,108,0,0,0,3,104,2,100,0,7,118,101,114,115,...>>}, {"Dbgi",49,
+ <<131,104,3,100,0,13,100,101,98,117,103,95,105,110,...>>},
+ {"Line",31,<<0,0,0,0,0,0,0,0,0,0,0,12,0,...>>},
+ {"Type",80,<<0,0,0,1,0,0,0,4,31,255,0,0,...>>}]}
+
 
 ----
 
@@ -475,6 +471,81 @@ parse_chunks([{"Abst", _ChunkSize, <<AbstractCode/binary>>} | Rest], Acc) ->
     parse_chunks(Rest,[{abstract_code,binary_to_term(AbstractCode)}|Acc]);
 ----
 
+==== Additional BEAM Chunks
+
+Several new chunks have been added since Erlang OTP 16:
+
+- **Type Chunk (`Type`)**: Introduced in OTP 25, holds simplified type
+  information aiding JIT optimization.
+- **Function Table Chunk (`FunT`)**: Metadata for anonymous functions
+  (funs).
+- **Metadata Chunk (`Meta`)**: Holds optional metadata such as documentation
+  or annotations.
+
+The format for the new chunks is:
+
+**Type Chunk (`Type`)**:
+
+[source,erlang]
+----
+TypeChunk = <<
+  ChunkName:4/unit:8 = "Type",
+  ChunkSize:32/big,
+  TypeInfo:ChunkSize/binary,
+  Padding4:0..3/unit:8
+>>
+----
+
+Parsing:
+
+```erlang parse_chunks([{"Type", Size, Chunk} | Rest], Acc) ->
+    <<TypeInfo:Size/binary, _Pad/binary>> = Chunk,
+    Types = binary_to_term(TypeInfo),
+    parse_chunks(Rest, [{types, Types}|Acc]);
+```
+
+- **UTF-8 Atom Chunk (`AtU8`)**: Same format as Atom chunk, used when UTF-8 encoding is required:
+
+```erlang
+AtU8Chunk = <<
+  ChunkName:4/unit:8 = "AtU8",
+  ChunkSize:32/big,
+  NumberOfAtoms:32/big,
+  [<<AtomLength:8, AtomName:AtomLength/unit:8>> || repeat NumberOfAtoms],
+  Padding4:0..3/unit:8
+>>
+```
+
+- **Function Table (`FunT`)**: Information about local anonymous functions:
+
+```erlang
+FunTableChunk = <<
+  ChunkName:4/unit:8 = "FunT",
+  ChunkSize:32/big, FunCount:32/big, [<<FunctionName:32/big, Arity:32/big,
+      Label:32/big
+   >> || repeat FunCount],
+  Padding4:0..3/unit:8
+>>
+----
+
+**Metadata Chunk (`Meta`)**: Stores metadata like annotations or user-defined properties:
+
+```erlang
+MetaChunk = <<
+  ChunkName:4/unit:8 = "Meta",
+  ChunkSize:32/big,
+  MetaInfo:ChunkSize/binary,
+  Padding4:0..3/unit:8
+>>
+----
+
+Parsing example:
+
+```erlang parse_chunks([{"Meta", Size, Chunk} | Rest], Acc) ->
+    <<MetaInfo:Size/binary, _Pad/binary>> = Chunk,
+    Meta = binary_to_term(MetaInfo),
+    parse_chunks(Rest, [{meta, MetaInfo}|Acc]);
+```
 
 
 ==== Encryption
