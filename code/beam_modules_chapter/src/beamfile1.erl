@@ -1,4 +1,4 @@
--module(beamfile).
+-module(beamfile1).
 -export([read/1]).
 
 read(Filename) ->

@@ -1,4 +1,4 @@
--module(beamfile).
+-module(beamfile2).
 -export([read/1]).
 
 read(Filename) ->
@@ -16,7 +16,7 @@ read_chunks(<<N,A,M,E, Size:32/integer, Tail/binary>>, Acc) ->
    read_chunks(Rest, [{[N,A,M,E], Size, Chunk}|Acc]);
 read_chunks(<<>>, Acc) -> lists:reverse(Acc).
 
-parse_chunks([{"Atom", _Size,
+parse_chunks([{"AtU8", _Size,
              <<_Numberofatoms:32/integer, Atoms/binary>>}
             | Rest], Acc) ->
    parse_chunks(Rest,[{atoms,parse_atoms(Atoms)}|Acc]);
