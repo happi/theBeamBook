@@ -67,7 +67,8 @@ include::chapters/testing.asciidoc[]
 
 include::chapters/profiling.asciidoc[]
 
-include::chapters/tweak.asciidoc[]
+// include::chapters/monitor.asciidoc[]
+// include::chapters/tweak.asciidoc[]
 
 [[appendix]]
 include::chapters/building.asciidoc[]
