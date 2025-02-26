@@ -3,9 +3,9 @@
 
 read(Filename) ->
     {ok, File} = file:read_file(Filename),
-    <<"FOR1", 
-      Size:32/integer, 
-      "BEAM", 
+    <<"FOR1",
+      Size:32/integer,
+      "BEAM",
       Chunks/binary>> = File,
     {Size, parse_chunks(read_chunks(Chunks, []),[])}.
 
@@ -20,6 +20,8 @@ align_by_four(N) -> (4 * ((N+3) div 4)).
 
 parse_chunks([{"Atom", _Size, <<_Numberofatoms:32/integer, Atoms/binary>>} | Rest], Acc) ->
     parse_chunks(Rest,[{atoms,parse_atoms(Atoms)}|Acc]);
+parse_chunks([{"AtU8", _Size, <<_Numberofatoms:32/integer, Atoms/binary>>} | Rest], Acc) ->
+    parse_chunks(Rest,[{atU8,parse_atoms(Atoms)}|Acc]);
 parse_chunks([{"ExpT", _Size,
               <<_Numberofentries:32/integer, Exports/binary>>}
              | Rest], Acc) ->
@@ -31,7 +33,7 @@ parse_chunks([{"ImpT", _Size,
 parse_chunks([{"Code", Size, <<SubSize:32/integer, Chunk/binary>>} | Rest], Acc) ->
     <<Info:SubSize/binary, Code/binary>> = Chunk,
     OpcodeSize = Size - SubSize - 8, %% 8 is size of ChunkSize & SubSize
-    <<OpCodes:OpcodeSize/binary, _Align/binary>> = Code, 
+    <<OpCodes:OpcodeSize/binary, _Align/binary>> = Code,
     parse_chunks(Rest,[{code,parse_code_info(Info), OpCodes}|Acc]);
 parse_chunks([{"StrT", _Size, <<Strings/binary>>} | Rest], Acc) ->
     parse_chunks(Rest,[{strings,binary_to_list(Strings)}|Acc]);
@@ -58,7 +60,7 @@ parse_chunks([{"Abst", _ChunkSize, <<>>} | Rest], Acc) ->
 parse_chunks([{"Abst", _ChunkSize, <<AbstractCode/binary>>} | Rest], Acc) ->
     parse_chunks(Rest,[{abstract_code,binary_to_term(AbstractCode)}|Acc]);
 parse_chunks([{"Line", _ChunkSize, <<LineTable/binary>>} | Rest], Acc) ->
-    <<Ver:32,Bits:32,NumLineInstrs:32,NumLines:32,NumFnames:32,
+    <<Ver:32,Bits:32,NumLineInstrs:32,NumLines:32,_NumFnames:32,
       Lines:NumLines/binary,Fnames/binary>> = LineTable,
     parse_chunks(Rest,[{line,
 			[{version,Ver},
@@ -66,13 +68,24 @@ parse_chunks([{"Line", _ChunkSize, <<LineTable/binary>>} | Rest], Acc) ->
 			 {num_line_instrunctions,NumLineInstrs},
 			 {lines,decode_lineinfo(binary_to_list(Lines),0)},
 			 {function_names,Fnames}]}|Acc]);
+parse_chunks([{"FunT", _Size, <<_Numberofentries:32/integer, Funs/binary>>}
+                | Rest], Acc) ->
+    parse_chunks(Rest,[{funs,parse_table(Funs)}|Acc]);
+parse_chunks([{"Type", _Size, Chunk} | Rest], Acc) ->
+    <<_Version:32/big, Count:32/big, TypeData/binary>> = Chunk,
 
+    Types = parse_types(Count, TypeData, []),
+    parse_chunks(Rest, [{type_info, Types}|Acc]);
+parse_chunks([{"Meta", Size, Chunk} | Rest], Acc) ->
+    <<MetaInfo:Size/binary, _Pad/binary>> = Chunk,
+    Meta = binary_to_term(MetaInfo),
+    parse_chunks(Rest,[{meta,Meta}|Acc]);
 
 parse_chunks([Chunk|Rest], Acc) -> %% Not yet implemented chunk
     parse_chunks(Rest, [Chunk|Acc]);
 parse_chunks([],Acc) -> Acc.
 
-parse_atoms(<<Atomlength, Atom:Atomlength/binary, Rest/binary>>) when Atomlength > 0-> 
+parse_atoms(<<Atomlength, Atom:Atomlength/binary, Rest/binary>>) when Atomlength > 0->
     [list_to_atom(binary_to_list(Atom)) | parse_atoms(Rest)];
 parse_atoms(_Alignment) -> [].
 
@@ -97,12 +110,12 @@ parse_code_info(<<Instructionset:32/integer,
 	 <<>> -> [];
 	 _ -> [{newinfo, Rest}]
      end].
-    
+
 parse_literals(<<Size:32,Literal:Size/binary,Tail/binary>>) ->
     [binary_to_term(Literal) | parse_literals(Tail)];
 parse_literals(<<>>) -> [].
-		    
-		 
+
+
 
 -define(tag_i, 1).
 -define(tag_a, 2).
@@ -133,7 +146,7 @@ decode_int(Tag,B,Bs) ->
 
 decode_lineinfo([B|Bs], F) ->
     Tag = decode_tag(B band 2#111),
-    {{Tag,Num},RemBs} = decode_int(Tag,B,Bs), 
+    {{Tag,Num},RemBs} = decode_int(Tag,B,Bs),
     case Tag of
 	i ->
 	    [{F, Num} | decode_lineinfo(RemBs, F)];
@@ -146,7 +159,7 @@ decode_lineinfo([B|Bs], F) ->
 decode_lineinfo([],_) -> [].
 
 decode_int_length(B, Bs) ->
-    {B bsr 5 + 2, Bs}. 
+    {B bsr 5 + 2, Bs}.
 
 
 take_bytes(N, Bs) ->
@@ -166,4 +179,11 @@ build_arg([B|Bs], N) ->
 build_arg([], N) ->
     N.
 
-     
+
+parse_types(_, <<>>, Acc) ->
+    lists:reverse(Acc);
+parse_types(-1, Type, Acc) ->
+    lists:reverse([Type|Acc]);
+parse_types(N, <<TypeBytes:16/binary, Rest/binary>>, Acc) ->
+    %% See beam_disasm.erl and beam_types.erl to decode.
+    parse_types(N-1, Rest, [TypeBytes|Acc]).
