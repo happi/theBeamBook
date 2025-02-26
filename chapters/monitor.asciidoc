@@ -1,0 +1,33 @@
+== Monitoring and Logging
+
+=== Monitoring Tools
+
+Grafana & Prometheus
+
+Collecting and visualizing BEAM metrics
+
+Real-time performance monitoring
+
+Setting up alerts and dashboards
+
+=== Telemetry & Metrics
+
+Collecting runtime statistics
+
+Integrating with logging and monitoring solutions
+
+Logging Best Practices
+
+Using lager, logger, and syslog
+
+Structuring logs for better observability
+
+Log aggregation and processing
+
+=== Optimizing Performance
+
+Reducing GC overhead
+
+Parallelization techniques
+
+BEAM’s JIT considerations
