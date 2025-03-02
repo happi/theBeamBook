@@ -101,7 +101,7 @@ node is actually an executing runtime system that has been given a
 name. That is, if you start Elixir without giving a name through one
 of the command line switches `--name NAME@HOST` or `--sname NAME` (or
 `-name` and `-sname` for an Erlang runtime.)  you will have a runtime
-but not a node. In such a system the function `Node.alive?` 
+but not a node. In such a system the function `Node.alive?`
 (or in Erlang `is_alive()`) returns false.
 
 ----
@@ -319,7 +319,7 @@ Erlang Node.
 *BEAM:* The name BEAM originally stood for Bogdan's Erlang Abstract
  Machine, but nowadays most people refer to it as Björn’s
 Erlang Abstract Machine, after the current maintainer.
- 
+
 ****
 
 Just as ERTS is an implementation of a more general concept of a Erlang
@@ -438,7 +438,7 @@ running directly on server hardware with no OS layer in between, only
 a thin Xen client.
 
 Ling, the virtual machine of Erlang on Xen is almost 100% binary compatible
-with BEAM. In xref:the_eox_stack you can see how the Erlang on Xen implementation
+with BEAM. In xref:erlang_on_xen[] you can see how the Erlang on Xen implementation
 of the Erlang Solution Stack differs from the ERTS Stack. The thing to note here
 is that there is no operating system in the Erlang on Xen stack.
 
@@ -474,7 +474,7 @@ Erjang (link:https://github.com/trifork/erjang[]) is an Erlang implementation wh
 on the JVM. It loads +.beam+ files and recompiles the code to Java +.class+
 files. Erjang is almost 100% binary compatible with (generic) BEAM.
 
-In xref:the_erjang_stack you can see how the Erjang implementation
+In xref:erlang_on_jvm[] you can see how the Erjang implementation
 of the Erlang Solution Stack differs from the ERTS Stack. The thing
 to note here is that JVM has replaced BEAM as the virtual machine
 and that Erjang provides the services of ERTS by implementing them
