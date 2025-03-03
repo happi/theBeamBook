@@ -118,29 +118,69 @@ installation prefix to be some directory private to you:
 ----
 
 ==== Alternative Beam emulator builds
-You can build differently instrumented variants of the Beam emulator.
-At runtime, calling `erlang:system_info(build_type)` will tell you how the
-currently running emulator was built. The standard build is called `opt`.
+There are currently two main _flavors_ of emulator builds: the JIT-enabled
+flavor, `jit` (which is the default on supported platforms), and the
+non-JIT flavor `emu`. You may also see the name `smp`, but that is just an
+alias meaning the default flavor on the current platform.
 
-To build one of the alternative emulator types, you need to use the
-makefile in the `erts/emulator` subdirectory directly:
-
-[source,sh]
-----
-> export ERL_TOP=`pwd`
-> (cd $ERL_TOP/erts/emulator && make debug)
-----
-
-A special launch script `$ERL_TOP/bin/cerl` should be used to start an
-instrumented emulator:
+When you run `make`, you can select the flavor as follows:
 
 [source,sh]
 ----
-> $ERL_TOP/bin/cerl -debug
+> make FLAVOR=emu
 ----
 
-There are several such instrumented variants that can be built, for example
-`valgrind`. See `HOWTO/INSTALL.md` for details.
+(Naturally, if you have configured with `--disable-jit`, or your platform
+does not support it, it will not be able to build the `jit` flavor even if
+you ask it to do so.)
+
+You can also build differently instrumented variants of the emulator by
+specifying a _build type_. At runtime, calling
+`erlang:system_info(build_type)` will tell you how the currently running
+emulator was built. The standard build is called `opt`.
+
+To build one of the alternative emulator types, you need to set the `TYPE`
+variable. You can combine this with the `FLAVOR` variable.
+
+[source,sh]
+----
+> make
+> make TYPE=debug
+> make FLAVOR=emu TYPE=lcnt
+----
+
+Apart from `debug`, there are several other instrumented variants that can
+be built, for example `valgrind`. To run these directly out of the build
+tree (from the top directory of the source code), a special launch script
+`bin/cerl` can be used to start an instrumented emulator:
+
+[source,sh]
+----
+> bin/cerl -debug
+----
+
+The `cerl` script also helps you with the additional output files created
+when running for example a `valgrind`-instrumented emulator. See
+`HOWTO/INSTALL.md` and `HOWTO/DEVELOPMENT.md` for details.
+
+If you want `make install` to include these variant builds and not just the
+default build, you will need to run it separately for each specific
+combination:
+
+[source,sh]
+----
+> make install
+> make install TYPE=debug
+> make install FLAVOR=emu TYPE=lcnt
+----
+
+It will then be possible for a user to select the variant they want to run,
+using the `-emu_flavor` and `-emu_type` flags:
+
+[source,sh]
+----
+> erl -emu_flavor emu -emu_type lcnt
+----
 
 
 === Building with Kerl
