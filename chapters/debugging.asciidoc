@@ -692,11 +692,9 @@ sudo launchctl limit core unlimited
 ```
 
 ===== Crash Inside NIFs
-If a Native Implemented Function (NIF) crashes, Erlang might not handle it gracefully. Running Erlang under `gdb` can help:
-```sh
-gdb --args erl
-```
-Then reproduce the crash and inspect the stack trace.
+If a Native Implemented Function (NIF) crashes, Erlang might not handle it
+gracefully. In such a case, running the BEAM emulator under a debugger like `gdb` can
+help you inspect the state of the system at the point of the crash.
 
 
 === Debugging the Runtime System
@@ -709,45 +707,84 @@ GDB is a powerful tool for debugging applications at the machine level, offering
 
 To effectively use GDB with the BEAM, it's beneficial to compile the Erlang runtime system with debugging symbols. This compilation provides detailed information during debugging sessions. 
 
-See the chapter on "Building Erlang from Source" for instructions on compiling Erlang with debugging symbols. Basically it involves adding the flag '-emu_type debug' to the build.
+See <<Alternative Beam emulator builds>> for instructions on compiling and running
+a version of Erlang with debugging information.
 
-After building, you can run the debug version of the BEAM using:
+Once built, you can run the debug version of the BEAM out of the build
+directory using the `cerl` launch script:
+
 ```sh
-$ERL_TOP/bin/cerl -emu_type debug
+bin/cerl -debug
 ```
 
-This setup ensures that the BEAM is compiled with debugging symbols, making it compatible with GDB.
-
-Launch GDB and attach it to the BEAM process:
+The easiest way to run Erlang in GDB is to use the `-rgdb` flag with
+`cerl`, making sure to also select the debug version:
 ```sh
-gdb $ERL_TOP/bin/x86_64-unknown-linux-gnu/beam.debug.smp
+bin/cerl -rgdb -debug
 ```
 
-Once inside GDB, you can start the BEAM with:
-```gdb
-run -- -root $ERL_TOP
+Once you get to the GDB prompt, you can set breakpoints etc., and when
+you're ready, start execution of the BEAM with:
+```sh
+(gdb) run
 ```
 
-This command initializes the BEAM within the GDB environment, allowing you to set breakpoints, inspect memory, and analyze the execution flow.
+If you have a OS core dump from a crashed execution (not an Erlang crash
+dump, which is a different thing, see <<Crash Dumps in Erlang>>), you can
+run `cerl` with the `-rcore` flag instead to launch GDB:
+```sh
+bin/cerl -rcore <core file>
+```
+
+NOTE: If you are comfortable with using the Emacs editor, you can use
+`cerl` with the flags `-gdb` and `-core` (no leading `r`), which launch an
+Emacs instance to work as an IDE for the debugging session. (By setting
+`EMACS=emacsclient` first, you can even make it run in an existing Emacs if
+you have done a `M-x server-start`.) See the
+https://www.gnu.org/software/emacs/manual/html_node/emacs/GDB-Graphical-Interface.html[Emacs
+GDB documentation] for more details.
+
+
+If you have a running BEAM already that you want to attach GDB to, you need
+to find its OS process ID. For example, using a separate shell window to
+enter
+```sh
+pgrep -l beam
+```
+which should print a result like
+```sh
+3140019 beam.debug.smp
+```
+you can then launch GDB with the path to the actual executable file in use
+and the process ID, like this:
+```sh
+gdb bin/x86_64-unknown-linux-gnu/beam.debug.smp 3140019
+```
+(Note that you cannot tell GDB to use the path `bin/cerl` or `bin/erl`,
+since those are just shell scripts that set up the proper environment
+variables for the BEAM executable.)
+
+Your OS might by default restrict attaching to running processes - even
+those you own. How to reconfigure this is out of scope for this book.
+
 
 ===== Using GDB Macros
 
-GDB macros can automate repetitive tasks and provide shortcuts for complex commands, enhancing the efficiency of your debugging sessions. The Erlang runtime includes a set of predefined GDB macros, known as the Erlang Pathologist Toolkit (ETP), which facilitate the inspection of internal BEAM structures.
+GDB macros can automate repetitive tasks and provide shortcuts for complex
+commands, enhancing the efficiency of your debugging sessions. The Erlang
+runtime includes a set of predefined GDB macros, known as the Erlang
+Pathologist Toolkit (ETP), which facilitate the inspection of various
+aspects of the BEAM, such as internal BEAM structures, process states,
+memory allocation, and scheduling information.
 
-To load the ETP macros into your GDB session:
-
-```gdb
-source $ERL_TOP/erts/etc/unix/etp-commands
-```
-
-This command loads a suite of macros designed to inspect various aspects of the BEAM, such as process states, memory allocation, and scheduling information.
-
-
-After loading, you can use macros like `etp-process-info` to retrieve detailed information about a specific process:
+The ETP macros can be found in `erts/etc/unix/etp-commands`. They are
+automatically loaded into your GDB session when you launch it via the
+`cerl` script as described in the previous section. You should then be able
+to use macros like `etp-process-info` to retrieve detailed information
+about a specific Erlang process:
 ```gdb
 etp-process-info <process_pointer>
 ```
-
 Replace `<process_pointer>` with the actual pointer to the process control block (PCB) you're interested in. These macros simplify the process of extracting meaningful data from the BEAM's internal structures.
 
 For a comprehensive guide on debugging the BEAM using GDB and employing these macros, refer to link:https://max-au.com/2022/03/29/debugging-the-beam/[Debugging the BEAM] and link:https://www.erlang.org/doc/system/debugging.html#debug-emulator[Debug emulator documentation]. These resources provide in-depth instructions and examples to assist you in effectively diagnosing and resolving issues within the Erlang runtime system. 
