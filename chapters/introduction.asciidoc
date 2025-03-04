@@ -2,21 +2,36 @@
 
 == Introducing the Erlang Runtime System
 
-The Erlang RunTime System (ERTS) ((("Erlang RunTime System",
-see="ERTS")))(((ERTS))) is a complex system with many interdependent
-components. It is written in a very portable way so that it can run on
+Technically, BEAM only refers to the Abstract Machine model used for
+compiling, shipping, and executing Erlang code in the form of BEAM bytecode
+instructions, just like JVM is an abstract machine for Java, and you should
+be able to run the same compiled bytecode on any compliant implementation
+of the VM.
+
+Writing a naive interpreter or even a basic JIT compiler to run some
+bytecode is however a relatively small task -- just the tip of the iceberg.
+To do all that is expected of an industrial strength programming language,
+much more is required in the form of automatic memory management, efficient
+I/O, process scheduling, multicore utilization, OS signals, file system
+integration, time handling, etc. This part -- everything hidden under the
+water -- is known as the Runtime System. In casual talk however, we often
+refer to the BEAM VM (and the JVM) as meaning the abstract machine
+including everything that makes it tick.
+
+The Erlang RunTime System -- ERTS ((("Erlang RunTime System",
+see="ERTS")))(((ERTS))) -- is a complex system with many interdependent
+components. It is written in C, in a very portable way so that it can run on
 anything from a gum stick computer to the largest multicore system
-with terabytes of memory. In order to be able to optimize the
-performance of such a system for your application, you need to not
-only know your application, but you also need to have a thorough
-understanding of ERTS itself.
+with terabytes of memory. On top of this runs the BEAM virtual machine,
+which will be described in more detail in <<The Erlang Virtual Machine: BEAM>>.
+
 
 === ERTS and the Erlang Runtime System
 
 There is a difference between any Erlang Runtime System ((("Erlang
 Runtime System"))) and a specific implementation of an Erlang Runtime
 System. "Erlang/OTP" by Ericsson is the de facto standard
-implementation of Erlang and the Erlang Runtime System. In this book I
+implementation of the Erlang Runtime System and the BEAM. In this book I
 will refer to this implementation as _ERTS_ or spelled out _Erlang
 RunTime System_ with a capital T. (See xref:ERTS[] for a definition of
 OTP).
@@ -43,10 +58,12 @@ be right.
 
 === How to read this book
 
-In xref:P-Running[] of this book we will look at how to tune the
-runtime system for your application and how to profile and debug
+In xref:P-Running[] of this book we will look at how to
+operate ERTS, how to connect to and inspect a running system,
+// how to tune the runtime system for your application
+and how to profile and debug
 your application and the runtime system. In order to really know
-how to tune the system you also need to know the system. In
+how to tune the system you need to know what it does. In
 xref:P-ERTS[] of this book you will get a deep understanding of
 how the runtime system works.
 
@@ -70,7 +87,7 @@ particular component.
 [[ERTS]]
 === ERTS
 
-In this there is a basic overview of the main components of
+This section will give you a basic overview of the main components of
 ERTS (((ERTS))) and some vocabulary needed to understand the more
 detailed descriptions of each component in the following chapters.
 

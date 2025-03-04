@@ -3,18 +3,16 @@ Preface
 --------
 
 
-
 This book is not about how to write correct and
 beautiful code, I am assuming that you already know how to do
-that. This book isn’t really about profiling and performance tuning
-either. Although, there is a chapter in this book on tracing and
+that. This book isn’t really about performance tuning
+either, although the final chapters cover things like tracing and
 profiling which can help you find bottlenecks and unnecessary usage of
-resources. There also is a chapter on performance tuning.
+resources.
 
-These two chapters are the last chapters in the book, and the whole
-book is building up to those chapters, but the real goal with this
-book is to give you all the information, all the gory details, that
-you need in order to really understand the performance of your Erlang
+Leading up to those last chapters, the real goal with this
+book is to give you all the information, all the gory details of the BEAM VM, that
+you may need in order to really understand the performance of your Erlang
 application.
 
 [[who_is_this_book_for]]
@@ -30,26 +28,24 @@ For anyone who:
 * Wants to understand how Erlang really works.
 * Wants to learn how to build your own runtime environment.
 
-If you want to debug the VM If you want to extend the VM If you want
-to do performance tweaking--jump to the last chapter … but to really
-understand that chapter, you need to read the book.
+If all you want
+to do is performance tweaking, then jump to the last part of the book … but to really
+understand those chapters in depth, you should read the rest of the book.
 
 === How to read this book
 
-The Erlang RunTime System (ERTS) is a complex system with many
-interdependent components. It is written in a very portable way so
-that it can run on anything from a gum-stick computer to the largest
+The Erlang BEAM VM is a great piece of engineering that can run on anything from a gum-stick computer to the largest
 multicore system with terabytes of memory. In order to be able to
 optimize the performance of such a system for your application, you
 need to not only know your application, but you also need to have a
-thorough understanding of ERTS itself.
+thorough understanding of the VM itself.
 
-With this knowledge of how ERTS works, you will be able to understand
-how your application behaves when running on ERTS, and you will also
+With this knowledge, you will be able to understand
+how your application behaves when running on the BEAM, and you will also
 be able to find and fix problems with the performance of your application.
-In the second part of this book, we will go through how you successfully
-run, monitor, and scale your ERTS application.
 
+//In the second part of this book, we will go through how you successfully
+//run, monitor, and scale your BEAM application.
 
 You don’t need to be an Erlang programmer to read this book, but you
 will need some basic understanding of what Erlang is. This following
@@ -62,7 +58,7 @@ In this section, we will look at some basic Erlang concepts that
 are vital to understanding the rest of the book.
 
 Erlang has been called, especially by one of Erlang's creators, Joe
-Armstrong, a concurrency oriented language. Concurrency is definitely
+Armstrong, a *concurrency oriented language*. Concurrency is definitely
 at the heart of Erlang, and to be able to understand how an Erlang
 system works you need to understand the concurrency model of Erlang.
 
@@ -75,11 +71,12 @@ parallel. With _parallel_ executions, we mean that the processes
 actually execute at the exact same time by using several physical
 execution units. Parallelism can be achieved on different levels.
 Through multiple execution units in the execution pipeline in one core,
-in several cores on one CPU, by several CPUs in one machine or through
-several machines.
+in several cores on one CPU, by several CPUs in one machine, or through
+several machines, possibly in different locations.
 
-Erlang uses processes to achieve concurrency. Conceptually Erlang
-processes are similar to most OS processes, they execute in parallel
+Erlang uses *processes* to achieve concurrency. Conceptually, Erlang
+processes are similar to most OS processes: they are isolated memory
+spaces (hence, they are not _threads_), they execute in parallel,
 and can communicate through signals. In practice, there is a huge
 difference in that Erlang processes are much more lightweight than
 most OS processes. Many other concurrent programming languages call
@@ -87,21 +84,24 @@ their equivalent to Erlang processes _agents_.
 
 Erlang achieves concurrency by interleaving the execution of processes
 on the Erlang virtual machine, the BEAM. On a multi-core processor the
-BEAM can also achieve parallelism by running one scheduler per core and
+BEAM achieves true parallelism by running one scheduler per core and
 executing one Erlang process per scheduler. The designer of an Erlang
-system can achieve further parallelism by distributing the system on
+system can achieve further parallelism by distributing the system over
 several computers.
 
 A typical Erlang system (a server or service built in Erlang) consists
-of a number of Erlang _applications_, corresponding to a directory on disk.
-Each application is made up of several Erlang _modules_ corresponding to
-files in the directory. Each module contains a number of _functions_, and
-each function is made up of _expressions_.
+of a number of Erlang _applications_, which are independently versioned
+units of software, such as a microservice or a library.
+Each application is made up of several Erlang _modules_, which are the
+fundamental unit of code encapsulation, each module in a separate file
+with the extension `.beam` for compiled code that can be loaded, and
+`.erl` for source code to be compiled.
 
-Since Erlang is a functional language, it has no statements,
-only expressions. Erlang expressions can be combined into an Erlang
-function. A function takes a number of arguments and returns a
-value. In xref:erlang_code_examples[] we can see some examples of
+Each module contains a number of _functions_, some of which are *exported*
+and can be called from other modules, while the rest are internal.
+A function takes a number of arguments and returns a value.
+The body of a function is made up of _expressions_. Since Erlang is a functional language, it has no statements,
+only expressions, which produce a result. In xref:erlang_code_examples[] we can see some examples of
 Erlang expressions and functions.
 
 [[erlang_code_examples]]
@@ -124,14 +124,14 @@ max(X, Y) ->
 
 Erlang has a number of _built in functions_ (or _BIFs_) which are
 implemented by the VM. This is either for efficiency reasons, like the
-implementation of +lists:append+ (which could be implemented in
-Erlang). It could also be to provide some low level functionality,
-which would be hard or impossible to implement in Erlang itself, like
-+list_to_atom+.
+implementation of `+lists:append()+` which could easily have been implemented
+in Erlang itself. It could also be to
+provide some low level functionality, which would be hard or impossible to
+implement in Erlang itself, like `+list_to_atom()+`.
 
-Since Erlang/OTP R13B03 you can also provide your own functions
+As an end user you can provide your own functions
 implemented in C by using the _Native Implemented Functions_ (_NIF_)
-interface.
+interface (see <<NIFs>>).
 
 === Acknowledgments
 
@@ -143,10 +143,7 @@ and Raimo Niskanen.
 I would also like to thank Yoshihiro Tanaka, Roberto Aloi and Dmytro Lytovchenko for
 major contributions to the book, and HappiHacking and TubiTV for sponsoring work on
 the book.
- 
+
 Finally, a big thank you to everyone who has contributed with edits and fixes:
 
 include::contributors.txt[]
-
-
-
