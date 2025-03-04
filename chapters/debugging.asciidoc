@@ -1,4 +1,4 @@
-d [[CH-Debugging]]
+[[CH-Debugging]]
 == Debugging BEAM Applications
 
 === Introduction
