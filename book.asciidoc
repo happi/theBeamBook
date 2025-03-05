@@ -80,5 +80,5 @@ include::chapters/ap-code_listings.asciidoc[]
 [[bibliography]]
 include::chapters/references.asciidoc[]
 
-//[index]
-//include::chapters/index.asciidoc[]
+[index]
+== Index

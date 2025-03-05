@@ -51,8 +51,9 @@ true
 iex(bar@gdc12)4>
 ----
 
-
-If you don't want to come up with a name for the node you can start it with the special name `undefined` and then the system will come up with a name for your node if you start the distribution:
+If you don't want to come up with a name for the node you can start it with
+the special name `undefined` and then the system will come up with a name
+for your node once you connect to another node:
 
 [source,elixir]
 ----
@@ -67,6 +68,19 @@ true
 iex(2YOVGWCSCSR8R@gdc12)3> Node.alive?
 true
 iex(2YOVGWCSCSR8R@gdc12)4>
+----
+
+It is also possible to start the distribution manually, even if you didn't
+start the system with the `name` or `sname` flag:
+
+----
+Eshell V15.2.2 (press Ctrl+G to abort, type help(). for help)
+1> node().
+nonode@nohost
+2> net_kernel:start([baz, shortnames]).
+{ok,<0.92.0>}
+(baz@gdc12)3> node().
+baz@gdc12
 ----
 
 Nodes can connect to each other as long as they are running the same "cookie", which is a security measure to ensure that only authorized nodes can connect. A cookie is a simple atom that needs to be the same on all nodes that should be able to connect to each other. If the cookies don't match, the connection is not established.
