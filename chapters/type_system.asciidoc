@@ -126,29 +126,40 @@ digraph G {
 
 ----
 
-There is a partial order (< and >) on all terms in Erlang where the
+There is a partial order (`<`, `>`) on all terms in Erlang where the
 types are ordered from left to right in the above lattice.
 
 The order is partial and not total since integers and floats
-are converted before comparison. Both (1 < 1.0) and (1.0 < 1) are
-false, and (1 =< 1.0 and 1 >= 1.0) and (1 =/= 1.0). The number with
+are converted before comparison. Both `1 < 1.0` and `1.0 < 1` are
+false, while `1 =< 1.0`, `1 >= 1.0`, and `1 == 1.0` are true. The number with
 the lesser precision is converted to the number with higher precision.
 Usually integers are converted to floats. For very large or small
 floats the float is converted to an integer. This happens if all
 significant digits are to the left of the decimal point.
 
-Since Erlang 18, when two maps are compared for order they are
+****
+Erlang has two kinds of equality comparison: The first is _arithmetic_
+equality `==` (or `/=` for inequality), such that if `A =< B` and also `A
+>= B`, then `A == B`. The second is _exact_ equality `=:=` (or `=/=` for
+exact inequality), where `1 =:= 1.0` is false. It is important to note that
+exact equality is the kind used when pattern matching: it never converts
+values.
+****
+
+For compound structures like tuples and lists, the ordering extends
+recursively, so that e.g. `{1, 2} < {1, 3}` but `{2, 1} > {1, 3}`. This
+means that any set of Erlang terms can be sorted in order, and that
+ordering is defined by the language.
+
+When two maps are compared for order they are
 compared as follows: If one map has fewer elements than the other it
-is considered smaller. Otherwise the keys are compared in term order,
-where all integers are considered smaller than all floats. If all the
+is considered smaller, just as for tuples. Otherwise the keys are compared in key order,
+which means all integers are considered smaller than all floats. If all the
 keys are the same then each value pair (in key order) is compared
 arithmetically, i.e. by first converting them to the same precision.
 
 The same is true when comparing for equality, thus
 `+#{1 => 1.0} == #{1 => 1}+` but `+#{1.0 => 1} /= #{1 => 1}+`.
-
-In Erlang versions prior to 18 keys were also compared
-arithmetically.
 
 Erlang is dynamically typed. That is, types will be checked at
 runtime and if a type error occurs an exception is thrown. The
