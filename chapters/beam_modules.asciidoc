@@ -76,6 +76,7 @@ include::../code/beam_modules_chapter/src/beamfile1.erl[]
 
 A sample run might look like:
 
+[source,erlang]
 ----
 > beamfile1:read("beamfile1.beam").
 {1116, [{"AtU8",127,
@@ -92,7 +93,6 @@ A sample run might look like:
  <<131,104,3,100,0,13,100,101,98,117,103,95,105,110,...>>},
  {"Line",31,<<0,0,0,0,0,0,0,0,0,0,0,12,0,...>>},
  {"Type",80,<<0,0,0,1,0,0,0,4,31,255,0,0,...>>}]}
-
 
 ----
 
@@ -162,7 +162,7 @@ parse_chunks([{"ExpT", _Size,
             | Rest], Acc) ->
    parse_chunks(Rest,[{exports,parse_exports(Exports)}|Acc]);
 
-…
+...
 
 parse_exports(<<Function:32/integer,
                Arity:32/integer,
@@ -260,7 +260,7 @@ parse_chunks([{"Code", Size, <<SubSize:32/integer,Chunk/binary>>
    parse_chunks(Rest,[{code,parse_code_info(Info), OpCodes}
                       | Acc]);
 
-..
+...
 
 parse_code_info(<<Instructionset:32/integer,
 		  OpcodeMax:32/integer,
@@ -277,8 +277,6 @@ parse_code_info(<<Instructionset:32/integer,
     end].
 
 ----
-
-
 
 We will learn how to decode the beam instructions in a later chapter, aptly named “BEAM Instructions”.
 
@@ -302,6 +300,7 @@ StringChunk = <<
 
 The string chunk can be parsed easily by just turning the string of bytes into a binary:
 
+[source,erlang]
 ----
 parse_chunks([{"StrT", _Size, <<Strings/binary>>} | Rest], Acc) ->
     parse_chunks(Rest,[{strings,binary_to_list(Strings)}|Acc]);
@@ -325,7 +324,6 @@ AttributesChunk = <<
 >>
 
 ----
-
 
 We can parse the attribute chunk like this:
 
@@ -413,6 +411,7 @@ LiteralTableChunk = <<
 
 Where the `CompressedLiterals` must have exactly `UncompressedSize` bytes. Each literal in the table is encoded with the External Term Format (`erlang:term_to_binary`). The format of `CompressedLiterals` is the following:
 
+[source,erlang]
 ----
 CompressedLiterals = <<
   Count:32/big,
@@ -432,14 +431,9 @@ parse_chunks([{"LitT", _ChunkSize,
     <<_NumLiterals:32,Table/binary>> = zlib:uncompress(Compressed),
     Literals = parse_literals(Table),
     parse_chunks(Rest,[{literals,Literals}|Acc]);
-----
-
-
 
 ...
 
-[source,erlang]
-----
 parse_literals(<<Size:32,Literal:Size/binary,Tail/binary>>) ->
     [binary_to_term(Literal) | parse_literals(Tail)];
 parse_literals(<<>>) -> [].
@@ -498,7 +492,8 @@ TypeChunk = <<
 
 Parsing:
 
-```erlang parse_chunks([{"Type", Size, Chunk} | Rest], Acc) ->
+```erlang
+parse_chunks([{"Type", Size, Chunk} | Rest], Acc) ->
     <<TypeInfo:Size/binary, _Pad/binary>> = Chunk,
     Types = binary_to_term(TypeInfo),
     parse_chunks(Rest, [{types, Types}|Acc]);
@@ -526,9 +521,9 @@ FunTableChunk = <<
    >> || repeat FunCount],
   Padding4:0..3/unit:8
 >>
-----
+```
 
-**Metadata Chunk (`Meta`)**: Stores metadata like annotations or user-defined properties:
+- **Metadata Chunk (`Meta`)**: Stores metadata like annotations or user-defined properties:
 
 ```erlang
 MetaChunk = <<
@@ -537,11 +532,12 @@ MetaChunk = <<
   MetaInfo:ChunkSize/binary,
   Padding4:0..3/unit:8
 >>
-----
+```
 
 Parsing example:
 
-```erlang parse_chunks([{"Meta", Size, Chunk} | Rest], Acc) ->
+```erlang
+parse_chunks([{"Meta", Size, Chunk} | Rest], Acc) ->
     <<MetaInfo:Size/binary, _Pad/binary>> = Chunk,
     Meta = binary_to_term(MetaInfo),
     parse_chunks(Rest, [{meta, MetaInfo}|Acc]);
