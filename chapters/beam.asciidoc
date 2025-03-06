@@ -49,8 +49,8 @@ add
 
 This code can be generated directly from the parse tree of
 the expression. By using Erlang expression and the modules
-https://erlang.org/doc/man/erl_scan.html[+erl_scan+] and
-https://erlang.org/doc/man/erl_parse.html[+erl_parse+] we
+https://erlang.org/doc/man/erl_scan.html[`erl_scan`] and
+https://erlang.org/doc/man/erl_parse.html[`erl_parse`] we
 can build the world's most simplistic compiler.
 
 [source,erlang]
@@ -296,7 +296,7 @@ pointed to by the _instruction pointer_ (`ip`).
 For each byte code instruction it will switch on the instruction byte
 code and jump to the case which executes the instruction. This
 requires a decoding of the instruction and then a jump to the correct
-code. If we look at the assembly for vsm.c (+gcc -S vsm.c+) we see
+code. If we look at the assembly for vsm.c (`gcc -S vsm.c`) we see
 the inner loop of the decoder:
 
 
@@ -497,7 +497,7 @@ x1 to the caller save register (`y0`) so that it will survive the next
 function call.
 
 Imagine that we would implement three instruction in BEAM called
-+move_xx+, +move_yx+, and +move_xy+ (These instructions does not exist
+`move_xx`, `move_yx`, and `move_xy` (These instructions does not exist
 in the BEAM we just use them to illustrate this example):
 
 [source, C]
@@ -607,7 +607,7 @@ amount of work without using up its reductions.
 ====
 
 There are some BIFs that can run for a long time only using 1
-reduction, like +term_to_binary+ and +binary_to_term+. Try to make
+reduction, like `term_to_binary` and `binary_to_term`. Try to make
 sure that you only call these BIFs with small terms or binaries, or
 you might lock up the scheduler for a very long time.
 
@@ -627,7 +627,7 @@ need to do explicit memory management. On the BEAM level, though, the
 code is responsible for checking for stack and heap overrun, and for
 allocating enough space on the stack and the heap.
 
-The BEAM instruction https://github.com/erlang/otp/blob/OTP-23.0/lib/compiler/src/genop.tab#L118[+test_heap+]
+The BEAM instruction https://github.com/erlang/otp/blob/OTP-23.0/lib/compiler/src/genop.tab#L118[`test_heap`]
 will ensure that there is as much
 space on the heap as requested. If needed the instruction will call
 the garbage collector to reclaim space on the heap. The garbage

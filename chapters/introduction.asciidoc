@@ -436,7 +436,7 @@ the handling of reference counted binaries can be found in xref:CH-Memory[].
 
 ==== The Command Line Interface and the Interpreter
 
-When you start an Erlang node with +erl+ you get a command prompt.
+When you start an Erlang node with `erl` you get a command prompt.
 This is the _Erlang read eval print loop_ (REPL)(((REPL))) or the _command line
 interface_ (CLI)(((CLI))) or simply the _((Erlang shell))_.
 

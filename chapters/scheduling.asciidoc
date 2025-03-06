@@ -166,7 +166,7 @@ suspended and a new processes will be scheduled.
 
 If the VM has executed as many reductions as defined by
 `INPUT_REDUCTIONS` (currently `2*CONTEXT_REDS`, also defined in
-+erl_vm.h+) or if there is no process ready to run
+`erl_vm.h`) or if there is no process ready to run
 the scheduler will do system-level activities. That is, basically,
 check for IO; we will cover the details soon.
 
@@ -198,7 +198,7 @@ between schedulers, which we will get to soon.
 
 While a process is running the emulator keeps the number of reductions
 left to execute in the (register mapped) variable `FCALLS` (see
-+beam_emu.c+).
+`beam_emu.c`).
 
 We can examine this value with `hipe_bifs:show_pcb/1`:
 
@@ -262,7 +262,7 @@ states a process can be in.
 // !====
 // ! Variable ! Use
 
-// ! +function_calls+ ! static (file global) variable in erl_process.c, number of function calls since last system-level activity
+// ! `function_calls` ! static (file global) variable in `erl_process.c`, number of function calls since last system-level activity
 
 // !====
 
@@ -275,7 +275,7 @@ states a process can be in.
 // ! Variable                         ! Use
 // ! p->fcalls                        !
 // ! p->reds                          !
-// ! REDS_IN == (+p->def_arg_reg[5]+) ! reds while swapped out?
+// ! REDS_IN == (`+p->def_arg_reg[5]+`) ! reds while swapped out?
 
 // !====
 
@@ -490,7 +490,7 @@ whether the receiver is _sleeping_ in the waiting state, and in that
 case it will _wake_ the process, change its state to runable, and put
 it at the end of the appropriate ready queue.
 
-If the receive statement has a +timeout+ clause a timer will be
+If the receive statement has a `timeout` clause a timer will be
 created for the process which will trigger after the specified timeout
 time. The only guarantee the runtime system gives on a timeout is that
 it will not trigger before the set time, it might be some time after
@@ -502,11 +502,11 @@ a global resource and there could be some contention for the write
 lock if you had many processes inserting timers into the wheel. Make
 sure you are using a later version of Erlang if you use many timers.
 
-The default size (+TIW_SIZE+) of the timing wheel is 65536 slots (or
+The default size (`TIW_SIZE`) of the timing wheel is 65536 slots (or
 8192 slots if you have built the system for a small memory
 footprint). The current time is indicated by an index into the array
-(+tiw_pos+). When a timer is inserted into the wheel with a timeout of
-T the timer is inserted into the slot at +(tiw_pos+T)%TIW_SIZE+.
+(`tiw_pos`). When a timer is inserted into the wheel with a timeout of
+T the timer is inserted into the slot at `+(tiw_pos+T)%TIW_SIZE+`.
 
 [[the_timing_wheel]]
 ----
@@ -521,11 +521,11 @@ T the timer is inserted into the slot at +(tiw_pos+T)%TIW_SIZE+.
 
 ----
 
-The timer stored in the timing wheel is a pointer to an +ErlTimer+
+The timer stored in the timing wheel is a pointer to an `ErlTimer`
 struct. See link:https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h[erl_time.h]. If several timers are
 inserted into the same slot they are linked together in a linked list
-by the +prev+ and +next+ fields. The +count+ field is set to 
-+T/TIW_SIZE+ 
+by the `prev` and `next` fields. The `count` field is set to 
+`T/TIW_SIZE` 
 
 
 [[ErlTimer]]
@@ -579,7 +579,7 @@ execution.
 
 Conceptually you can look at the scheduler as the driver of program
 execution in the Erlang VM. In reality, that is, the way the C code
-is structured, it is the emulator (+process_main+ in beam_emu.c) that
+is structured, it is the emulator (`process_main` in beam_emu.c) that
 drives the execution and it calls the scheduler as a subroutine to find
 the next process to execute.
 
@@ -729,7 +729,7 @@ marked for emigration and any scheduler with a shorter max run queue
 than average (S3, S4) will be targeted for immigration.
 
 This is done by looping over the ordered set of schedulers with two
-indices (immigrate from (+fix+)) and (emigrate to (+tix+)). In each
+indices (immigrate from (`fix`)) and (emigrate to (`tix`)). In each
 iteration of the a loop the immigration path of S[tix] is set to S[fix]
 and the emigration path of S[fix] is set to S[tix]. Then tix is increased
 and fix decreased till they both pass the balance point. If one index

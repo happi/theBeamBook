@@ -35,20 +35,20 @@ xref:AP-Instructions[].
 === Instruction definitions
 
 The names and opcodes of the generic instructions are defined
-in +lib/compiler/src/genop.tab+.
+in `lib/compiler/src/genop.tab`.
 
 The file contains a version number for the Beam instruction format, which
-also is written to +.beam+ files. This number has so far never changed
+also is written to `.beam` files. This number has so far never changed
 and is still at version 0. If the external format would be changed in a
 non backwards compatible way this number would be changed.
 
-The file genop.tab is used as input by +beam_makeops+ which is a perl script
+The file genop.tab is used as input by `beam_makeops` which is a perl script
 which generate code from the ops tabs. The generator is used both to generate
 Erlang code for the compiler (beam_opcodes.hrl and beam_opcodes.erl) and to
 generate C code for the emulator ( TODO: Filenames).
 
 Any line in the file starting with "#" is a comment and ignored by
-+beam_makeops+. The file can contain definitions, which turns into a
+`beam_makeops`. The file can contain definitions, which turns into a
 binding in the perl script, of the form:
 
  NAME=EXPR
@@ -58,7 +58,7 @@ Like, e.g.:
 ----
 BEAM_FORMAT_NUMBER=0
 ----
-The Beam format number is the same as the +instructionset+ field in
+The Beam format number is the same as the `instructionset` field in
 the external beam format. It is only bumped when a backwards
 incompatible change to the instruction set is made.
 
@@ -87,7 +87,7 @@ xref:AP-Instructions[].
 
 === BEAM code listings
 As we saw in xref:CH-Compiler[] we can give the option 'S' to the
-Erlang compiler to get a +.S+ file with the BEAM code for the module
+Erlang compiler to get a `.S` file with the BEAM code for the module
 in a human and machine readable format (actually as Erlang terms).
 
 Given the file beamexample1.erl:
@@ -101,7 +101,7 @@ Given the file beamexample1.erl:
 id(I) when is_integer(I) -> I.
 ----
 
-When compiled with +erlc -S beamexample.erl+ we get the following
+When compiled with `erlc -S beamexample.erl` we get the following
 beamexmaple.S file:
 
 [source,erlang]
@@ -148,74 +148,74 @@ beamexmaple.S file:
 In addition to the actual beam code for the integer identity
 function we also get some meta instructions.
 
-The first line +{module, beamexample1}. %% version = 0+ tells
-us the module name "beamexample1" and the version number for
-the instruction set "0".
+The first line `+{module, beamexample1}. %% version = 0+` tells
+us the module name `beamexample1` and the version number for
+the instruction set `0`.
 
-Then we get a list of exported functions "id/1, module_info/0,
-module_info/1". As we can see the compiler has added two auto
+Then we get a list of exported functions `id/1`, `module_info/0`,
+`module_info/1`. As we can see the compiler has added two auto
 generated functions to the code. These two functions are just
-dispatchers to the generic module info BIFs (erlang:module_info/1 and
-erlang:module_info/2) with the name of the module added as the first
+dispatchers to the generic module info BIFs (`erlang:module_info/1` and
+`erlang:module_info/2`) with the name of the module added as the first
 argument.
 
-The line {attributes, []} list all defined compiler attributes, none in
+The line `+{attributes, []}+` list all defined compiler attributes, none in
 our case.
 
 Then we get to know that there are less than 7 labels in the module,
-+{labels, 7}+, which makes it easy to do code loading in one pass.
+`+{labels, 7}+`, which makes it easy to do code loading in one pass.
 
-The last type of meta instruction is the +function+ instruction on
-the format +{function, Name, Arity, StartLabel}+. As we can see with
-the +id+ function the start label is actually the second label in the
+The last type of meta instruction is the `function` instruction on
+the format `+{function, Name, Arity, StartLabel}+`. As we can see with
+the `id` function the start label is actually the second label in the
 code of the function.
 
-The instruction +{label, N}+ is not really an instruction, it does not
+The instruction `+{label, N}+` is not really an instruction, it does not
 take up any space in memory when loaded. It is just to give a local
 name (or number) to a position in the code. Each label potentially
 marks the beginning of a basic block since it is a potential
 destination of a jump.
 
-The first two instructions following the first label (+{label,1}+)
+The first two instructions following the first label (`+{label,1}+`)
 are actually error generating code which adds the line number and
 module, function and arity information and throws an exception.
-That are the instructions +line+ and +func_info+.
+That are the instructions `line` and `func_info`.
 
-The meat of the function is after +{label,2}+, the instruction
-+{test,is_integer,{f,1},[{x,0}]}+. The test instruction tests if its
-arguments (in the list at the end, that is variable {x,0} in this
-case) fulfills the test, in this case is an integer (is_integer).
-If the test succeeds the next instruction (+return+) is executed.
-Otherwise the functions fails to label 1 (+{f,1}+), that is,
+The meat of the function is after `+{label,2}+`, the instruction
+`+{test,is_integer,{f,1},[{x,0}]}+`. The test instruction tests if its
+arguments (in the list at the end, that is variable `+{x,0}+` in this
+case) fulfills the test, in this case is an integer (`is_integer`).
+If the test succeeds the next instruction (`+return+`) is executed.
+Otherwise the functions fails to label 1 (`+{f,1}+`), that is,
 execution continues at label one where a function clause exception
 is thrown.
 
 The other two functions in the file are auto generated. If we look at
-the second function the instruction +{move,{x,0},{x,1}}+ moves the
-argument in register x0 to the second argument register x1. Then the
-instruction +{move,{atom,beamexample1},{x,0}}+ moves the module name
-atom to the first argument register x0. Finally a tail call is made to
-+erlang:get_module_info/2+ 
-(+{call_ext_only,2,{extfunc,erlang,get_module_info,2}}+). As we will
+the second function the instruction `+{move,{x,0},{x,1}}+` moves the
+argument in register `x0` to the second argument register `x1`. Then the
+instruction `+{move,{atom,beamexample1},{x,0}}+` moves the module name
+atom to the first argument register `x0`. Finally a tail call is made to
+`erlang:get_module_info/2`
+(`+{call_ext_only,2,{extfunc,erlang,get_module_info,2}}+`). As we will
 see in the next section there are several different call instructions.
 
 === Calls
 
 As we have seen in xref:CH-Calls[] there are several different types
 of calls in Erlang. To distinguish between local and remote calls
-in the instruction set, remote calls have +_ext+ in their instruction
+in the instruction set, remote calls have `+_ext+` in their instruction
 names. Local calls just have a label in the code of the module, while
-remote calls takes a destination of the form +{extfunc, Module, Function,
-Arity}+.
+remote calls takes a destination of the form `+{extfunc, Module, Function,
+Arity}+`.
 
 To distinguish between ordinary (stack building) calls and
-tail-recursive calls, the latter have either +_only+ or +_last+ in
-their name. The variant with +_last+ will also deallocate as many
-stack slot as given by the last argument.
+tail-recursive calls, the latter have either `+_only+` or `+_last+` in
+their name. The variant with `+_last+` will also deallocate as many
+stack slots as given by the last argument.
 
-There is also a +call_fun Arity+ instruction that calls the closure
-stored in register {x, Arity}. The arguments are stored in x0 to {x,
-Arity-1}.
+There is also a `call_fun Arity` instruction that calls the closure
+stored in register `+{x, Arity}+`. The arguments are stored in `x0` to `+{x,
+Arity-1}+`.
 
 For a full listing of all types of call instructions see
 xref:AP-Instructions[].
@@ -241,7 +241,7 @@ needed on either the stack or the heap.
 
 On entry to a non leaf function the _continuation pointer_ (CP) is saved on
 the stack, and on exit it is read back from the stack. This is done by the
-+allocate+ and +deallocate+ instructions, which are used for setting up
+`allocate` and `deallocate` instructions, which are used for setting up
 and tearing down the stack frame for the current instruction.
 
 A function skeleton for a leaf function looks like this:
@@ -275,10 +275,10 @@ A function skeleton for a non leaf function looks like this:
     return.
 ----
 
-The instruction +allocate StackNeed Live+ saves the continuation
-pointer (CP) and allocate space for +StackNeed+ extra words on the
-stack. If a GC is needed during allocation save +Live+ number of X
-registers. E.g. if +Live+ is 2 then registers X0 and X1 are saved.
+The instruction `allocate StackNeed Live` saves the continuation
+pointer (CP) and allocate space for `StackNeed` extra words on the
+stack. If a GC is needed during allocation save `Live` number of X
+registers. E.g. if `Live` is 2 then registers `x0` and `x1` are saved.
 
 When allocating on the stack, the stack pointer (E) is decreased.
 
@@ -302,10 +302,10 @@ instructions see xref:AP-Instructions[].
 === Message Passing
 
 Sending a message is straight forward in beam code. You just use the
-+send+ instruction. Note though that the send instruction does not
+`send` instruction. Note though that the send instruction does not
 take any arguments, it is more like a function call. It assumes that
 the arguments (the destination and the message) are in the argument
-registers X0 and X1. The message is also copied from X1 to X0.
+registers `x0` and `x1`. The message is also copied from `x1` to `x0`.
 
 Receiving a message  is a bit more complicated since  it involves both
 selective receive with pattern  matching and introduces a yield/resume
@@ -315,7 +315,7 @@ minimize message queue scanning using refs, more on that later.)
 ==== A Minimal Receive Loop
 
 A minimal receive loop, which accepts any message and has no timeout
-(e.g. +receive _ -> ok end+) looks like this in BEAM code:
+(e.g. `+receive _ -> ok end+`) looks like this in BEAM code:
 
 [source,erlang]
 ----
@@ -329,23 +329,23 @@ A minimal receive loop, which accepts any message and has no timeout
      ...
 ----
 
-The +loop_rec L2 x0+ instruction first checks if there is any message
+The `loop_rec L2 x0` instruction first checks if there is any message
 in the message queue. If there are no messages execution jumps to L2,
 where the process will be suspended waiting for a message to arrive.
 
-If there is a message in the message queue the +loop_rec+ instruction
+If there is a message in the message queue the `loop_rec` instruction
 also moves the message from the _m-buf_ to the process heap. See
 xref:CH-Memory[] and xref:CH-Processes[] for details of the m-buf
 handling.
 
-For code like +receive _ -> ok end+, where we accept any messages,
-there is no pattern matching needed, we just do a +remove_message+
+For code like `+receive _ -> ok end+`, where we accept any messages,
+there is no pattern matching needed, we just do a `remove_message`
 which unlinks the next message from the message queue. (It also
 removes any timeout, more on this soon.)
 
 ==== A Selective Receive Loop
 
-For a selective receive like e.g. +receive [] -> ok end+ we will
+For a selective receive like e.g. `+receive [] -> ok end+` we will
 loop over the message queue to check if any message in the queue
 matches.
 
@@ -366,12 +366,12 @@ matches.
 
 In this case we do a pattern match for Nil after the loop_rec
 instruction if there was a message in the mailbox. If the message
-doesn't match we end up at L3 where the instruction +loop_rec_end+
-advances the save pointer to the next message (+p->msg.save =
-&(*p->msg.save)->next+) and jumps back to L2.
+doesn't match we end up at L3 where the instruction `loop_rec_end`
+advances the save pointer to the next message (`+p->msg.save =
+&(*p->msg.save)->next+`) and jumps back to L2.
 
 If there are no more messages in the message queue the process is
-suspended by the +wait+ instruction at L4 with the save pointer pointing
+suspended by the `wait` instruction at L4 with the save pointer pointing
 to the end of the message queue. When the processes is rescheduled
 it will only look at new messages in the message queue (after the save
 point).
@@ -398,10 +398,10 @@ instruction and the code following the timeout.
     ...
 ----
 
-The +wait_timeout+ instructions sets up a timeout timer with the given
+The `wait_timeout` instructions sets up a timeout timer with the given
 time (1000 ms in our example) and it also saves the address of the
-next instruction (the +timeout+) in +p->def_arg_reg[0]+ and then
-when the timer is set,  +p->i+ is set to point to def_arg_reg.
+next instruction (the `timeout`) in `+p->def_arg_reg[0]+` and then
+when the timer is set,  `+p->i+` is set to point to `def_arg_reg`.
 
 This means that if no matching message arrives while the process is
 suspended a timeout will be triggered after 1 second and execution for
@@ -410,9 +410,9 @@ the process will continue at the timeout instruction.
 Note that if a message that doesn't match arrives in the mailbox, the
 process is scheduled for execution and will run the pattern matching
 code in the receive loop, but the timeout will not be canceled. It is
-the +remove_message+ code which also removes any timeout timer.
+the `remove_message` code which also removes any timeout timer.
 
-The +timeout+ instruction resets the save point of the mailbox to the
+The `timeout` instruction resets the save point of the mailbox to the
 first element in the queue, and clears the timeout flag (F_TIMO) from
 the PCB.
 
@@ -426,9 +426,9 @@ A common pattern in Erlang code is to implement a type of "remote
 call" with send and a receive between two processes. This is for
 example used by gen_server. This code is often hidden behind a library
 of ordinary function calls. E.g., you call the function
-+counter:increment(Counter)+ and behind the scene this turns into
-something like +Counter ! {self(), inc}, receive {Counter, Count} ->
-Count end+.
+`counter:increment(Counter)` and behind the scene this turns into
+something like `+Counter ! {self(), inc}, receive {Counter, Count} ->
+Count end+`.
 
 This is usually a nice abstraction to encapsulate state in a
 process. There is a slight problem though when the mailbox of the
@@ -483,12 +483,12 @@ xref:ref_receive[].
   {label,6}.
 ----
 
-The +recv_mark+ instruction saves the current position (the end
-+msg.last+) in +msg.saved_last+ and the address of the label
-in +msg.mark+
+The `recv_mark` instruction saves the current position (the end
+`msg.last`) in `msg.saved_last` and the address of the label
+in `msg.mark`
 
-The +recv_set+ instruction checks that +msg.mark+ points to the next
-instruction and in that case moves the save point (+msg.save+) to the
+The `recv_set` instruction checks that `msg.mark` points to the next
+instruction and in that case moves the save point (`msg.save`) to the
 last message received before the creation of the ref
-(+msg.saved_last+). If the mark is invalid ( i.e. not equal to
-+msg.save+) the instruction does nothing.
+(`msg.saved_last`). If the mark is invalid ( i.e. not equal to
+`msg.save`) the instruction does nothing.

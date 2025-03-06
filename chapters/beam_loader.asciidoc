@@ -13,9 +13,9 @@ it to memory. It also does a number of transformations on the code
 and translates from the external (generic) format to the internal
 (specific) format.
 
-The code for the loader can be found in +beam_load.c+ (in
-+erts/emulator/beam+) but most of the logic for the translations are in
-the file +ops.tab+ (in the same directory).
+The code for the loader can be found in `beam_load.c` (in
+`erts/emulator/beam`) but most of the logic for the translations are in
+the file `ops.tab` (in the same directory).
 
 The first step of the loader is to parse beam file, basically the same
 work as we did in Erlang in xref:CH-beam_modules[] but written in C.
@@ -36,14 +36,14 @@ generate jump tables for patterns of selects.
 
 The file ops.tab is not parsed at runtime, instead a pattern matching
 program is generated from ops.tab and stored in an array in a
-generated C file. The perl script +beam_makeops+ (in
-+erts/emulator/utils+) generates a target specific set of opcodes and
-translation programs in the files +beam_opcodes.h+ and
-+beam_opcodes.c+ (these files end up in the given target directory
-e.g. +erts/emulator/x86_64-unknown-linux-gnu/opt/smp/+).
+generated C file. The perl script `beam_makeops` (in
+`erts/emulator/utils`) generates a target specific set of opcodes and
+translation programs in the files `beam_opcodes.h` and
+`beam_opcodes.c` (these files end up in the given target directory
+e.g. `erts/emulator/x86_64-unknown-linux-gnu/opt/smp/`).
 
 The same program (beam_makeops) also generates the Erlang code for the
-compiler back end +beam_opcodes.erl+.
+compiler back end `beam_opcodes.erl`.
 
 === Understanding ops.tab
 

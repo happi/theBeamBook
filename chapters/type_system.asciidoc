@@ -144,7 +144,8 @@ where all integers are considered smaller than all floats. If all the
 keys are the same then each value pair (in key order) is compared
 arithmetically, i.e. by first converting them to the same precision.
 
-The same is true when comparing for equality, thus +#{1 => 1.0} == #{1 => 1} but #{1.0 => 1} /= #{1 => 1}+.
+The same is true when comparing for equality, thus
+`+#{1 => 1.0} == #{1 => 1}+` but `+#{1.0 => 1} /= #{1 => 1}+`.
 
 In Erlang versions prior to 18 keys were also compared
 arithmetically.
@@ -224,8 +225,8 @@ space) and are stored on the heap, as boxed objects.
 
 By having all four tag bits as ones for small integers the emulator
 can make an efficient test when doing integer arithmetic to see if
-both arguments are immediates. (+is_both_small(x,y)+ is defined as
-+(x & y & 1111) == 1111+).
+both arguments are immediates. (`is_both_small(x,y)` is defined as
+`+(x & y & 1111) == 1111+`).
 
 The Immediate 2 tag is further divided like this:
 
@@ -251,7 +252,7 @@ typedef struct atom {
 } Atom;
 ----
 
-Thanks to the +len+ and the +ord0+ fields the order of two atoms can
+Thanks to the `len` and the `ord0` fields the order of two atoms can
 be compared efficiently as long as they don't start with the same four
 letters.
 
@@ -276,7 +277,7 @@ The Catch immediate is only used on the stack. It contains an indirect
 pointer to the continuation point in the code where execution should
 continue after an exception. More on this in xref:CH-Calls[].
 
-The Nil tag is used for the empty list (nil or +[]+). The rest of the
+The Nil tag is used for the empty list (nil or `[]`). The rest of the
 word is filled with ones.
 
 
@@ -325,7 +326,7 @@ The string "hello" might look like this in memory:
 All other boxed terms start with a header word. The header word uses a
 four bit header tag and the primary header tag (00), it also has an
 arity which says how many words the boxed term uses. On a 32-bit
-machine it looks like this: +aaaaaaaaaaaaaaaaaaaaaaaaaatttt00+.
+machine it looks like this: `aaaaaaaaaaaaaaaaaaaaaaaaaatttt00`.
 
 The tags are:
 
@@ -350,8 +351,8 @@ The tags are:
 ----
 
 Tuples are stored on the heap with just the arity and then each
-element in the following words. The empty tuple +{}+ is stored just as
-the word 0 (header tag 0, tuple tag 0000, and arity 0).
+element in the following words. The empty tuple `{}` is stored just as
+the word 0 (header tag 0, tuple tag `0000`, and arity 0).
 
 .Representation of the tuple {104,101,108,108,111} on a 32 bit machine.
 [ditaa]
@@ -403,9 +404,9 @@ TODO: Describe bignum encoding. (And arithmetic ?)
 A reference is a _"unique"_ term often used to tag messages in order
 to basically implement a channel over a process mailbox. A reference
 is implemented as an 82 bit counter. After 9671406556917033397649407
-calls to +make_ref/0+ the counter will wrap and start over with ref 0
+calls to `make_ref/0` the counter will wrap and start over with ref 0
 again. You need a really fast machine to do that many calls to
-+make_ref+ within your lifetime. Unless you restart the node, in which
+`make_ref` within your lifetime. Unless you restart the node, in which
 case it also will start from 0 again, but then all the old local refs
 are gone. If you send the pid to another node it becomes an external
 ref, see below.
@@ -424,7 +425,7 @@ heap.
 
 ----
 
-The reference number is (Data2 bsl 50) + (Data1 bsl 18) + Data0.
+The reference number is `(Data2 bsl 50) + (Data1 bsl 18) + Data0`.
 
 .Outline
 ****

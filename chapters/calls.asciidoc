@@ -24,7 +24,7 @@ Remote calls facilitate **hot code loading**, enabling live updates to modules w
 === Code Loading
 In the Erlang Runtime System the code loading is handled by the
 code server. The code server will call the lower level BIFs in the
-+erlang+ module for the actual loading. But the code server also
+`erlang` module for the actual loading. But the code server also
 determines the purging policy.
 
 The runtime system can keep two versions of each module, a _current_
@@ -49,7 +49,7 @@ of the code as the caller.
 
 A call to a local function can be turned into a remote call by
 specifying the module name at the call site. This is usually
-done with the +?MODULE+ macro as in +?MODULE:foo()+.
+done with the `?MODULE` macro as in `?MODULE:foo()`.
 A remote call to a non local module can not be turned into
 a local call, i.e. there is no way to guarantee the version
 of the callee in the caller.
@@ -180,7 +180,7 @@ loop(F, L) ->
   loop(F, L).
 ```
 
-Since L is a local function it will always retun X + 1. If the module is reloaded and foo/1 is changed to return X + 2 then F will return X + 2. If the module is reloaded twice
+Since L is a local function it will always return X + 1. If the module is reloaded and `foo/1` is changed to return X + 2 then F will return X + 2. If the module is reloaded twice
 then the process will crash since L refers to a purged version of the module.
 
 === Conclusion

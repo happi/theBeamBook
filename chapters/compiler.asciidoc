@@ -17,10 +17,10 @@ language.
 
 === Compiling Erlang
 
-Erlang is compiled from source code modules in +.erl+ files
-to fat binary +.beam+ files.
+Erlang is compiled from source code modules in `.erl` files
+to fat binary `.beam` files.
 
-The compiler can be run from the OS shell with the +erlc+ command:
+The compiler can be run from the OS shell with the `erlc` command:
 
 [source,bash]
 ----
@@ -28,7 +28,7 @@ The compiler can be run from the OS shell with the +erlc+ command:
 ----
 
 Alternatively the compiler can be invoked from the Erlang shell with
-the default shell command +c+ or by calling +compile:file/{1,2}+
+the default shell command `c` or by calling `compile:file/{1,2}`
 
 [source,erlang]
 ----
@@ -42,18 +42,18 @@ or
 1> compile:file(foo).
 ----
 
-The optional second argument to +compile:file+ is a list of compiler
+The optional second argument to `compile:file` is a list of compiler
 options. A full list of the options can be found in the documentation
 of the compile module: see link:http://www.erlang.org/doc/man/compile.html[].
 
-Normally the compiler will compile Erlang source code from a +.erl+
-file and write the resulting binary beam code to a +.beam+ file. You
+Normally the compiler will compile Erlang source code from a `.erl`
+file and write the resulting binary beam code to a `.beam` file. You
 can also get the resulting binary back as an Erlang term
-by giving the option +binary+ to the compiler. This
+by giving the option `binary` to the compiler. This
 option has then been overloaded to mean return any intermediate format
 as a term instead of writing to a file. If you for example want the
-compiler to return Core Erlang code you can give the options +[core,
- binary]+.
+compiler to return Core Erlang code you can give the options `[core,
+ binary]`.
 
 
 The compiler is made up of a number of passes as illustrated in
@@ -170,7 +170,7 @@ xref:fig_compiler_passes[].
 ----
 
 If you want to see a complete and up to date list of compiler passes
-you can run the function +compile:options/0+ in an Erlang shell.
+you can run the function `compile:options/0` in an Erlang shell.
 The definitive source for information about the compiler is of course
 the source:
   link:https://github.com/erlang/otp/blob/maint/lib/compiler/src/compile.erl[compile.erl]
@@ -224,7 +224,7 @@ get a file "world.P":
 ok
 ----
 
-In the resulting +.P+ file you can see a pretty printed version of
+In the resulting `.P` file you can see a pretty printed version of
 the code after the preprocessor (and parse transformation) has been
 applied:
 
@@ -234,7 +234,7 @@ include::../code/compiler_chapter/src/world.P[]
 ----
 
 To see how the code looks after all source code transformations are
-done, you can compile the code with the +'E'+-flag.
+done, you can compile the code with the `'E'`-flag.
 
 [source,erlang]
 ----
@@ -243,8 +243,8 @@ done, you can compile the code with the +'E'+-flag.
 ok
 ----
 
-This gives us an +.E+ file, in this case all compiler directives have
-been removed and the built in functions +module_info/{1,2}+ have been
+This gives us an `.E` file, in this case all compiler directives have
+been removed and the built in functions `module_info/{1,2}` have been
 added to the source:
 
 [source,erlang]
@@ -255,7 +255,7 @@ include::../code/compiler_chapter/src/world.E[]
 We will make use of the 'P' and 'E' options when we look at parse
 transforms in xref:SEC-parse_transform[], but first we will take a
 look at an "assembler" view of generated BEAM code. By giving the
-option +'S'+ to the compiler you get a +.S+ file with Erlang terms
+option `'S'` to the compiler you get a `.S` file with Erlang terms
 for each BEAM instruction in the code.
 
 [source,erlang]
@@ -265,7 +265,7 @@ for each BEAM instruction in the code.
 ok
 ----
 
-The file +world.S+ should look like this:
+The file `world.S` should look like this:
 
 [source,erlang]
 ----
@@ -282,13 +282,13 @@ The assembler code mostly follows the layout of the original source
 code.
 
 The first instruction defines the module name of the code. The version
-mentioned in the comment (+%% version = 0+) is the version of the beam
-opcode format (as given by +beam_opcodes:format_number/0+).
+mentioned in the comment (`%% version = 0`) is the version of the beam
+opcode format (as given by `beam_opcodes:format_number/0`).
 
 Then comes a list of exports and any compiler attributes (none in this
 example) much like in any Erlang source module.
 
-The first real beam-like instruction is +{labels, 7}+ which tells the
+The first real beam-like instruction is `{labels, 7}` which tells the
 VM the number of labels in the code to make it possible to allocate
 room for all labels in one pass over the code.
 
@@ -296,7 +296,7 @@ After that there is the actual code for each function. The first
 instruction gives us the function name, the arity and the entry point
 as a label number.
 
-You can use the +'S'+ option with great effect to help you understand
+You can use the `'S'` option with great effect to help you understand
 how the BEAM works, and we will use it like that in later chapters. It
 is also invaluable if you develop your own language that you compile
 to the BEAM through Core Erlang, to see the generated code.
@@ -398,10 +398,10 @@ its sanity checks in the linter pass which follows the parse transform
 pass, you can allow an AST which does not represent valid Erlang.
 
 To write a parse transform you need to write an Erlang module (lets
-call it _p_) which exports the function +parse_transform/2+. This
+call it _p_) which exports the function `parse_transform/2`. This
 function is called by the compiler during the parse transform pass if
 the module being compiled (lets call it _m_) contains the compiler
-option +{parse_transform, p}+. The arguments to the function is the
+option `{parse_transform, p}`. The arguments to the function is the
 AST of the module m and the compiler options given to the call to the
 compiler.
 
@@ -418,11 +418,11 @@ which occurs after the parse transform pass.
 The documentation of the abstract format is somewhat dense and it is
 quite hard to get a grip on the abstract format by reading the
 documentation. I encourage you to use the _syntax_tools_ and
-especially +erl_syntax_lib+ for any serious work on the AST.
+especially `erl_syntax_lib` for any serious work on the AST.
 
 Here we will develop a simple parse transform just to get an
 understanding of the AST. Therefore we will work directly on the AST
-and use the old reliable +io:format+ approach instead of syntax_tools.
+and use the old reliable `io:format` approach instead of syntax_tools.
 
 First we create an example of what we would like to be able to compile
 json_test.erl:
@@ -446,7 +446,7 @@ test(V) ->
       }}>>.
 ----
 
-Then we create a minimal parse transform module +json_parser.erl+:
+Then we create a minimal parse transform module `json_parser.erl`:
 
 [source,erlang]
 ----
@@ -497,7 +497,7 @@ it out so that you can see what an AST looks like.
 error
 ----
 
-The compilation of +json_test+ fails since the module contains invalid
+The compilation of `json_test` fails since the module contains invalid
 Erlang syntax, but you get to see what the AST looks like. Now we can
 just write some functions to traverse the AST and rewrite the json
 code into Erlang code.footnote:[The translation here is done in
@@ -589,7 +589,7 @@ str_to_bin(String, Line) ->
     }.
 ----
 
-And now we can compile +json_test+ without errors:
+And now we can compile `json_test` without errors:
 
 [source,erlang]
 ----
@@ -607,21 +607,21 @@ And now we can compile +json_test+ without errors:
    {<<"frame rate">>,42}]}]
 ----
 
-The AST generated by +parse_transform/2+ must correspond to valid
+The AST generated by `parse_transform/2` must correspond to valid
 Erlang code unless you apply several parse transforms, which is
 possible. The validity of the code is checked by the following
 compiler pass.
 
 ==== Compiler Pass: Linter
 
-The linter (+erl_lint.erl+) generates warnings for syntactically
+The linter (`erl_lint.erl`) generates warnings for syntactically
 correct but otherwise bad code, like "export_all flag enabled".
 
 
 ==== Compiler Pass: Save AST
 
 In order to enable debugging of a module, you can "debug compile" the
-module, that is to pass the option +debug_info+ to the compiler. The
+module, that is to pass the option `debug_info` to the compiler. The
 abstract syntax tree will then be saved by the "Save AST" until the
 end of the compilation, where it will be written to the .beam file.
 
@@ -635,7 +635,7 @@ optimisations this can trick you up badly.
 
 In the expand phase source erlang constructs, such as records, are
 expanded to lower level erlang constructs. Compiler options,
-"+-compile(...)+", are also _expanded_ to meta data.
+"`-compile(...)`", are also _expanded_ to meta data.
 
 ==== Compiler Pass: Core Erlang
 
@@ -667,9 +667,9 @@ ok
 {ok,world}
 ----
 
-Note that the +.core+ files are text files written in the human
+Note that the `.core` files are text files written in the human
 readable core format. To get the core program as an Erlang term
-you can add the +binary+ option to the compilation.
+you can add the `binary` option to the compilation.
 
 ==== Compiler Pass: Kernel Erlang
 Kernel Erlang is a flat version of Core Erlang with a few differences.
@@ -686,10 +686,10 @@ The BEAM code is described in detail in
 xref:CH-Instructions[] and xref:AP-Instructions[]
 
 ==== Compiler Pass: Native Code
-If you add the flag +native+ to the compilation, and you have a HiPE
+If you add the flag `native` to the compilation, and you have a HiPE
 enabled runtime system, then the compiler will generate native code
 for your module and store the native code along with the beam code
-in the +.beam.+ file.
+in the `.beam.` file.
 
 === Other Compiler Tools
 
@@ -707,7 +707,7 @@ of functions to manipulate abstract forms -- Syntax Tools.
 
 Leex is the Erlang lexer generator.
 The lexer generator takes a description of a DFA from a definitions
-file +xrl+ and produces an Erlang
+file `xrl` and produces an Erlang
 program that matches tokens described by the DFA.
 
 The details of how to write a DFA definition for a tokenizer
