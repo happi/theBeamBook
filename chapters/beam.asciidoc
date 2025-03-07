@@ -26,7 +26,7 @@ components.
 
 As opposed to its predecessor JAM (Joe's Abstract Machine) which was a
 stack machine, the BEAM is a register machine loosely based on WAM
- <<warren>>. In a stack machine each operand to an instruction is
+ <<Warren>>. In a stack machine each operand to an instruction is
 first pushed to the working stack, then the instruction pops its
 arguments and then it pushes the result on the stack.
 
