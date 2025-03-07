@@ -2,5 +2,8 @@
 [bibliography]
 == References
 
-- [[[warren]]] D. H. D. Warren. An Abstract Prolog Instruction Set:
+- [[[DragonBook]]] Aho, Sethi, Ullman, Compilers: Principles, Techniques, and Tools
+  Addison-Wesley, 1986. ISBN 0-201-10088-6
+
+- [[[Warren]]] D. H. D. Warren. An Abstract Prolog Instruction Set:
   Technical Note 309, Artificial Intelligence Center, SRI International, 333 Ravenswood Ave, Menlo Park, CA 94025, October 1983.

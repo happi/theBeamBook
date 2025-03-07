@@ -1,11 +1,12 @@
 [[CH-Compiler]]
 == The Compiler
 
+(((Compiler)))
 This book will not cover the programming language Erlang, but since
 the goal of the ERTS is to run Erlang code you will need to know how
 to compile Erlang code. In this chapter we will cover the compiler
-options needed to generate readable beam code and how to add debug
-information to the generated beam file. At the end of the chapter
+options needed to generate human readable BEAM code and how to add debug
+information to the generated `.beam` file. At the end of the chapter
 there is also a section on the Elixir compiler.
 
 For those readers interested in compiling their own favorite language
@@ -17,22 +18,36 @@ language.
 
 === Compiling Erlang
 
-Erlang is compiled from source code modules in `.erl` files
-to fat binary `.beam` files.
+Erlang is compiled from source code modules in ((`.erl`)) files
+to binary ((`.beam`)) files.
 
-The compiler can be run from the OS shell with the `erlc` command:
+The compiler can be run from the OS shell with the ((`erlc`)) command:
 
 [source,bash]
 ----
 > erlc foo.erl
 ----
 
-Alternatively the compiler can be invoked from the Erlang shell with
-the default shell command `c` or by calling `compile:file/{1,2}`
+There are several options such as `-o <Directory>` for controlling the
+general behaviour of `erlc`, mostly similar to C compiler options; see
+link:https://www.erlang.org/doc/apps/erts/erlc_cmd.html[] for a complete
+list. More specific ((compiler options)) begin with a plus sign, as in
+`+debug_info`. These are Erlang terms passed straight to the compiler
+application, and they may need quoting in the shell if they contain special
+characters such as `{` or `"`. A full list of these options can be found in
+the documentation of the `compile` module: see
+link:http://www.erlang.org/doc/man/compile.html[].
+
+The compiler can also be invoked from the Erlang shell, either with the
+shell shortcut command `c()`, which also loads the module afterwards , or
+by calling `compile:file()`, which compiles but does not load. You can
+specify the file name as an atom or a string, and you don't need to include
+the `.erl` extension:
 
 [source,erlang]
 ----
 1> c(foo).
+{ok, foo}
 ----
 
 or
@@ -40,139 +55,285 @@ or
 [source,erlang]
 ----
 1> compile:file(foo).
+{ok, foo}
 ----
 
-The optional second argument to `compile:file` is a list of compiler
-options. A full list of the options can be found in the documentation
-of the compile module: see link:http://www.erlang.org/doc/man/compile.html[].
+Both of these can take a list of options as a second argument. These are
+the same terms that may be passed as `+`-options from `erlc`:
+
+[source,erlang]
+----
+1> c(foo, [nowarn_unused_function, debug_info]).
+----
 
 Normally the compiler will compile Erlang source code from a `.erl`
 file and write the resulting binary beam code to a `.beam` file. You
 can also get the resulting binary back as an Erlang term
-by giving the option `binary` to the compiler. This
-option has then been overloaded to mean return any intermediate format
-as a term instead of writing to a file. If you for example want the
-compiler to return Core Erlang code you can give the options `[core,
- binary]`.
+by giving the option `binary` to `compile:file()` (but not to the `c()` shortcut):
+
+[source,erlang]
+----
+1> compile:file(foo, [binary]).
+{ok, foo, <<70,79,82,...>>}
+----
+
+Some options tell the compiler to stop after a certain stage of the
+compilation and produce the intermediate representation as output. For
+instance, to see what the program looks like after transformation to ((Core
+Erlang)):
+
+[source,erlang]
+----
+1> c(foo, [to_core]).
+** Warning: No object file created - nothing loaded **
+ok
+----
+
+The warning here is from the `c()` shell shortcut. Since no `.beam` object
+file was created, there was no new version of the module to load. Instead,
+you should now have a text file `foo.core`.
+
+If we want to look at the result of ((preprocessing)), we can pass the `'P'`
+option instead:
+
+[source,erlang]
+----
+1> c(foo, ['P']).
+** Warning: No object file created - nothing loaded **
+ok
+----
+
+The output file `foo.P` now shows you what the Erlang source code looks
+like after all include files have been read, macros have been substituted,
+and conditional compilation directives like `-ifdef` have been evaluated.
+
+In fact, the option `binary`
+has been overloaded to mean "`at the stage where the compiler stops,
+return the intermediate format as a term instead of writing it to a file`".
+If you for example want the compiler to return Core Erlang code you can
+give the options `[to_core, binary]`:
+
+[source,erlang]
+----
+1> compile:file(foo, [to_core,binary]).
+{ok, foo, {c_module, ...}}
+----
+
+Note that you get the actual internal representation as Erlang terms in
+this case, not a chunk of text. Most internal representations have a
+corresponding ((prettyprinting)) function; for example:
+
+[source,erlang]
+----
+1> {ok, foo, Core} = compile:file(foo, [to_core,binary]).
+{ok, foo, {c_module, ...}}
+2> io:put_chars(core_pp:format(Core)).
+module 'foo' [...]
+  ...
+----
+
+It is also possible to tell the compiler to pick up the compilation from a
+later stage, for example from a `.core` source file, either using `erlc`:
+
+[source,bash]
+----
+> erlc foo.core
+----
+
+****
+The `erlc` frontend recognizes several different extensions, not just
+`.erl`, and applies the corresponding backend. See
+link:https://www.erlang.org/doc/apps/erts/erlc_cmd.html#supported-compilers[].
+****
+
+or directly from Erlang:
+
+[source,erlang]
+----
+1> c(foo, [from_core]).
+{ok, foo}
+----
+
+If you have some intermediate code as Erlang terms, you can pass it back
+straight to the compiler and tell it to continue working on it, like this:
+
+[source,erlang]
+----
+1> {ok, foo, Core} = compile:file(foo, [to_core,binary]).
+{ok, foo, {c_module, ...}}
+3> {ok, foo, Bin} = compile:forms(Core, [from_core,binary]).
+{ok,foo, <<70,79,82,...>>}
+----
+
+And finally, if you have a Beam module in binary form, you can load it
+directly into memory (((module, loading))) so you can run it:
+
+[source,erlang]
+----
+4> code:load_binary(foo, "nopath", Bin).
+{module,foo}
+5> foo:f()
+hello
+6> code:which(foo).
+"nopath"
+----
+
+(In this case you must tell the loader the module name as well as the
+string that the code server will report as the object file path, even if
+the binary was never stored in any file.)
+
+This way it is possible to hook into the compiler at different points and
+study the output, or modify it and pass it back, or even pass in low level
+code that you have generated in some other way without having a
+corresponding `.erl` file -- and you can do all this without writing
+anything to a file unless you want to.
 
 
-The compiler is made up of a number of passes as illustrated in
-xref:fig_compiler_passes[].
+=== Compiler Overview
+
+The compiler is made up of a number of passes. For readability, we divide
+these into two parts: the front end (((compiler, front end))) that takes Erlang source code and
+transforms it down to Core Erlang code (xref:fig_compiler_passes[]), and
+the back end (((compiler, back end))) that continues from the Core Erlang level and transforms and
+optimizes the code down to BEAM bytecode (xref:fig_compiler_passes_2[]).
 
 [[fig_compiler_passes]]
-.Compiler Passes
+.Compiler Passes (Front End)
 [ditaa]
 ----
-                                                    (.erl)                                       [] ⇒ Compiler options
-                                                       |                                         () ⇒ files
-                                                       v                                         {} ⇒ erlang terms
-                                               +---------------+                                 boxes ⇒ passes
-                                               |    Scanner    |
-                                               | (Part of epp) |
-                                               +---------------+
-                                                       |
-                                                       v
-                                               +---------------+
-                                               | Pre processor |
-                                               |      epp      |
-                                               +---------------+
-                                                       |
-                                                       v
-                                               +---------------+     +---------------+
-                                               |     Parse     | --> | user defined  |
-                                               |   Transform   | <-- | transformation|
-                                               +---------------+     +---------------+
-                                                       |
-                                                       +---------> (.Pbeam) [makedep]
-                                                       +---------> {dep} [makedep, binary]
-                                                       |
-                                                       +---------> (.pp) [dpp]
-                                                       +---------> {AST} [dpp, binary]
-                                                       |
-                                                       v
-                                               +---------------+
-                                               |    Linter     |
-                                               |               |
-                                               +---------------+
-                                                       |
-                                                       +---------> (.P) ['P']
-                                                       +---------> {AST} ['P',binary]
-                                                       |
-                                                       v
-                                               +---------------+
-                                               |    Save AST   |
-                                               |               |
-                                               +---------------+
-                                                       |
-                                                       v
-                                               +---------------+
-                                               |     Expand    |
-                                               |               |
-                                               +---------------+
-                                                       |
-                                                       +---------> (.E) ['E']
-                                                       +---------> {.E} ['E', binary]
-                                                       |
-                                                       v
-                                               +---------------+
-                                               |     Core      |
-                                               |    Erlang     |
-                                               +---------------+
-                                                       |
-                                                       +---------> (.core) [dcore|to_core0]
-                                                       +---------> {core} [to_core0,binary]
-                                                       |
-                                                       v
-                         +---------------+     +---------------+     +---------------+
-                         |      Core     | ... |      Core     | ... |      Core     |
-                         |     Pass 0    |     |     Pass 1    |     |     Pass N    |
-                         +---------------+     +---------------+     +---------------+
-                                                       |
-                                                       +---------> (.core) [to_core]
-                                                       +---------> {core} [to_core,binary]
-                                                       |
-                                                       v
-                                               +---------------+
-                                               |    Kernel     |
-                                               |    Erlang     |
-                                               +---------------+
-                                                       |
-                                                       v
-                         +---------------+     +---------------+     +---------------+
-                         |    Kernal     | ... |    Kernal     | ... |    Kernal     |
-                         |    Pass 0     |     |    Pass 1     |     |    Pass N     |
-                         +---------------+     +---------------+     +---------------+
-                                                       |
-                                                       v
-                                               +---------------+
-                                               |   BEAM Code   |
-                                               |               |
-                                               +---------------+
-                                                       |
-                                                       v
-                         +---------------+     +---------------+     +---------------+
-                         |     ASM       | ... |     ASM       | ... |     ASM       |
-                         |    Pass 0     |     |    Pass 1     |     |    Pass N     |
-                         +---------------+     +---------------+     +---------------+
-                                                       |
-                                                       +---------> (.S) ['S']
-                                                       +---------> {.S} ['S', binary]
-                                                       |
-                                                       v
-                                               +---------------+
-                                               |  Native Code  |
-                                               |               |
-                                               +---------------+
-                                                       |
-                                                       v
+                                                (.erl)                         [] ⇒ Compiler options
+                                                   |                           () ⇒ files
+                                                   v                           {} ⇒ erlang terms
+                                           +---------------+                   boxes ⇒ passes
+                                           |    Scanner    |
+                                           |   (erl_scan)  |
+                                           +---------------+
+                                                   |
+                                                   v
+                                           +---------------+
+                                           |  Preprocessor |
+                                           |     (epp)     |
+                                           +---------------+
+                                                   |
+                                                   v
+                                           +---------------+
+                                           |     Parser    |
+                                           |  (erl_parse)  |
+                                           +---------------+
+                                                   |
+                                                   v
+                                           +---------------+     +---------------+
+                                           |     Parse     | --> | user defined  |
+                                           |   Transforms  | <-- | transformation|
+                                           +---------------+     +---------------+
+                                                   |
+                                                   +---------> (.Pbeam) [makedep]
+                                                   +---------> {dep} [makedep, binary]
+                                                   |
+                                                   +---------> (.pp) [dpp]
+                                                   +---------> {AST} [dpp, binary]
+                                                   |
+                                                   v
+                                           +---------------+
+                                           |     Linter    |
+                                           |   (erl_lint)  |
+                                           +---------------+
+                                                   |
+                                                   +---------> (.P) ['P']
+                                                   +---------> {AST} ['P',binary]
+                                                   |
+                                                   v
+                                           +---------------+
+                                           |   Save AST    |
+                                           |for debug info |
+                                           +---------------+
+                                                   |
+                                                   v
+                                           +---------------+
+                                           |Expand Imports |
+                                           |  and Records  |
+                                           +---------------+
+                                                   |
+                                                   +---------> (.E) ['E']
+                                                   +---------> {.E} ['E', binary]
+                                                   |
+                                                   v
+                                           +---------------+
+                                           |     Core      |
+                                           |    Erlang     |
+                                           +---------------+
+                                                   |
+                                                   :
+----
 
-                                                    (.beam)
+
+
+[[fig_compiler_passes_2]]
+.Compiler Passes (Back End)
+[ditaa]
+----
+                                                   :                           [] ⇒ Compiler options
+                                                   |                           () ⇒ files           
+                                           +---------------+                   {} ⇒ erlang terms    
+                                           |     Core      |                   boxes ⇒ passes       
+                                           |    Erlang     |
+                                           +---------------+
+                                                   |
+                                                   +---------> (.core) [to_core0]
+                                                   +---------> {core} [to_core0,binary]
+                                                   |
+                                                   v
+                     +---------------+     +---------------+     +---------------+
+    from_core ---->  |      Core     | ... |      Core     | ... |      Core     |
+  erlc *.core ---->  |     Pass 0    |     |     Pass 1    |     |     Pass N    |
+                     +---------------+     +---------------+     +---------------+
+                                                   |
+                                                   +---------> (.core) [to_core]
+                                                   +---------> {core} [to_core,binary]
+                                                   |
+                                                   v
+                                           +---------------+
+                                           |    Kernel     |
+                                           |    Erlang     |
+                                           +---------------+
+                                                   |
+                                                   v
+                     +---------------+     +---------------+     +---------------+
+                     |    Kernel     | ... |    Kernel     | ... |    Kernel     |
+                     |    Pass 0     |     |    Pass 1     |     |    Pass N     |
+                     +---------------+     +---------------+     +---------------+
+                                                   |
+                                                   v
+                                           +---------------+
+                                           |   BEAM ASM    |
+                                           |               |
+                                           +---------------+
+                                                   |
+                                                   v
+                     +---------------+     +---------------+     +---------------+
+     from_asm ---->  |     ASM       | ... |     ASM       | ... |     ASM       |
+     erlc *.S ---->  |    Pass 0     |     |    Pass 1     |     |    Pass N     |
+                     +---------------+     +---------------+     +---------------+
+                                                   |
+                                                   +---------> (.S) ['S']
+                                                   +---------> {.S} ['S', binary]
+                                                   |
+                                                   v
+                                           +---------------+
+                                           |  BEAM Binary  |
+                                           |               |
+                                           +---------------+
+                                                   |
+                                                   v
+
+                                                (.beam)
 ----
 
 If you want to see a complete and up to date list of compiler passes
-you can run the function `compile:options/0` in an Erlang shell.
+(((compiler, passes)))
+you can run the function `compile:options()` in an Erlang shell.
 The definitive source for information about the compiler is of course
-the source:
+the Erlang/OTP source code:
   link:https://github.com/erlang/otp/blob/maint/lib/compiler/src/compile.erl[compile.erl]
 
 
@@ -181,7 +342,7 @@ the source:
 
 Looking at the code produced by the compiler is a great help in trying
 to understand how the virtual machine works. Fortunately, the compiler
-can show us the intermediate code after each compiler pass and the
+can show us the ((intermediate code)) after each compiler pass and the
 final beam code.
 
 Let us try out our newfound knowledge to look at the generated code.
@@ -244,7 +405,9 @@ ok
 ----
 
 This gives us an `.E` file, in this case all compiler directives have
-been removed and the built in functions `module_info/{1,2}` have been
+been removed, any records have been expanded to tuples, any uses of function imports
+have been expanded to explicit remote calls,
+and the built in functions `module_info/{1,2}` have been
 added to the source:
 
 [source,erlang]
@@ -253,10 +416,12 @@ include::../code/compiler_chapter/src/world.E[]
 ----
 
 We will make use of the 'P' and 'E' options when we look at parse
-transforms in xref:SEC-parse_transform[], but first we will take a
-look at an "assembler" view of generated BEAM code. By giving the
-option `'S'` to the compiler you get a `.S` file with Erlang terms
-for each BEAM instruction in the code.
+transforms later in xref:SEC-parse_transform[].
+
+Before we get into all the other intermediate stages, we will take a look
+at the final generated BEAM code, in its human readable "`assembler`" form.
+By giving the option `'S'` to the compiler you get a `.S` file with Erlang
+terms for each BEAM instruction in the code.
 
 [source,erlang]
 ----
@@ -265,24 +430,24 @@ for each BEAM instruction in the code.
 ok
 ----
 
-The file `world.S` should look like this:
+The file `world.S` should look something like this:
 
 [source,erlang]
 ----
 include::../code/compiler_chapter/src/world.S[]
 ----
 
-Since this is a file with dot ("_._") separated Erlang terms, you can
-read the file back into the Erlang shell with:
+Since this is a file with dot (`.`) separated Erlang terms, you can
+easily read the file back into the Erlang shell with:
 ----
 {ok, BEAM_Code} = file:consult("world.S").
 ----
 
-The assembler code mostly follows the layout of the original source
-code.
+As you can see, the assembler code mostly follows the layout of the
+original source code.
 
 The first instruction defines the module name of the code. The version
-mentioned in the comment (`%% version = 0`) is the version of the beam
+mentioned in the comment (`%% version = 0`) is the version of the
 opcode format (as given by `beam_opcodes:format_number/0`).
 
 Then comes a list of exports and any compiler attributes (none in this
@@ -293,21 +458,25 @@ VM the number of labels in the code to make it possible to allocate
 room for all labels in one pass over the code.
 
 After that there is the actual code for each function. The first
-instruction gives us the function name, the arity and the entry point
-as a label number.
+instruction gives us the function name, the arity, and the entry point
+as a label number. You'll notice that the entry point is not the first
+label in the function -- before it there are some instructions that
+define metadata for the function. These are not executed at runtime.
 
 You can use the `'S'` option with great effect to help you understand
 how the BEAM works, and we will use it like that in later chapters. It
 is also invaluable if you develop your own language that you compile
 to the BEAM through Core Erlang, to see the generated code.
 
+
 === Compiler Passes
 
 In the following sections we will go through most of the compiler
-passes shown in xref:fig_compiler_passes[]. For a language designer
+passes shown in xref:fig_compiler_passes[] and xref:fig_compiler_passes_2[].
+For a language designer
 targeting the BEAM this is interesting since it will show you what you
 can accomplish with the different approaches: macros, parse
-transforms, core erlang, and BEAM code, and how they depend on each
+transforms, Core Erlang, and BEAM code, and how they depend on each
 other.
 
 When tuning Erlang code, it is good to know what optimizations are
@@ -317,13 +486,43 @@ after optimizations.
 
 ==== Compiler Pass: The Erlang Preprocessor (epp)
 
-The compilation starts with a combined tokenizer (or scanner) and
-preprocessor. That is, the preprosessor drives the tokenizer.
-This means that macros are expanded as tokens, so
-it is not a pure string replacement (as for example m4 or cpp).
-You can not use Erlang macros to define your own syntax, a macro
-will expand as a separate token from its surrounding characters.
-You can not concatenate a macro and a character to a token:
+The compilation starts with _tokenization_ (or _scanning_) and
+((preprocessing)). The preprocessor ((`epp`)) reads a file and calls the tokenizer
+`erl_scan` to expand the text into a sequence of separate _tokens_
+rather than characters, discarding whitespace and comments. It then
+processes macro definitions and conditional compilation directives, and
+substitutes uses of macros.
+
+When the preprocessor finds an include statement, it reads and tokenizes the
+named include file, inserts the resulting token sequence instead of the
+include statement, and then processes that as well so that files can
+include each other recursively. When it switches between one file and
+another, the preprocessor inserts `-file` annotations, as we saw in the
+example above, so that later passes can know where a particular piece of
+code came from:
+
+[source,erlang]
+----
+...
+-file("world.hrl", 1).
+
+-file("world.erl", 4).
+...
+----
+
+Note that when an include file like `world.hrl` gets processed, there may
+be no actual code inserted, since include files often contain only macro
+definitions and preprocessor conditionals. All that is left are the
+annotations saying "`we are now at line 1 of the header file`" and "`we are
+now back at line 4 in the original source file`".
+
+
+Note that all this means that `epp` works on the token level (just
+like the C/C++ preprocessor `cpp`), so it
+is not a pure string replacement processor (as for example `m4`).
+You cannot use Erlang macros to define your own arbitrary syntax; a macro
+will expand as a separate token from its surrounding characters, so
+you can't concatenate a macro and a character to a token:
 
 [source,erlang]
 ----
@@ -333,35 +532,190 @@ t(A,B) -> A?plus+B.
 
 This will expand to
 
+[source,erlang]
 ----
 t(A,B) -> A + + B.
 ----
 and not
+[source,erlang]
 ----
 t(A,B) -> A ++ B.
 ----
 
-On the other hand since macro expansion is done on the token
-level, you do not need to have a valid Erlang term in the
-right hand side of the macro, as long as you use it in a way
-that gives you a valid term. E.g.:
+On the other hand since macro expansion is done on the token stream before
+the actual parsing, you do not need to have a valid Erlang term in the
+right hand side of the macro, as long as you use it in a way that gives you
+a valid term in the end. E.g.:
 
+[source,erlang]
 ----
 -define(p,o, o]).
  t() -> [f,?p.
 ----
+which will expand to the token sequence
+[source,erlang]
+----
+ t ( ) -> [ f , o , o ] .
+----
 
 There are few real usages for this other than to win the
 obfuscated Erlang code contest. The main point to remember is that
-you can not really use the Erlang preprocessor to define a language
-with a syntax that differs from Erlang. Fortunately there are
-other ways to do this, as you shall see later.
+you can't really use the Erlang preprocessor to define a language
+with a syntax that differs from Erlang.
 
 
+==== Compiler Pass: The Erlang Parser
+
+The parser ((`erl_parse`)) gets the final token sequence from the
+preprocessor and checks it against the Erlang grammar, producing an
+((abstract syntax tree)) or ((AST)) (see
+link:http://www.erlang.org/doc/apps/erts/absform.html[] ) representing the
+program as a data structure instead of as a sequential text.
+
+
+==== Compiler Pass: Parse Transformations
+
+A parse transform is a function that works on the AST. After the compiler
+has done the initial tokenization, preprocessing and parsing, and assuming
+there were no errors so far, it will call the
+parse transform function if one has been declared, passing it the current
+AST and expecting to get a modified AST back.
+
+This means that you can't change the Erlang syntax fundamentally, because
+the input must still be accepted by the Erlang parser, but you can change
+the semantics by modifying the code as you like.
+
+A parse transform is declared like this, in the module where it is to be
+used:
+
+[source,erlang]
+----
+-compile({parse_transform, my_pt}).
+----
+
+The compiler will then try to call `my_pt:parse_transform(Forms, Options)`
+as an extra pass. It is possible to use multiple parse transforms in the
+same module; they will simply be executed in order.
+
+Parse transforms are used by libraries such as Mnesia (for its QLC syntax),
+EUnit, Merl, and others. In xref:SEC-parse_transform[] we will demonstrate
+a full example of how you can implement your own parse transform.
+
+
+==== Compiler Pass: Linter
+
+The term "`linter`" originally meant a tool that was an add-on to a
+compiler -- like a lint filter in a clothes dryer -- checking for stylistic
+errors and antipatterns and other things that the compiler itself did not
+check (because in those days compilers had very little memory available and
+were focused on speed). As computers got faster, however, the linter got
+moved into the compiler itself as a pass that you wanted to run all the
+time, not just occasionally.
+
+In the Erlang compiler, the ((linter)) ((`erl_lint`)) is the stage that
+does most of the checking of the source code, after parsing and transforms
+are done. (This means that parse transforms may only return an AST that the
+linter will accept.)
+
+The linter checks for errors, such as undefined variables and functions, as
+well as generating warnings for correct but suspicious code, such as
+"export_all flag enabled".
+
+
+==== Compiler Pass: Save AST
+
+In order to enable debugging of a module you must "`debug compile`" the
+module, that is pass the option `debug_info` to the compiler. The
+abstract syntax tree will then be saved by the "`Save AST`" pass, until the
+end of the compilation where it will be included in the `.beam` file for
+purposes of setting breakpoints, single stepping etc. The code is then
+running interpreted, not compiled.
+
+It is important to note that the code is saved _before_ any
+optimisations are applied, so if there is a bug in an optimisation
+pass in the compiler and you run interpreted code in the debugger you will get a
+different behavior. If you are implementing your own compiler
+optimisations, this can trick you up badly.
+
+==== Compiler Pass: Expand
+
+In the expand phase, source level Erlang constructs such as records are
+expanded to lower level erlang constructs. This strips compiler directives,
+replaces record syntax with operations on tuples, expands uses of function
+imports to explicit remote calls, and adds the built in functions
+`module_info/{1,2}` to the code.
+
+
+==== Compiler Pass: Core Erlang
+
+Core Erlang is a strict functional language suitable for compiler
+optimizations. It makes code transformations easier by reducing the
+number of ways to express the same operation. One way it does this is
+by introducing _let_ and _letrec_ expressions to make scoping more
+explicit. The compiler does several passes on the core level.
+
+Core Erlang can be a good target for a language you want to run in
+ERTS. It changes very seldom and it contains all aspects of Erlang in
+a clean way. If you target the BEAM instruction set directly, you will
+have to deal with many more details, and that instruction set usually
+changes slightly between each major release of ERTS. If you on the other
+hand target Erlang directly you will be more restricted in what you
+can describe, and you may also have to deal with more details, since
+Core Erlang is a cleaner language.
+
+Note however that targeting plain Erlang gives you more compile time
+checking that your generated code is well behaved. By generating Core Erlang
+directly, you may manage to find corner cases that the Erlang compiler
+never has encountered before; there is a greater responsibility on you to
+generate correct code.
+
+To compile an Erlang file to core you can give the option `to_core`.
+This outputs the resulting Core Erlang program to a file with
+the extension `.core`. To compile a Core Erlang program from a `.core`
+file you can give the option `from_core` to the compiler.
+
+[source,erlang]
+----
+1> c(world, to_core).
+** Warning: No object file created - nothing loaded **
+ok
+2> c(world, from_core).
+{ok,world}
+----
+
+Note that the `.core` files are text files written in the human
+readable core format. To get the core program as an Erlang term
+you can add the `binary` option to the compilation.
+
+==== Compiler Pass: Kernel Erlang
+
+Kernel Erlang is a flat version of Core Erlang with a few differences.
+For example, each variable is unique and the scope is a whole function.
+Pattern matching is compiled to more primitive operations. The kernel
+representation does not have a well defined file format and you should
+not expect it to be stable.
+
+
+==== Compiler Pass: BEAM Assembly Code
+
+The last stage of a normal compilation is the external BEAM assembly code
+format, as a sequence of individual BEAM instructions represented as Erlang
+terms. Some low level optimizations such as dead code elimination and peep
+hole optimisations are done on this level.
+
+The BEAM code is described in detail in
+xref:CH-Instructions[] and xref:AP-Instructions[]
+
+==== Compiler Pass: BEAM Binary Format
+
+The BEAM assembly code is finally packed into the binary transport format
+which can be written to a `.beam` file, sent over the network, or loaded
+directly into memory through `code:load_binary/3`. See
+xref:CH-beam_modules[]] for details.
 
 
 [[SEC-parse_transform]]
-==== Compiler Pass: Parse Transformations
+=== Writing a Parse Transform
 
 The easiest way to tweak the Erlang language is through Parse
 Transformations (or parse transforms). Parse Transformations come
@@ -374,23 +728,17 @@ When you use a parse transform you are basically writing an extra pass
 in the compiler and that can if you are not careful lead to very
 unexpected results. But to use a parse transform you have to declare
 the usage in the module using it, and it will be local to that module,
-so as far as compiler tweaks goes this one is quite safe.
+so as far as compiler tweaks goes this one is relatively safe.
 
 The biggest problem with parse transforms as I see it is that you
 are inventing your own syntax, and it will make it more difficult
 for anyone else reading your code. At least until your parse transform
 has become as popular and widely used as e.g. QLC.
 
-OK, so you know you shouldn't use it, but if you have to, here is what
-you need to know. A parse transforms is a function that works on the
-abstract syntax tree (AST) (see
-link:http://www.erlang.org/doc/apps/erts/absform.html[] ). The compiler
-does preprocessing, tokenization and parsing and then it will call the
-parse transform function with the AST and expects to get back a
-new AST.
+OK, so you know now that you shouldn't use it, but if you have to anyway,
+let's give you an example of how to do it.
 
-This means that you can't change the Erlang syntax fundamentally, but
-you can change the semantics. Lets say for example that you for some
+Lets say for example that you for some
 reason would like to write json code directly in your Erlang code,
 then you are in luck since the tokens of json and of Erlang are
 basically the same. Also, since the Erlang compiler does most of
@@ -407,7 +755,7 @@ compiler.
 
 [NOTE]
 ====
-Note that you will not get any compiler options given in the file, this
+Note that you will not get any compiler options given in the file, which
 is a bit of a nuisance since you can't give options to the parse transform
 from the code.
 
@@ -612,84 +960,6 @@ Erlang code unless you apply several parse transforms, which is
 possible. The validity of the code is checked by the following
 compiler pass.
 
-==== Compiler Pass: Linter
-
-The linter (`erl_lint.erl`) generates warnings for syntactically
-correct but otherwise bad code, like "export_all flag enabled".
-
-
-==== Compiler Pass: Save AST
-
-In order to enable debugging of a module, you can "debug compile" the
-module, that is to pass the option `debug_info` to the compiler. The
-abstract syntax tree will then be saved by the "Save AST" until the
-end of the compilation, where it will be written to the .beam file.
-
-It is important to note that the code is saved before any
-optimisations are applied, so if there is a bug in an optimisation
-pass in the compiler and you run code in the debugger you will get a
-different behavior. If you are implementing your own compiler
-optimisations this can trick you up badly.
-
-==== Compiler Pass: Expand
-
-In the expand phase source erlang constructs, such as records, are
-expanded to lower level erlang constructs. Compiler options,
-"`-compile(...)`", are also _expanded_ to meta data.
-
-==== Compiler Pass: Core Erlang
-
-Core Erlang is a strict functional language suitable for compiler
-optimizations. It makes code transformations easier by reducing the
-number of ways to express the same operation. One way it does this is
-by introducing _let_ and _letrec_ expressions to make scoping more
-explicit.
-
-Core Erlang is the best target for a language you want to run in
-ERTS. It changes very seldom and it contains all aspects of Erlang in
-a clean way. If you target the beam instruction set directly you will
-have to deal with much more details, and that instruction set usually
-changes slightly between each major release of ERTS. If you on the other
-hand target Erlang directly you will be more restricted in what you
-can describe, and you will also have to deal with more details, since
- Core Erlang is a cleaner language.
-
-To compile an Erlang file to core you can give the option "to_core",
-note though that this writes the Erlang core program to a file with
-the ".core" extension. To compile an Erlang core program from a ".core"
-file you can give the option "from_core" to the compiler.
-
-----
-1> c(world, to_core).
-** Warning: No object file created - nothing loaded **
-ok
-2> c(world, from_core).
-{ok,world}
-----
-
-Note that the `.core` files are text files written in the human
-readable core format. To get the core program as an Erlang term
-you can add the `binary` option to the compilation.
-
-==== Compiler Pass: Kernel Erlang
-Kernel Erlang is a flat version of Core Erlang with a few differences.
-For example, each variable is unique and the scope is a whole function.
-Pattern matching is compiled to more primitive operations.
-
-
-==== Compiler Pass: BEAM Code
-The last step of a normal compilation is the external beam code
-format. Some low level optimizations such as dead code elimination and
-peep hole optimisations are done on this level.
-
-The BEAM code is described in detail in
-xref:CH-Instructions[] and xref:AP-Instructions[]
-
-==== Compiler Pass: Native Code
-If you add the flag `native` to the compilation, and you have a HiPE
-enabled runtime system, then the compiler will generate native code
-for your module and store the native code along with the beam code
-in the `.beam.` file.
 
 === Other Compiler Tools
 
@@ -712,8 +982,8 @@ program that matches tokens described by the DFA.
 
 The details of how to write a DFA definition for a tokenizer
 is beyond the scope of this book. For a thorough explanation
-I recommend the "Dragon book" (Compiler ... by Aho, Sethi and Ullman).
-Other good resources are the man and info entry for "flex" the lexer program
+I recommend the "Dragon book" (<<DragonBook>>).
+Other good resources are the man and info entry for `flex`, the lexer program
 that inspired leex, and the leex documentation itself.
 If you have info and flex installed you can read the full manual by typing:
 
@@ -735,7 +1005,7 @@ include::../code/compiler_chapter/src/json_tokens.xrl[]
 ----
 
 By using the Leex compiler we can compile this DFA to Erlang code,
-and by giving the option dfa_graph we also produce a dot-file
+and by giving the option `dfa_graph` we also produce a dot-file
 which can be viewed with e.g. Graphviz.
 
 [source,erlang]
@@ -745,16 +1015,18 @@ which can be viewed with e.g. Graphviz.
 2>
 ----
 
-You can view the DFA graph using for example dotty.
+You can view the DFA graph (xref:fig_json_DFA[]) using for example dotty:
 
 [source, sh]
 ----
 > dotty json_tokens.dot
 ----
 
+[[fig_json_DFA]]
+.DFA graph for JSON tokens
 image::../code/compiler_chapter/json_tokens.png[]
 
-We can try our tokenizer on an example json file (test.json).
+We can try our tokenizer on an example json file (`test.json`).
 
 ----
 include::../code/compiler_chapter/src/test.json[]
@@ -762,7 +1034,7 @@ include::../code/compiler_chapter/src/test.json[]
 
 First we need to compile our tokenizer, then we read the file
 and convert it to a string. Finally we can use
-the string/1 function that leex generates to tokenize the test file.
+the `string/1` function that leex generates to tokenize the test file.
 
 [source, erlang]
 ----
@@ -775,7 +1047,7 @@ ok
 5>
 ----
 
-The shell function f/1 tells the shell to forget a variable
+The shell function `f/1` tells the shell to forget a variable
 binding. This is useful if you want to try a command that binds a
 variable multiple times, for example as you are writing the lexer and
 want to try it out after each rewrite. We will look at the shell
@@ -788,18 +1060,19 @@ using the parser generator Yecc.
 ==== Yecc
 
 Yecc is a parser generator for Erlang. The name comes from Yacc
-(Yet another compiler compiler) the canonical parser generator for C.
+(Yet Another Compiler Compiler) the canonical parser generator for C. The
+modern open source equivalent is Bison, which is often used with Flex.
 
 Now that we have a lexer for JSON terms we can write a parser using
-yecc.
+`yecc`.
 
 [source,erlang]
 ----
 include::../code/compiler_chapter/src/yecc_json_parser.yrl[]
 ----
 
-Then we can use yecc to generate an Erlang program that implements
-the parser, and call the parse/1 function provided with the tokens
+Then we can use `yecc` to generate an Erlang program that implements
+the parser, and call the `parse/1` function provided with the tokens
 generated by the tokenizer as an argument.
 
 [source, erlang]
@@ -826,10 +1099,10 @@ Erlang code or to change the behaviour of Erlang code.
 
 === Syntax Tools and Merl
 
-Syntax Tools is a set of libraries for manipulating the
+((Syntax Tools)) is a set of libraries for manipulating the
 internal representation of Erlang's Abstract Syntax Trees (ASTs).
 
-The syntax tools applications also includes the tool Merl since Erlang 18.0.
+The syntax tools applications also includes the metaprogramming utility Merl (((`merl`))).
 With Merl you can very easily manipulate the syntax tree and write
 parse transforms in Erlang code.
 
@@ -839,9 +1112,8 @@ Erlang.org site: link:http://erlang.org/doc/apps/syntax_tools/chapter.html[http:
 === Compiling Elixir
 
 Another approach to writing your own language on top of the Beam is to use
-the meta programming tools in Elixir. Elixir compiles to Beam code through
+the macro programming facilities in Elixir. Elixir compiles to Beam code through
 the Erlang abstract syntax tree.
 
 With Elixir's defmacro you can define your own Domain Specific Language,
 directly in Elixir.
-
