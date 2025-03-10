@@ -46,7 +46,17 @@ Recon and redbug are community-driven libraries that packs a punch in runtime di
 
 ==== Observer
 
-Observer is the graphical user interface bundled with Erlang/OTP that gives you a real-time, bird’s-eye view of your entire system. It visualizes process hierarchies, message queues, and performance metrics in an intuitive way. While it may add some overhead (so it’s not typically used for continuous production profiling), Observer is invaluable for interactive debugging and understanding the broader architecture of your application. Its ability to drill down into individual processes complements the more granular insights from the profilers.
+Observer is the graphical user interface bundled with Erlang/OTP that gives
+you a real-time, bird’s-eye view of your entire system. It visualizes
+process hierarchies, message queues, and performance metrics in an
+intuitive way. We gave a quick introduction to Observer in
+<<Using Observer to Inspect Processes>>
+
+While it may add some overhead (so it’s not typically used for continuous
+production profiling), Observer is invaluable for interactive debugging and
+understanding the broader architecture of your application. Its ability to
+drill down into individual processes complements the more granular insights
+from the profilers.
 
 ==== A Profiling Scenario
 

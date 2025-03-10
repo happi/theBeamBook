@@ -25,7 +25,7 @@ process or from an imbalance between processes. There are of course
 other common problems such as bad algorithms or memory problems which
 we will look at in other chapters. Still, being able to pinpoint the
 process which is causing the problem is always important, therefore we
-will look at the tools available in the Erlang RunTime System for
+will look at the tools available in the Erlang Runtime System for
 process inspection.
 
 We will introduce the tools throughout the chapter as we go through
@@ -35,7 +35,7 @@ tools together for an exercise at the end.
 
 === What is a Process?
 
-A process is an isolated entity where code execution occurs.
+A ((process)) is an isolated entity where code execution occurs.
 A process protects your system from errors in your code by
 isolating the effect of the error to the process executing
 the faulty code.
@@ -49,7 +49,7 @@ tools will help you identify and inspect problematic processes.
 
 Let us dive right in and look at which processes we have
 in a running system. The easiest way to do that is to
-just start an Erlang shell and issue the shell command `i().`
+just start an Erlang shell and issue the shell command ((`i()`)).
 In Elixir you can call the function in the `shell_default` module as
 `:shell_default.i`.
 
@@ -119,15 +119,14 @@ Total                                                 23426   220863    0
                                                         222              
 ok
 
-
 ----
 
 The `i/0` function prints out a list of all processes in the system.
 Each process gets two lines of information. The first two lines
 of the printout are the headers telling you what the information
 means. As you can see you get the Process ID (Pid) and the name of the
-process if any, as well as information about the code the process
-is started with and is executing. You also get information about the
+process if any, as well as information about the code where the process
+was started and where it is currently executing. You also get information about the
 heap and stack size and the number of reductions and messages in
 the process. In the rest of this chapter we will learn in detail
 what a stack, a heap, a reduction and a message are. For now we
@@ -174,9 +173,9 @@ the pid we get this information:
 We got a lot of information from this call and in the rest of this
 chapter we will learn in detail what most of these items mean. The
 first line tells us that the process has been given a name
-`code_server`. Next we can see which function the process is
-currently executing or suspended in (`current_function`)
-and the name of the function that the process started executing in
+`code_server`. Next we can see in which function the process is
+currently executing or suspended (`current_function`)
+and the name of the function in which the process started executing
 (`initial_call`).
 
 We can also see that the process is suspended waiting for messages
@@ -196,7 +195,7 @@ detail in chapter xref:CH-Memory[].
 
 Another, even more intrusive way of getting information
 about processes is to use the process information given
-by the `BREAK` menu: `ctrl+c p [enter]`. Note that while
+by the ((`BREAK` menu)): `Ctrl+c p [enter]`. Note that while
 you are in the `BREAK` state the whole node freezes.
 
 ==== Programmatic Process Probing
@@ -204,8 +203,8 @@ you are in the `BREAK` state the whole node freezes.
 The shell functions just print the information about the
 process but you can actually get this information as data,
 so you can write your own tools for inspecting processes.
-You can get a list of all processes with `erlang:processes/0`,
-and more information about a process with
+You can get a list of all processes with ((`erlang:processes/0`)),
+and information about a specific process with
 `erlang:process_info/1`. We can also use the function
 `whereis/1` to get a pid from a name:
 
@@ -251,7 +250,7 @@ By getting process information as data we can write code
 to analyze or sort the data as we please. If we grab all
 processes in the system (with `erlang:processes/0`) and
 then get information about the heap size of each process
-(with `erlang:process_info(P,total_heap_size)`) we can
+(with `erlang:process_info(P, total_heap_size)`) we can
 then construct a list with pid and heap size and sort
 it on heap size:
 
@@ -289,16 +288,17 @@ it on heap size:
 2>
 ----
 
-You might notice that many processes have a heap size of
-233, that is because it is the default starting heap size
+You might notice that many processes have a ((heap size)) of
+233 words, that is because it is the default starting heap size
 of a process.
 
 See the documentation of the module `erlang` for a full description of
-the information available with http://erlang.org/doc/man/erlang.html#process_info-1[`process_info`].
+the information available from ((`process_info/2`)):
+link:https://erlang.org/doc/apps/erts/erlang.html#process_info/2[]
 Notice how the `process_info/1` function only returns a subset of all
 the information available for the process and how the `process_info/2`
 function can be used to fetch extra information. As an example, to
-extract the `backtrace` for the `code_server` process above, we could
+extract the ((`backtrace`)) for the `code_server` process above, we could
 run:
 
 [source,erlang]
@@ -309,7 +309,7 @@ run:
 
 See the three dots at the end of the binary above? That means that the
 output has been truncated. A useful trick to see the whole value is to
-wrap the above function call using the `rp/1` function:
+wrap the above function call using the ((`rp/1`)) function:
 
 [source,erlang]
 ----
@@ -329,34 +329,49 @@ Due to its verbosity, the output for commands `4>` and `6>` has not
 been included here, but feel free to try the above commands in your
 Erlang shell.
 
-==== Using the Observer to Inspect Processes
+==== Using Observer to Inspect Processes
 
 A third way of examining processes is with the
 http://erlang.org/doc/apps/observer/observer_ug.html[_Observer_].
-The Observer is an extensive graphical interface for inspecting
-the Erlang RunTime System. We will use the Observer throughout
+((Observer)) is an extensive graphical interface for inspecting
+the Erlang Runtime System. We will use the Observer throughout
 this book to examine different aspects of the system.
 
-The Observer can either be started from the OS shell and attach itself
-to an node or directly from an Elixir or Erlang shell. For now we will
-just start the Observer from the Elixir shell with `:observer.start`
-or from the Erlang shell with:
+NOTE: To start Observer, Erlang needs to have been compiled with ((WxWidgets))
+support, and the `observer` and `wx` applications must be available on the
+node. You probably do not want that on your production system, but Observer
+is made with this in mind. You can start Observer from an Erlang that has
+been built with support for it, and then go into the "`Nodes`" menu and
+select "`Connect node`" and you will be able to Observe the connected node
+instead of the local node.
+
+For now, we will just start Observer from the Erlang shell like this:
 
 [source,erlang]
 ----
 7> observer:start().
 ----
 
-When the Observer is started it will show you a system overview,
+or from the Elixir shell with `:observer.start`. For debugging a live
+system, you probably want to launch a temporary Erlang node just for
+running Observer, using the ((`-hidden`)) flag to prevent the inspected nodes
+from seeing the observer node:
+
+[source,shell]
+----
+$ erl -hidden -sname observer -run observer
+----
+
+When Observer is started it will show you a system overview,
 see the following screen shot:
 
 image::../images/observer_system.png[]
 
 We will go over some of this information in detail later in
-this and the next chapter. For now we will just use the Observer to look
+this and the next chapter. For now we will just use Observer to look
 at the running processes. First we take a look at the
-`Applications` tab which shows the supervision
-tree of the running system:
+`Applications` tab which shows the ((supervision
+tree)) of the running system:
 
 image::../images/observer_applications.png[]
 
@@ -385,17 +400,17 @@ We will not go through what all this information means
 right now, but if you keep on reading all will eventually
 be revealed.
 
-.Enabling the Observer
+.Enabling Observer
 ****
-If you are building your application with erlang.mk or
-rebar and you want to include the Observer application
-in your build you might need to add the applications
-`runtime_tools`, `wx`, and `observer` to your list
-of applications in yourapp.app.src.
+If you are building your application with ((Rebar3))
+and you want to include the Observer application
+in your build, you may need to add the applications
+`observer` and `wx` to the list of applications in
+the `relx` section of `rebar.config`.
 ****
 
 Now that we have a basic understanding of what a process is
-and some tools to find and inspect processes in a system we
+and some tools to find and inspect processes in a system, we
 are ready to dive deeper to learn how a process is implemented.
 
 === Processes Are Just Memory
@@ -404,30 +419,34 @@ A process is basically four blocks of memory: a _stack_, a _heap_,
 a _message area_, and the _Process Control Block_ (_the PCB_).
 
 
-The stack is used for keeping track of program execution by storing
+The ((stack)) is used for keeping track of program execution by storing
 return addresses, for passing arguments to functions, and for keeping
 local variables. Larger structures, such as lists and tuples are
-stored on the heap.
+stored on the ((heap)).
 
-The _message area_, also called _the mailbox_, is used
+The _((message area))_, also called _the ((mailbox))_, is used
 to store messages sent to the process from other processes.
-The process control block is used to keep track of the state
+The ((process control block)) is used to keep track of the state
 of the process.
 
-See the following figure for an illustration of a process as memory:
+See xref:erlang_process_memory_1[] for an illustration of a process as memory.
 
 [[erlang_process_memory_1]]
 .Erlang Process Memory : Basic
 [ditaa]
 ----
-  +-------+  +-------+
-  |  PCB  |  | Stack |
-  +-------+  +-------+
-
-  +-------+  +-------+
-  | M-box |  | Heap  |
-  +-------+  +-------+
-
+  +----------------------------+
+  |           Process          |
+  |                            |
+  |  +---------+  +---------+  |
+  |  |   PCB   |  |  Stack  |  |
+  |  +---------+  +---------+  |
+  |                            |
+  |  +---------+  +---------+  |
+  |  | Mailbox |  |  Heap   |  |
+  |  +---------+  +---------+  |
+  |                            |
+  +----------------------------+
 
 ----
 
@@ -452,6 +471,7 @@ and about the execution model and error handling
 which we will go through in xref:CH-BEAM[], but using these
 tools will give us a nice view of how a process really is just memory.
 
+// TODO: replace the HiPE BIFs section
 
 .HiPE's Built In Functions (HiPE BIFs)
 ****
@@ -653,14 +673,14 @@ at what these fields in the PCB mean.
 
 === The PCB
 
-The Process Control Block contains all the fields that control the
+The ((Process Control Block)) contains all the fields that control the
 behaviour and current state of a process. In this section and the rest
 of the chapter we will go through the most important fields. We will
 leave out some fields that have to do with execution and tracing from
 this chapter, instead we will cover those in xref:CH-BEAM[].
 
 If you want to dig even deeper than we will go in this chapter you can
-look at the C source code. The PCB is implemented as a C struct called `process` in the file
+look at the C source code. The ((PCB)) is implemented as a C struct called `process` in the file
 https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h[`erl_process.h`].
 
 
@@ -684,25 +704,25 @@ pid
 5>
 ----
 
-The fields `htop` and `stop` are pointers to the top of the heap and
-the stack, that is, they are pointing to the next free slots on the heap
-or stack. The fields `heap` (start) and `hend` points to the start and
-the stop of the whole heap, and `heap_sz` gives the size of the heap
+The fields ((`htop`)) and ((`stop`)) are pointers to the top of the ((heap)) and
+the ((stack)), that is, they are pointing to the next free slots on the heap
+or stack. The fields ((`heap`)) (start) and ((`hend`)) points to the start and
+the stop of the whole heap, and ((`heap_sz`)) gives the size of the heap
 in words. That is `hend - heap = heap_sz * 8` on a 64 bit machine and
 `hend - heap = heap_sz * 4` on a 32 bit machine.
 
-The field `min_heap_size` is the size, in words, that the heap starts
+The field ((`min_heap_size`)) is the size, in words, that the heap starts
 with and which it will not shrink smaller than, the default value is
 233.
 
 We can now refine the picture of the process heap with the
-fields from the PCB that controls the shape of the heap:
+fields from the PCB that controls the shape of the heap,
+see xref:erlang_process_heap[]:
 
 [[erlang_process_heap]]
 .Erlang Process Heap
 [ditaa]
 ----
-
   hend ->  +----+    -
            |    |    ^
            |    |    |             -
@@ -712,33 +732,38 @@ fields from the PCB that controls the shape of the heap:
   heap ->  +----+    -             -
           The Heap
 
-
 ----
 
 But wait, how come we have a heap start and a heap end, but no start
 and stop for the stack? That is because the BEAM uses a trick to save
 space and pointers by allocating the heap and the stack together. It
 is time for our first revision of our process as memory picture. The
-heap and the stack are actually just one memory area:
+heap and the stack are actually just one memory area, as illustrated
+in xref:erlang_process_memory_2[]:
 
 [[erlang_process_memory_2]]
 .Erlang Process Memory : Heap + Stack
 [ditaa, separation=false]
 ----
- +-------+  +-------+
- |  PCB  |  | Stack |
- +-------+  +-------+
-            | free  |
- +-------+  +-------+
- | M-box |  | Heap  |
- +-------+  +-------+
-
+  +----------------------------+
+  |           Process          |
+  |                            |
+  |  +---------+  +---------+  |
+  |  |   PCB   |  |  Stack  |  |
+  |  +---------+  +---------+  |
+  |               |  free   |  |
+  |  +---------+  +---------+  |
+  |  | Mailbox |  |  Heap   |  |
+  |  +---------+  +---------+  |
+  |                            |
+  +----------------------------+
 
 ----
 
 The stack grows towards lower memory addresses and the heap towards
 higher memory, so we can also refine the picture of the heap
-by adding the stack top pointer to the picture:
+by adding the ((stack top)) pointer to the picture, see
+xref:erlang_process_heap_and_stack[]:
 
 [[erlang_process_heap_and_stack]]
 .Erlang Process Heap and Stack
@@ -755,22 +780,21 @@ by adding the stack top pointer to the picture:
   heap ->  +----+    -             -
           The Heap
 
-
 ----
 
-If the pointers `htop` and `stop` were to meet, the
-process would run out of free memory and would have to do a garbage
-collection to free up memory.
+If the pointers `htop` and `stop` should meet, the
+process has run out of free memory and will have to call the garbage
+collector to free up memory.
 
 === The Garbage Collector (GC)
 
 The heap memory management schema is to use a per process copying
-generational garbage collector. When there is no more
+generational ((garbage collector)). When there is no more
 space on the heap (or the stack, since they share the allocated memory
 block), the garbage collector kicks in to free up memory.
 
-The GC allocates a new memory area called the _to space_.
-Then it goes through the stack to find all live roots and
+The ((GC)) allocates a new memory area called the _to space_.
+Then it goes through the stack to find all live _roots_ and
 follows each root and copies the data on the heap to the new
 heap. Finally it also copies the stack to the new heap and frees up
 the old memory area.
@@ -780,49 +804,48 @@ The GC is controlled by these fields in the PCB:
 [source,c]
 ----
     Eterm *high_water;
-    Eterm *old_hend;    /* Heap pointers for generational GC. */
+    Eterm *old_hend;     /* Heap pointers for generational GC. */
     Eterm *old_htop;
     Eterm *old_heap;
-    Uint max_heap_size; /* Maximum size of heap (in words). */
-    Uint16 gen_gcs;	/* Number of (minor) generational GCs. */
-    Uint16 max_gen_gcs;	/* Max minor gen GCs before fullsweep. */
+    Uint max_heap_size;  /* Maximum size of heap (in words). */
+    Uint16 gen_gcs;      /* Number of (minor) generational GCs. */
+    Uint16 max_gen_gcs;	 /* Max minor gen GCs before fullsweep. */
 
 ----
 
 Since the garbage collector is generational it will use a heuristic to just look at
-new data most of the time. That is, in what is called a _minor
-collection_, the GC
+new data most of the time. That is, in what is called a _((minor
+collection))_, the GC
 only looks at the top part of the stack and moves new data to the new
-heap. Old data, that is data allocated below the `high_water` mark
-(see the figure below) on the heap, is moved to a special area called the old
-heap.
+heap. Old data, i.e., data allocated below the ((`high_water`)) mark
+on the heap (see xref:erlang_process_memory_3[]), is moved to a special
+area called the old heap.
 
 Most of the time, then, there is
 another heap area for
-each process: the old heap, handled by the fields `old_heap`,
+each process: the ((old heap)), handled by the fields `old_heap`,
 `old_htop` and `old_hend` in the PCB. This almost brings us back to
-our original picture of a process as four memory areas:
+our original picture of a process as four memory areas, as shown in
+xref:erlang_process_memory_3[]:
 
 [[erlang_process_memory_3]]
 .Erlang Process Memory : GC
 [ditaa, separation=false]
 ----
-
-  +-------+               +-------+
-  |  PCB  |               | Stack |  +-------+  - old_hend
-  +-------+               +-------+  +       +  - old_htop
-                          | free  |  +-------+
-  +-------+ high_water -> +-------+  |  Old  |
-  | M-box |               | Heap  |  | Heap  |
-  +-------+               +-------+  +-------+  - old_heap
-
+  +---------+                +-------+
+  |  PCB    |                | Stack |  +-------+ <- old_hend
+  +---------+                +-------+  +       +
+                             | free  |  +-------+ <- old_htop
+  +---------+  high_water -> +-------+  |  Old  |
+  | Mailbox |                | Heap  |  | Heap  |
+  +---------+                +-------+  +-------+ <- old_heap
 
 ----
 
 When a process starts there is no old heap, but as soon as young data
 has matured to old data and there is a garbage collection, the old
 heap is allocated. The old heap is garbage collected when there
-is a _major collection_, also called a _full sweep_.
+is a _((major collection))_, also called a _((full sweep))_.
 See xref:CH-Memory[] for more
 details of how garbage collection works. In that chapter we will
 also look at how to track down and fix memory related problems.
@@ -833,29 +856,30 @@ Process communication is done through message passing. A process
 send is implemented so that a sending process copies the message
 from its own heap to the mailbox of the receiving process.
 
-In the early days of Erlang concurrency was implemented through
-multitasking in the scheduler. We will talk more about concurrency
+In the early days of Erlang, concurrency was implemented solely by
+Erlang's own scheduler performing the task switching. We will talk more about concurrency
 in the section about the scheduler later in this chapter, for
 now it is worth noting that in the first version of Erlang there
 was no parallelism and there could only be one process
 running at the time. In that version the sending process could
-write data directly on the receiving process' heap.
+write data directly into the heap of the receiving process, without
+locking.
 
 ==== Sending Messages in Parallel
 
 When multicore systems were introduced and the Erlang implementation
-was extended with several schedulers running processes in parallel it
-was no longer safe to write directly on another process' heap without
-taking the `main lock` of the receiver. At this time the concept of
-`m-bufs` was introduced (also called `heap fragments`). An `m-buf` is
+was extended with more than one scheduler running processes in parallel it
+was no longer safe to write directly into another process' heap without
+taking the _main lock_ of the receiver. At this time the concept of
+_m-bufs_ was introduced (also called _((heap fragments))_). An ((`m-buf`)) is
 a memory area
 outside of a process heap where other processes can
-safely write data. If a sending process can not get the lock it would
+safely write data. If a sending process can not get the lock, it would
 write to the `m-buf` instead. When all data of a message has been
-copied to the `m-buf` the message is linked to the process through the
-mailbox. The linking (_LINK_MESSAGE_ in
+copied to the `m-buf`, the message is linked to the process through the
+mailbox. The linking (`LINK_MESSAGE` in
 link:https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_message.h[erl_message.h])
- appends the message to the receiver's
+appends the message to the receiver's
 message queue.
 
 The garbage collector would then copy the messages onto the process'
@@ -867,23 +891,23 @@ copying.
 
 === Lock Free Message Passing
 
-In Erlang 19 a new per process setting was introduced, _message_queue_data_,
-which can take the values _on_heap_ or _off_heap_. When set to _on_heap_
-the sending process will first try to take the `main lock` of the
+In Erlang 19 a new per process setting was introduced, ((`message_queue_data`)),
+which can take the values `on_heap` or `off_heap`. When set to ((`on_heap`))
+the sending process will first try to take the _((main lock))_ of the
 receiver and if it succeeds the message will be copied directly
 onto the receiver's heap. This can only be done if the receiver is
 suspended and if no other process has grabbed the lock to send to
 the same process. If the sender can not obtain the lock it will
 allocate a heap fragment and copy the message there instead.
 
-If the flag is set to _off_heap_ the sender will not try to get the
+If the flag is set to ((`off_heap`)) the sender will not try to get the
 lock and instead write directly to a heap fragment. This will reduce
 lock contention but allocating a heap fragment is more expensive than
 writing directly to the already allocated process heap and it can
 lead to larger memory usage. There might be a large empty heap allocated
 and still new messages are written to new fragments.
 
-With _on_heap_ allocation all the messages, both directly allocated on
+With `on_heap` allocation all the messages, both directly allocated on
 the heap and messages in heap fragments, will be copied by the GC. If
 the message queue is large and many messages are not handled and
 therefore still are live, they will be promoted to the old heap and
@@ -893,22 +917,22 @@ memory usage.
 All messages are added to a linked list (the mailbox) when the
 message has been copied to the receiving process. If the message
 is copied to the heap of the receiving process the message is
-linked in to the `internal message queue` (or `seen` messages)
+linked in to the _internal message queue_ (or ((`seen`)) messages)
 and examined by the GC.
-In the _off_heap_ allocation scheme new messages are placed in
-the "external" `message in queue` and ignored by the GC.
+In the `off_heap` allocation scheme new messages are placed in
+the "`external`" _message in-queue_ and ignored by the GC.
 
 ==== Memory Areas for Messages
 
 We can now revise our picture of the process as four memory areas
 once more. Now the process is made up of five memory areas (two
-mailboxes) and a varying number of heap fragments (`m-bufs`):
+mailboxes) and a varying number of heap fragments (`m-bufs`), as
+shown in xref:erlang_process_memory_4[]:
 
 [[erlang_process_memory_4]]
 .Erlang Process Memory : Messages
 [ditaa, separation=false]
 ----
-
  +-------+             +-------+
  |  PCB  |             | Stack |
  +-------+             +-------+
@@ -921,7 +945,6 @@ mailboxes) and a varying number of heap fragments (`m-bufs`):
  +-------+  +-------+  +-------+  +-------+
  | m−buf |  | m−buf |  | m−buf |  | m−buf |
  +-------+  +-------+  +-------+  +-------+
-
 
 ----
 
@@ -963,8 +986,8 @@ From this we can see that there is one message in the message queue and
 the `first`, `last` and `save` pointers all point to this message.
 
 As mentioned we can force the message to end up in the in queue by
-setting the flag _message_queue_data_. We can try this with the following
- program:
+setting the flag `message_queue_data`. We can try this with the following
+program:
 
 [source,erlang]
 ----
@@ -995,12 +1018,11 @@ as when just sending a message before:
 
 ----
 
-If we try sending to a process with the flag set to _off_heap_
+If we try sending to a process with the flag set to `off_heap`
 the message ends up in the in queue instead:
 
 [source,erlang]
 ----
-
 6> msg:send_off_heap().
 
 ...
@@ -1023,8 +1045,8 @@ the message ends up in the in queue instead:
 
 We will ignore the distribution case for now, that is we will not
 consider messages sent between Erlang nodes. Imagine two processes
-`P1` and `P2`. Process `P1` wants to send a message (_Msg_) to process
-`P2`, as illustrated by this figure:
+`P1` and `P2`. Process `P1` wants to send a message (`Msg`) to process
+`P2`, as illustrated by xref:erlang_message_passing_1[]:
 
 [[erlang_message_passing_1]]
 .Erlang Message Passing Step 1
@@ -1044,7 +1066,7 @@ consider messages sent between Erlang nodes. Imagine two processes
  +---------------------------------+
 
                   |
-                  | P2 ! Msg
+                  |  P2 ! Msg
                   v
 
                  P 2
@@ -1060,21 +1082,20 @@ consider messages sent between Erlang nodes. Imagine two processes
  | +-------+  +-------+  +-------+ |
  +---------------------------------+
 
-
 ----
 
 Process `P1` will then take the following steps:
 
-* Calculate the size of _Msg_.
+* Calculate the size of `Msg`.
 * Allocate space for the message (on or off `P2` 's heap as described before).
-* Copy _Msg_ from `P1` 's heap to the allocated space.
-* Allocate and fill in an _ErlMessage_ struct wrapping up the message.
-* Link in the _ErlMessage_ either in the _ErlMsgQueue_ or in the _ErlMsgInQueue_.
+* Copy `Msg` from `P1` 's heap to the allocated space.
+* Allocate and fill in an `ErlMessage` struct wrapping up the message.
+* Link in the `ErlMessage` either in the `ErlMsgQueue` or in the `ErlMsgInQueue`.
 
 If process `P2` is suspended and no other process is trying to
 send a message to `P2` and there is space on the heap and the
-allocation strategy is _on_heap_ the message will directly end up
-on the heap:
+allocation strategy is `on_heap` the message will directly end up
+on the heap, as in xref:erlang_message_passing_2[]:
 
 [[erlang_message_passing_2]]
 .Erlang Message Passing Step 2
@@ -1094,7 +1115,7 @@ on the heap:
  +---------------------------------+
 
                   |
-                  | P2 ! Msg
+                  |  P2 ! Msg
                   v
 
                  P 2
@@ -1123,8 +1144,9 @@ on the heap:
 ----
 
 If `P1` can not get the `main lock` of P2 or there is not enough space
-on `P2` 's heap and the allocation strategy is _on_heap_ the message
-will end up in an `m-buf` but linked from the internal mailbox:
+on `P2` 's heap and the allocation strategy is `on_heap` the message
+will end up in an `m-buf` but linked from the internal mailbox, as in
+xref:erlang_message_passing_3[]:
 
 [[erlang_message_passing_3]]
 .Erlang Message Passing Step 3
@@ -1144,7 +1166,7 @@ will end up in an `m-buf` but linked from the internal mailbox:
  +---------------------------------+
 
                   |
-                  | P2 ! Msg
+                  |  P2 ! Msg
                   v
 
                  P 2
@@ -1175,8 +1197,9 @@ will end up in an `m-buf` but linked from the internal mailbox:
 After a GC the message will be moved into
 the heap.
 
-If the allocation strategy is _off_heap_ the message
-will end up in an `m-buf` and linked from the external mailbox:
+If the allocation strategy is `off_heap` the message
+will end up in an `m-buf` and linked from the external mailbox,
+as in xref:erlang_message_passing_4[]:
 
 [[erlang_message_passing_4]]
 .Erlang Message Passing Step 4
@@ -1196,7 +1219,7 @@ will end up in an `m-buf` and linked from the external mailbox:
  +---------------------------------+
 
                   |
-                  | P2 ! Msg
+                  |  P2 ! Msg
                   v
 
                  P 2
@@ -1242,10 +1265,10 @@ in later chapters.
 
 ==== Tuning Message Passing
 
-With the new _message_queue_data_ flag introduced in Erlang 19 you
+With the new ((`message_queue_data`)) flag introduced in Erlang 19 you
 can trade memory for execution time in a new way. If the receiving
 process is overloaded and holding on to the `main lock`, it might be
-a good strategy to use the _off_heap_ allocation in order to let the
+a good strategy to use the ((`off_heap`)) allocation in order to let the
 sending process quickly dump the message in an `m-buf`.
 
 If two processes have a nicely balanced producer consumer behavior
@@ -1261,31 +1284,32 @@ more memory.
 In order to find out which allocation strategy is best for your system
 you will need to benchmark and measure the behavior. The first and easiest
 test to do is probably to change the default allocation strategy at
-the start of the system. The ERTS flag _hmqd_ sets the default strategy to
-either _off_heap_ or _on_heap_.
-If you start Erlang without this flag the default will be _on_heap_.
+the start of the system. The ERTS flag ((`+hmqd`)) sets the default strategy to
+either `off_heap` or `on_heap`.
+If you start Erlang without this flag the default will be `on_heap`.
 By setting up your benchmark so that Erlang is started with
-_+hmqd off_heap_ you can test whether the system behaves better or
+`+hmqd off_heap` you can test whether the system behaves better or
 worse if all processes use off heap allocation.
 Then you might want to find bottle neck processes and test switching
 allocation strategies for those processes only.
 
 === The Process Dictionary
+
 There is actually one more memory area in a process where
 Erlang terms can be stored, the _Process Dictionary_.
 
-The _Process Dictionary_ (PD) is a process local key-value store. One
+The _((Process Dictionary))_ (PD) is a process local key-value store. One
 advantage with this is that all keys and values are stored on the heap
 and there is no copying as with send or an ETS table.
 
 We can now update our view of a process with yet another
-memory area, PD, the process dictionary:
+memory area, PD, the process dictionary, as seen in
+xref:erlang_process_memory_5[]:
 
 [[erlang_process_memory_5]]
 .Erlang Process Memory : Process Dictionary
 [ditaa, separation=false]
 ----
-
  +-------+             +-------+  +-------+
  |  PCB  |             | Stack |  |  PD   |
  +-------+             +-------+  +-------+
@@ -1299,13 +1323,12 @@ memory area, PD, the process dictionary:
  | m−buf |  | m−buf |  | m−buf |  | m−buf |
  +-------+  +-------+  +-------+  +-------+
 
-
 ----
 
 With such a small array you are bound to get some collisions before the
 area grows. Each hash value points to a bucket with key value pairs.
 The bucket is actually an Erlang list on the heap. Each entry in the
-list is a two tuple (_{key, Value}_) also stored on the heap.
+list is a two tuple (`{Key, Value}`) also stored on the heap.
 
 Putting an element in the PD is not completely free, it will result in
 an extra tuple and a cons, and
@@ -1321,8 +1344,7 @@ In this chapter we have looked at how a process is implemented. In
 particular we looked at how the memory of a process is organized, how
 message passing works and the information in the PCB. We also looked
 at a number of tools for inspecting processes introspection, such as
-_erlang:process_info_, and the _hipe:show_*_ bifs.
-
+`erlang:process_info/2`, and the `hipe:show_*_` BIFs.
 
 Use the functions `erlang:processes/0` and `erlang:process_info/1,2`
 to inspect the processes in the system. Here are
@@ -1389,6 +1411,3 @@ some functions to try:
 9> 
 
 ----
-
-
-
