@@ -12,17 +12,18 @@ how they are implemented in ERTS. This knowledge will be essential
 in understanding the chapter on memory allocation and garbage
 collection, see xref:CH-Memory[].
 
-=== The Erlang Type System
+=== The Erlang ((Type System))
 
-Erlang is _strongly typed_. That is, there is no way to coerce one
+Erlang is _((strongly typed))_. That is, there is no way to coerce one
 type into another type, you can only convert from one type to another.
-Compare this to e.g. C where you can coerce a _char_ to an _int_ or
-any type pointed to by a pointer to (_void *_).
+Compare this to e.g. C where you can coerce a `char` to an `int` or
+any pointer type to a `void *`.
 
-The Erlang type lattice is quite flat, there are only a few real sub
-types, numbers have the sub types integer and float, and list has the
-subtypes nil and cons. (One could also argue that tuple has one
-subtype for each size.)
+The Erlang type ((lattice)) is quite flat, as you can see in
+xref:erlang_type_lattice[]. There are only a few real subtypes:
+_numbers_ have the subtypes _integer_ and _float_, and _list_ has the
+subtypes _nil_ and _cons_. (One could also argue that _tuple_ has one
+subtype for each size, and similar for _maps_.)
 
 The Erlang Type Lattice
 
@@ -126,7 +127,7 @@ digraph G {
 
 ----
 
-There is a partial order (`<`, `>`) on all terms in Erlang where the
+There is a ((partial order)) (`<`, `>`) on all terms in Erlang where the
 types are ordered from left to right in the above lattice.
 
 The order is partial and not total since integers and floats
@@ -138,22 +139,22 @@ floats the float is converted to an integer. This happens if all
 significant digits are to the left of the decimal point.
 
 ****
-Erlang has two kinds of equality comparison: The first is _arithmetic_
-equality `==` (or `/=` for inequality), such that if `A =< B` and also `A
->= B`, then `A == B`. The second is _exact_ equality `=:=` (or `=/=` for
+Erlang has two kinds of equality comparison: The first is _((arithmetic
+equality))_ `==` (or `/=` for inequality), such that if `A =< B` and also `A
+>= B`, then `A == B`. The second is _((exact equality))_ `=:=` (or `=/=` for
 exact inequality), where `1 =:= 1.0` is false. It is important to note that
-exact equality is the kind used when pattern matching: it never converts
+exact equality is the kind used when ((pattern matching)): it never converts
 values.
 ****
 
 For compound structures like tuples and lists, the ordering extends
 recursively, so that e.g. `{1, 2} < {1, 3}` but `{2, 1} > {1, 3}`. This
-means that any set of Erlang terms can be sorted in order, and that
-ordering is defined by the language.
+means that any set of Erlang terms can be sorted in order, and this
+_((term order))_ is defined by the language.
 
-When two maps are compared for order they are
+When two ((maps)) are compared for order they are
 compared as follows: If one map has fewer elements than the other it
-is considered smaller, just as for tuples. Otherwise the keys are compared in key order,
+is considered smaller, just as for tuples. Otherwise the keys are compared in _((key order))_,
 which means all integers are considered smaller than all floats. If all the
 keys are the same then each value pair (in key order) is compared
 arithmetically, i.e. by first converting them to the same precision.
@@ -177,29 +178,29 @@ This is solved by _tagging_ the terms.
 === The Tagging Scheme
 
 In the memory representation of an Erlang term a few bits are reserved
-for a type tag. For performance reasons the terms are divided into
-_immediates_ and _boxed_ terms. An immediate term can fit into a
-machine word, that is, in a register or on a stack slot. A boxed term
-consists of two parts: a tagged pointer and a number of words stored
-on the process heap. The _boxes_ stored on the heap have a header and
-a body, unless it is a list.
+for a ((type tag)). For performance reasons the terms are divided into
+_((immediates))_ and _((boxed terms))_. An immediate term can fit into a
+((machine word)), that is, in a register or on a stack slot. A boxed term
+consists of two parts: a ((tagged pointer)) and a number of words stored
+on the process heap. The _boxes_ stored on the heap have a _header_ and
+a body, unless it is a list, which is headerless.
 
 Currently ERTS uses a staged tag scheme, the history and reasoning
 behind the this scheme is explained in a technical report from the
 HiPE group. (See
 link:http://www.it.uu.se/research/publications/reports/2000-029/[])
-The tagging scheme is implemented in
+The ((tagging scheme)) is implemented in
 link:https://github.com/erlang/otp/blob/OTP-23.0/erts/emulator/beam/erl_term.h[erl_term.h].
 
-The basic idea is to use the least significant bits for tags. Since
-most modern CPU architectures aligns 32- and 64-bit words, there are at
+The basic idea is to use the least significant bits for ((tags)). Since
+most modern CPU architectures aligns(((alignment))) 32- and 64-bit words, there are at
 least two bits that are "unused" for pointers. These bits can be
 used as tags instead. Unfortunately those two bits are not enough
 for all the types in Erlang, more bits are therefore used as needed.
 
-==== Tags for Immediates
+==== The Primary Tag
 
-The first two bits (the primary tag) are used as follows:
+The first two bits are called the _((primary tag))_, and are used as follows:
 
 ----
   00 Header (on heap) CP (on stack)
@@ -208,10 +209,28 @@ The first two bits (the primary tag) are used as follows:
   11 Immediate
 ----
 
-The header tag is only used on the heap for header words, more on that later.
-On the stack 00 indicates a return address.
-The list tag is used for cons cells, and the boxed tag is used for all other
-pointers to the heap. The immediate tag is further divided like this:
+An Immediate (tag `11`) is a self-contained word, such as a small integer.
+It requires no additional words.
+The Boxed(((boxed terms))) tag `10` is used for pointers to objects on the heap,
+except lists.
+
+The Header tag `00` is only used on the heap for ((header words)), which we
+will explain in <<Boxed Terms>>. All objects on the heap use a whole number
+of machine words, generally starting with a header word.
+On the stack, `00` instead indicates a return address or _((Continuation
+Pointer))_ -- this is a practical choice which means no tagging/untagging of
+such pointers needs to be done, since return addresses will always be
+word-aligned anyway. This is a better tradeoff than using `00` for
+immediates, lists, or boxed values.
+
+The separate List tag (`01`) is an optimization due to ((lists)) being so
+heavily used. This lets each ((cons cell)) be stored without a header word
+on the heap, saving 1/3 of the space otherwise needed for lists, as you
+will see in <<Lists>> and <<Strings>>.
+
+==== Immediates
+
+The Immediate tag is further divided like this:
 
 ----
  00 11 Pid
@@ -220,19 +239,19 @@ pointers to the heap. The immediate tag is further divided like this:
  11 11 Small integer
 ----
 
-Pid and ports are immediates and can be compared for equality
-efficiently. They are of course in reality just references, a pid
+Pids and ports are ((immediates)) and can be compared for equality
+efficiently. They are of course in reality just references, a ((pid))
 is a process identifier and it points to a process. The process does
 not reside on the heap of any process but is handled by the PCB.
-A port works in much the same way.
+A ((port)) works in much the same way.
 
-//  (MORE ON THIS REF!)
+//  (TODO: MORE ON THIS REF!)
 
-There are two types of integers in ERTS, small integers and
-bignums. Small integers fits in one machine word minus four tag bits,
+There are two types of integers in ERTS, ((small integers)) and
+((bignums)). Small integers fit in one machine word minus four tag bits,
 i.e. in 28 or 60 bits for 32 and 64 bits system respectively. Bignums
 on the other hand can be as large as needed (only limited by the heap
-space) and are stored on the heap, as boxed objects.
+space) and are stored on the heap, as boxed objects (see  <<Boxed Terms>>).
 
 By having all four tag bits as ones for small integers the emulator
 can make an efficient test when doing integer arithmetic to see if
@@ -248,12 +267,13 @@ The Immediate 2 tag is further divided like this:
  11 10 11 Nil
 ----
 
-Atoms are made up of an index in the _atom table_ and the atom tag.
+Atoms are made up of an index in the _((atom table))_ and the ((atom)) tag.
 Two atom immediates can be compared for equality by just comparing
 their immediate representation.
 
 In the atom table atoms are stored as C structs like this:
 
+[source,c]
 ----
 typedef struct atom {
     IndexSlot slot;  /* MUST BE LOCATED AT TOP OF STRUCT!!! */
@@ -272,7 +292,7 @@ letters.
 NOTE: If you for some reason generate atoms with a pattern like name
 followed by a number and then store them in an ordered list or ordered
 tree the atom comparison will be more expensive if they all have the
-same first letters (e.g. foo_1, foo_2, etc.).
+same first letters (e.g. `foo_1`, `foo_2`, etc.).
 
 Not that you should ever generate atom names, since the atom table is
 limited. I'm just saying, there is an evil micro optimization to be
@@ -284,30 +304,89 @@ author of that code might have been thinking.
 
 ****
 
-The Catch immediate is only used on the stack. It contains an indirect
-pointer to the continuation point in the code where execution should
+The ((Catch)) immediate is only used on the stack. It contains an indirect
+pointer to the point in the code where execution should
 continue after an exception. More on this in xref:CH-Calls[].
 
-The Nil tag is used for the empty list (nil or `[]`). The rest of the
-word is filled with ones.
+The Nil tag is used for the ((empty list)) written ((`[]`)) in Erlang,
+called ((NIL)) in the C code. The rest of the word is filled with ones.
 
+=== Lists
 
-==== Tags for Boxed Terms
+Lists are made up of
+_((cons cells))_, which are just two consecutive words on the heap: the _((head))_ and
+the _((tail))_ (or `car` and `cdr` as they are called in LISP, and also in some places in
+the ERTS codebase). An empty list is an immediate, as we saw above.
 
-Erlang terms stored on the heap use several machine words. Lists, or
-cons cells, are just two consecutive words on the heap: the head and
-the tail (or car and cdr as they are called in lisp and some places in
-the ERTS code).
+A cons cell could be described by a minimal C struct for building singly
+linked lists, like this:
 
-A string in Erlang is just a list of integers representing
-characters. In releases prior to Erlang OTP R14 strings have been
-encoded as ISO-latin-1 (ISO8859-1). Since R14 strings are encoded as
-lists of Unicode code points. For strings in latin-1 there is no
-difference since latin-1 is a subset of Unicode.
-// Describe Unicode code points better. Is the subset thing true?
+[source,c]
+----
+struct cons_cell {
+    Eterm *head;     /* the value */
+    Eterm *tail;     /* the next element */
+};
+----
 
-The string "hello" might look like this in memory:
+The `tail` element is usually either another List-tagged pointer to the next
+cons cell, or the NIL immediate to mark the end of the list. These are
+called _((proper lists))_. Erlang is however dynamically typed and the tail
+is allowed to be any term, as in `[1|2]`. These are called _((improper
+lists))_ and will be a surprise to any functions that expect a proper list
+as input, when they do not find a `[]` as the last element.
 
+=== Strings
+
+A _((string))_ in Erlang (written `"..."`) is just a list of integers
+representing Unicode code points. Thus, `"XYZ"` is syntactical sugar for
+`[88,89,90]`. The Erlang interactive shell will try to detect such lists of
+printable characters and show them as strings instead. For example:
+
+[source,erlang]
+----
+Eshell V15.2.2 (press Ctrl+G to abort, type help(). for help)
+1> [88,89,90].
+"XYZ"
+----
+
+NOTE: During Erlang's earlier years, strings were expected to use only
+Latin-1 (ISO 8859-1) code points. Luckily, these are simply the subset
+0-255 of Unicode, so there were few compatibility problems when this range
+was extended.
+
+Since allowing the whole Unicode range as "printable characters" would make
+many lists of assorted integers seem like possible strings, the shell
+defaults to the Latin-1 range when detecting strings, so for example:
+
+[source,erlang]
+----
+2> [128526, 128526, 128526].
+[128526, 128526, 128526]
+----
+
+just shows the result as a list of numbers. However, if we start Erlang
+with the option `+pc unicode`, the Erlang shell will be much more generous
+with what it considers printable:
+
+[source,shell]
+----
+Eshell V15.2.2 (press Ctrl+G to abort, type help(). for help)
+$ erl +pc unicode
+Erlang/OTP 27 [erts-15.2.2] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:1] [jit:ns]
+
+Eshell V15.2.2 (press Ctrl+G to abort, type help(). for help)
+1> [128526, 128526, 128526].
+"😎😎😎"
+2> 
+----
+Just note that it depends on your console, what encoding it is set to
+expect, and its available fonts, whether it will be able to actually
+display those characters.
+
+The string "hello" might then look like this in memory (xref:string_representation[]):
+
+[[string_representation]]
 .Representation of the string "hello" on a 32 bit machine.
 [ditaa]
 ----
@@ -334,41 +413,64 @@ The string "hello" might look like this in memory:
 
 ----
 
-All other boxed terms start with a header word. The header word uses a
-four bit header tag and the primary header tag (00), it also has an
-arity which says how many words the boxed term uses. On a 32-bit
-machine it looks like this: `aaaaaaaaaaaaaaaaaaaaaaaaaatttt00`.
+This is basically a linked list of UTF-32 encoded characters, and as you
+can see it wastes quite a lot of memory -- especially on a 64-bit machine
+where it will use 16 bytes per character -- compared to the same string as
+a UTF-8 encoded byte sequence. Therefore, strings are best used as a
+temporary "text buffer" that you can match on, traverse, and prepend to,
+and when done you can convert them to UTF-8 encoded Binaries for storing,
+sending or printing. (We will talk more about Binaries below.)
 
-The tags are:
+NOTE: When Erlang strings get serialized for sending to another node or
+storing in ETS tables or on disk, this is done using the Erlang ((External
+Term Format)), via ((`term_to_binary()`)). This uses a much more compact
+byte encoding for strings. You should generally not need to worry about
+strings in those cases -- it's the on-heap representation that you should
+avoid hanging on to.
+
+=== Boxed Terms
+
+All other terms(((boxed terms))) on the heap start with a _((header
+word))_. The header word uses a four bit subtag and the primary tag 00.
+The remaining bits encode the _arity_ which says how many additional words
+the boxed term uses:
+
+----
+ aaaaaaaa...aaaaaaaaaaaaaaaa tttt 00
+----
+
+The subtags are:
+
+----
+ 0000 00  ARITYVAL (Tuples)
+ 0001 00  BINARY_AGGREGATE                |
+ 001s 00  BIGNUM with sign bit            |
+ 0100 00  REF                             |
+ 0101 00  FUN                             | THINGS
+ 0110 00  FLONUM                          |
+ 0111 00  EXPORT                          |
+ 1000 00  REFC_BINARY     |               |
+ 1001 00  HEAP_BINARY     | BINARIES      |
+ 1010 00  SUB_BINARY      |               |
+ 1011 00    [UNUSED]
+ 1100 00  EXTERNAL_PID  |                 |
+ 1101 00  EXTERNAL_PORT | EXTERNAL THINGS |
+ 1110 00  EXTERNAL_REF  |                 |
+ 1111 00  MAP
 
 ----
 
- 0000	ARITYVAL (Tuples)
- 0001   BINARY_AGGREGATE                |
- 001s	BIGNUM with sign bit            |
- 0100	REF                             |
- 0101	FUN                             | THINGS
- 0110	FLONUM                          |
- 0111   EXPORT                          |
- 1000	REFC_BINARY     |               |
- 1001	HEAP_BINARY     | BINARIES      |
- 1010	SUB_BINARY      |               |
- 1011     [UNUSED]
- 1100   EXTERNAL_PID  |                 |
- 1101   EXTERNAL_PORT | EXTERNAL THINGS |
- 1110   EXTERNAL_REF  |                 |
- 1111   MAP
+==== Tuples
+Tuples(((tuples))) (known as ((`ARITYVAL`)) in the ERTS code base) are
+simply stored with the header containing the tag and the number of
+elements, with the tuple elements (if any) in the following words. For
+example, a 5-tuple `{$h, $e, $l, $l, $o}`` will look like this in memory
+(xref:tuple_representation[])
 
-----
-
-Tuples are stored on the heap with just the arity and then each
-element in the following words. The empty tuple `{}` is stored just as
-the word 0 (header tag 0, tuple tag `0000`, and arity 0).
-
-.Representation of the tuple {104,101,108,108,111} on a 32 bit machine.
+[[tuple_representation]]
+.Representation of a 5-tuple on a 32 bit machine.
 [ditaa]
 ----
-
  hend ->     +-------- -------- -------- --------+
              |              ...                  |
              |              ...                  |
@@ -387,40 +489,63 @@ the word 0 (header tag 0, tuple tag `0000`, and arity 0).
 
 ----
 
-A _binary_ is an immutable array of bytes. There are four types of
-internal representations of _binaries_. The two types _heap binaries_
-and _refc binaries_ contains binary data. The other two types, _sub
-binaries_ and _match contexts_ (the BINARY_AGGREGATE tag) are smaller
+Note that this means that the empty tuple `{}` is represented on the heap
+by a single word with all bits 0 (arity 0, subtag `0000`, and primary tag
+`00`). However, it also requires the boxed pointer to the word on the heap,
+so it is not as cheap as `NIL` which is an immediate and can e.g. be kept
+in a register or stored as the tail of a list without needing an additional
+heap word.
+
+==== Binaries
+A _binary_ is an immutable array of bytes. Internally, there are four types
+of representations of ((binaries)). The two types _heap binaries_
+and _refc binaries_ contain binary data. The other two types, _sub
+binaries_ and _match contexts_ (the `BINARY_AGGREGATE` tag) are smaller
 references into one of the other two types.
 
 Binaries that are 64 bytes or less can be stored directly on the
-process heap as _heap binaries_. Larger binaries are reference
-counted and the payload is stored outside of the process heap, a
+process heap as _((heap binaries))_. Larger binaries are reference
+counted and the payload is stored outside of the process heap, while a
 reference to the payload is stored on the process heap in an object
-called a _ProcBin_.
+called a _((ProcBin))_.
 
-// Todo: draw a picture of binaries and their tags.
+NOTE: An important point with binaries is that since they simply represent
+a chunk of bytes, they never refer to other objects, and the garbage
+collector does not need to inspect the payload. It is therefore possible to
+use a different storage strategy tailored to them; in particular, reference
+counting binaries will never run into the problem of circular references.
 
-We will talk more about binaries in the xref:CH-Memory[].
+// TODO: draw a picture of binaries and their tags.
 
+We will talk more about binaries in xref:CH-Memory[].
+
+==== Bignums
 Integers that do not fit in a small integer (word size - 4 bits) are
-stored on the heap as "bignums" (or arbitrary precision integers). A
-bignum has a header word followed by a number of words encoding the
-bignum. The sign part of the bignum tag (`s`) in the header encodes the
+stored on the heap as so-called _((bignums))_ (or _((arbitrary precision integers))_).
+A bignum has a header word followed by a number of words which encode the
+integer. The sign part of the bignum tag (`s`) in the header encodes the
 sign of the number (s=0 for positive numbers, and s=1 for negative
 numbers).
 
-TODO: Describe bignum encoding. (And arithmetic ?)
+// TODO: Describe bignum encoding. (And arithmetic ?)
 
-A reference is a _"unique"_ term often used to tag messages in order
+NOTE: While bignums resemble binaries in that they both are just "`chunks
+of bytes`", bignums are always stored on the heap in their entirety, and
+having a heap full of very large bignums means the garbage collector will
+need to copy a lot of live data back and forth. It is therefore not such a
+clever hack to encode a big chunk of binary data as a bignum even if it can
+be done. footnote:[Who would ever do such a thing?]
+
+==== References
+A ((reference)) is a "`unique`" term, often used to tag messages in order
 to basically implement a channel over a process mailbox. A reference
 is implemented as an 82 bit counter. After 9671406556917033397649407
-calls to `make_ref/0` the counter will wrap and start over with ref 0
+calls to ((`make_ref/0`)), the counter will wrap and start over with ref 0
 again. You need a really fast machine to do that many calls to
-`make_ref` within your lifetime. Unless you restart the node, in which
+`make_ref` within your lifetime -- unless you restart the node, in which
 case it also will start from 0 again, but then all the old local refs
-are gone. If you send the pid to another node it becomes an external
-ref, see below.
+are gone. If you send the ref to another node it becomes an _external
+ref_, see below.
 
 On a 32-bit system a local ref takes up four 32-bit words on the
 heap. On a 64-bit system a ref takes up three 64-bit words on the
