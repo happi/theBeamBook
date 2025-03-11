@@ -1299,8 +1299,9 @@ There is actually one more memory area in a process where
 Erlang terms can be stored, the _Process Dictionary_.
 
 The _((Process Dictionary))_ (PD) is a process local key-value store. One
-advantage with this is that all keys and values are stored on the heap
-and there is no copying as with send or an ETS table.
+advantage with it is that all keys and values are kept on the heap of the
+process, so the terms you store do not need to be copied anywhere as
+with message passing or ((ETS tables)).
 
 We can now update our view of a process with yet another
 memory area, PD, the process dictionary, as seen in
@@ -1322,21 +1323,43 @@ xref:erlang_process_memory_5[]:
  +-------+  +-------+  +-------+  +-------+
  | m−buf |  | m−buf |  | m−buf |  | m−buf |
  +-------+  +-------+  +-------+  +-------+
-
 ----
 
-With such a small array you are bound to get some collisions before the
-area grows. Each hash value points to a bucket with key value pairs.
-The bucket is actually an Erlang list on the heap. Each entry in the
-list is a two tuple (`{Key, Value}`) also stored on the heap.
+The process dictionary is a very straighforward ((hash table))
+implementation. In fact the PD memory area is just the plain bucket array,
+and each slot is either ((`NIL`)) (the empty list) if the bucket is empty,
+or otherwise it's a tagged pointer to to data on the heap -- a simple tuple
+`{Key, Value}` if there is only one entry in the bucket, or a
+`NIL`-terminated list `[{Key1, Value1}, ..., {KeyN, ValueN}]` if the bucket
+has N entries. You can find the implementation in the file
+link:https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process_dict.c[erl_process_dict.c].
 
-Putting an element in the PD is not completely free, it will result in
-an extra tuple and a cons, and
-might cause garbage collection to be triggered. Updating a key in the
-dictionary, which is in a bucket, causes the whole bucket (the whole
-list) to be reallocated to make sure we don't get pointers from the
-old heap to the new heap. (In xref:CH-Memory[] we will
-see the details of how garbage collection works.)
+This way, there is no additional complexity for managing dynamically
+growing and shrinking bucket lists, and no separate memory management for
+these data structures apart from the bucket array -- it is all handled by
+the normal creation and freeing of tuples and lists on the heap (which is
+already as efficient as you'd like). It also means that the garbage
+collector can easily traverse the hash table much like any Erlang data. (In
+xref:CH-Memory[] we will see the details of how garbage collection works.)
+
+On the downside, the terms in the PD are always live data which needs to be
+moved around by the (copying) GC. Hence, storing large amounts of data in
+the PD can be a worse choice than using a separate ETS table even if
+entries must then be copied in and out -- depending on how much load there
+is on the GC after the initial growth phase of the dictionary. If you know
+you are going to build up a large PD, it can be a good idea to start the
+process off with a large initial heap size, as in `spawn_opt(...,
+[{min_heap_size, Size}])`, and then try to do any GC-heavy work in another
+process.
+
+Note that, as with any hash table, storing an element in the PD is not
+completely free -- it will result in an extra tuple for the key/value entry
+and an extra cons cell if the bucket was not empty, which might also cause
+garbage collection to be triggered. It could also require resizing of the
+bucket array. Updating an existing key in the dictionary causes the whole
+list of that bucket to be reallocated to make sure we don't get pointers
+from the old heap to the new heap; however, these lists should on average
+be very short.
 
 === Dig In
 
