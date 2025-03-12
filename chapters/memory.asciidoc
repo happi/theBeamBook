@@ -349,11 +349,9 @@ multiblock |     Block 2   |       | MSmmbcs kb
 
 ===== Memory allocation strategies
 
-++++
-<!--
-Are you intending for readers to take advantage of these allocation strategies in their code? If so, this section needs to be much more prominent, and not a subheading in a reference section.  - bmacdonald
--->
-++++
+// Are you intending for readers to take advantage of these allocation
+// strategies in their code? If so, this section needs to be much more
+// prominent, and not a subheading in a reference section. - bmacdonald
 
 
 To find a free block of memory in a multi block carrier an
@@ -536,9 +534,9 @@ sched_wall_time_request stack suspend_monitor thr_q_element thr_queue
 zlib )
 
 
-=== TODO: system flags for memory
+// === TODO: system flags for memory
 
-TODO
+// TODO
 
 === Process Memory
 
@@ -992,13 +990,22 @@ and matching is done in the Erlang documentation:
 link:http://www.erlang.org/doc/efficiency_guide/binaryhandling.html[].
 
 
-==== Garbage Collection
+=== Other interesting memory areas
 
-++++
-<!--
-This part of the content seems to be good, and probably worthy of being a top-level heading. It might be a bit long, though. - bmacdonald
--->
-++++
+==== The atom table.
+TODO
+
+==== Code
+TODO
+
+==== Constants
+TODO
+
+
+=== Garbage Collection
+
+// This part of the content seems to be good, and probably worthy of being
+// a top-level heading. It might be a bit long, though. - bmacdonald
 
 
 When a process runs out of space on the stack and heap the process
@@ -1470,12 +1477,3 @@ Generations..
 //  parameters. 
 
 // Hibernation. 
-
-=== Other interesting memory areas
-
-==== The atom table.
-TODO
-==== Code
-TODO
-==== Constants
-TODO
