@@ -701,6 +701,7 @@ help you inspect the state of the system at the point of the crash.
 
 Understanding and diagnosing issues within the Erlang runtime system (BEAM) can be challenging due to its complexity. However, utilizing tools like the GNU Debugger (GDB) can significantly aid in this process. This section provides an overview of using GDB to debug the BEAM, including setting up the environment and employing GDB macros to streamline the debugging workflow.
 
+[[Using-GDB]]
 ==== Using GDB
 
 GDB is a powerful tool for debugging applications at the machine level, offering insights into the execution of compiled programs. When applied to the BEAM, GDB allows developers to inspect the state of the Erlang virtual machine during execution or after a crash.

@@ -1,0 +1,588 @@
+[[CH-GC]]
+
+== Garbage Collection
+
+When a process runs out of space on the stack and heap the process
+will try to reclaim space by doing a minor garbage collection. The
+code for this can be found in
+link:https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_gc.c[erl_gc.c].
+
+=== Copying Garbage Collection
+
+ERTS uses a generational copying garbage collector. A copying
+collector means that during garbage collection all live young terms
+are copied from the old heap to a new heap. Then the old heap is
+discarded. A generational collector works on the principle that
+most terms die young, they are temporary terms created, used,
+and thrown away. Older terms are promoted to the old generation
+which is collected more seldom, with the rational that once
+a term has become old it will probably live for a long time.
+
+Conceptually a garbage collection cycle works as follows:
+
+* First you collect all roots (e.g. the stack).
+* Then for each root, if the root points to a heap allocated object
+which doesn't have a forwarding pointer you copy the object to the new
+heap. For each copied object update the original with a forwarding
+pointer to the new copy.
+* Now go through the new heap and do the same as for the roots.
+
+==== Example
+
+We will go through an example to see how this is done in
+detail. We will go through a minor collection without an
+old generation, and we will only use the stack as the root set.
+In reality the process dictionary, trace data and probe data
+among other things are also included in the rootset.
+
+Let us look at how the call to `garbage_collect` behaves in the `gc_example`.
+The code will generate a string which is shared by two
+elements of a cons and a tuple, the tuple will the be eliminated
+resulting in garbage. After the GC there should only be one string on
+the heap. That is, first we generate the term 
+`+{["Hello","Hello"], "Hello"}+` (sharing the same string `"Hello"` in 
+all instances. Then we just keep the term `+["Hello","Hello"]+` when
+triggering a GC.
+
+NOTE: We will take the opportunity to go through how you, on a
+linux system, can use gdb to examine the behavior of ERTS.
+You can of course use the debugger of your choice. If you already know
+how to use gdb or if you have no interest in going into the debugger
+you can just ignore the meta text about how to inspect the system and
+just look at the diagrams and the explanations of how the GC works.
+In xref:Using-GDB[] we will go through how to use gdb to inspect the
+system in detail. Here we use some of our own helper scripts that
+unfortunately has been lost in time. 
+
+// TODO: Rewrite using  Erlang Pathologist Toolkit
+
+[source,erlang]
+----
+include::../code/memory_chapter/src/gc_example.erl[]
+----
+
+After compiling the example I start an erlang shell, test the call
+and prepare for a new call to the example (without hitting return):
+
+----
+1> gc_example:example().
+["Hello","Hello"]
+2> spawn(gc_example,example,[]).
+----
+
+===== Using gdb to inspect the system
+
+Then I use gdb to attach to my erlang node (OS PID: 2955 in this case)
+----
+$ gdb /home/happi/otp/lib/erlang/erts-6.0/bin/beam.smp 2955
+----
+
+
+NOTE: Depending on your settings for ptrace_scope you might have to
+precede the gdb invocation with 'sudo'.
+
+Then in gdb I set a breakpoint at the start of the main GC function and
+let the node continue:
+
+----
+(gdb) break garbage_collect_0
+(gdb) cont
+Continuing.
+----
+
+Now I hit enter in the Erlang shell and execution stops at the breakpoint:
+
+----
+Breakpoint 1, garbage_collect_0 (A__p=0x7f673d085f88, BIF__ARGS=0x7f673da90340) at beam/bif.c:3771
+3771	    FLAGS(BIF_P) |= F_NEED_FULLSWEEP;
+----
+
+===== Inspecting the PCB
+
+Now we can inspect the PCB of the process:
+
+----
+(gdb) p *(Process *) A__p
+$1 = {common = {id = 1408749273747, refc = {counter = 1}, tracer_proc = 18446744073709551611, trace_flags = 0, u = {alive = {
+        started_interval = 0, reg = 0x0, links = 0x0, monitors = 0x0, ptimer = 0x0}, release = {later = 0, func = 0x0, data = 0x0, 
+        next = 0x0}}}, htop = 0x7f6737145950, stop = 0x7f6737146000, heap = 0x7f67371458c8, hend = 0x7f6737146010, heap_sz = 233, 
+  min_heap_size = 233, min_vheap_size = 46422, fp_exception = 0, hipe = {nsp = 0x0, nstack = 0x0, nstend = 0x0, ncallee = 0x7f673d080000, 
+    closure = 0, nstgraylim = 0x0, nstblacklim = 0x0, ngra = 0x0, ncsp = 0x7f673d0863e8, narity = 0, float_result = 0}, arity = 0, 
+  arg_reg = 0x7f673d086080, max_arg_reg = 6, def_arg_reg = {393227, 457419, 18446744073709551611, 233, 46422, 2000}, cp = 0x7f673686ac40, 
+  i = 0x7f673be17748, catches = 0, fcalls = 1994, rcount = 0, schedule_count = 0, reds = 0, group_leader = 893353197987, flags = 0, 
+  fvalue = 18446744073709551611, freason = 0, ftrace = 18446744073709551611, next = 0x7f673d084cc0, nodes_monitors = 0x0, 
+  suspend_monitors = 0x0, msg = {first = 0x0, last = 0x7f673d086120, save = 0x7f673d086120, len = 0, mark = 0x0, saved_last = 0x7d0}, u = {
+    bif_timers = 0x0, terminate = 0x0}, dictionary = 0x0, seq_trace_clock = 0, seq_trace_lastcnt = 0, 
+  seq_trace_token = 18446744073709551611, initial = {393227, 457419, 0}, current = 0x7f673be17730, parent = 1133871366675, 
+  approx_started = 1407857804, high_water = 0x7f67371458c8, old_hend = 0x0, old_htop = 0x0, old_heap = 0x0, gen_gcs = 0, 
+  max_gen_gcs = 65535, off_heap = {first = 0x0, overhead = 0}, mbuf = 0x0, mbuf_sz = 0, psd = 0x0, bin_vheap_sz = 46422, 
+  bin_vheap_mature = 0, bin_old_vheap_sz = 46422, bin_old_vheap = 0, sys_task_qs = 0x0, state = {counter = 41002}, msg_inq = {first = 0x0, 
+    last = 0x7f673d086228, len = 0}, pending_exit = {reason = 0, bp = 0x0}, lock = {flags = {counter = 1}, queue = {0x0, 0x0, 0x0, 0x0}, 
+    refc = {counter = 1}}, scheduler_data = 0x7f673bd6c080, suspendee = 18446744073709551611, pending_suspenders = 0x0, run_queue = {
+    counter = 140081362118912}, hipe_smp = {have_receive_locks = 0}}
+----
+
+Wow, that was a lot of information. The interesting part is about the stack and the heap:
+
+----
+hend = 0x7f6737146010,
+stop = 0x7f6737146000,
+htop = 0x7f6737145950,
+heap = 0x7f67371458c8,
+----
+
+===== Inspecting the stack
+
+By using some helper scripts (now lost in time) we can inspect the stack and the heap in a meaningful
+way. 
+
+----
+(gdb) source gdb_scripts 
+(gdb) print_p_stack A__p
+0x00007f6737146008 [0x00007f6737145929] cons -> 0x00007f6737145928
+(gdb) print_p_heap A__p
+0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
+0x00007f6737145938 [0x0000000000000080] Tuple size 2
+0x00007f6737145930 [0x00007f6737145919] cons -> 0x00007f6737145918
+0x00007f6737145928 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145920 [0xfffffffffffffffb] NIL
+0x00007f6737145918 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145910 [0x00007f67371458f9] cons -> 0x00007f67371458f8
+0x00007f6737145908 [0x000000000000048f] 72
+0x00007f6737145900 [0x00007f67371458e9] cons -> 0x00007f67371458e8
+0x00007f67371458f8 [0x000000000000065f] 101
+0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
+0x00007f67371458e8 [0x00000000000006cf] 108
+0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
+0x00007f67371458d8 [0x00000000000006cf] 108
+0x00007f67371458d0 [0xfffffffffffffffb] NIL
+0x00007f67371458c8 [0x00000000000006ff] 111
+----
+
+Here we can see the heap of the process after it has allocated the
+list "Hello" on the heap and the cons containing that list twice, and
+the tuple containing the cons and the list. The _root set_, in this
+case the stack, contains a pointer to the cons containing two copies
+of the list. The tuple is dead, that is, there are no references to
+it.
+
+The garbage collection starts by calculating the root set and by
+allocating a new heap (_to space_). By stepping into the GC code in the
+debugger you can see how this is done. I will not go through the
+details here. After a number of steps the execution will reach the
+point where all terms in the root set are copied to the new heap. This
+starts around (depending on version) line 1272 with a `while` loop in
+erl_gc.c.
+
+In our case the root is a cons pointing to address 0x00007f95666597f0
+containing the letter (integer) 'H'. When a cons cell is moved from
+the current heap, called _from space_, to _to space_ the value in the
+head (or car) is overwritten with a _moved cons_ tag (the value 0).
+
+===== Inspecting the heap
+
+After the first step where the root set is moved, the _from space_
+and the _to space_ looks like this:
+
+from space:
+
+----
+(gdb) print_p_heap p
+0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
+0x00007f6737145938 [0x0000000000000080] Tuple size 2
+0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
+0x00007f6737145928 [0x0000000000000000] Tuple size 0
+0x00007f6737145920 [0xfffffffffffffffb] NIL
+0x00007f6737145918 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145910 [0x00007f67371458f9] cons -> 0x00007f67371458f8
+0x00007f6737145908 [0x000000000000048f] 72
+0x00007f6737145900 [0x00007f67371458e9] cons -> 0x00007f67371458e8
+0x00007f67371458f8 [0x000000000000065f] 101
+0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
+0x00007f67371458e8 [0x00000000000006cf] 108
+0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
+0x00007f67371458d8 [0x00000000000006cf] 108
+0x00007f67371458d0 [0xfffffffffffffffb] NIL
+0x00007f67371458c8 [0x00000000000006ff] 111
+----
+
+to space:
+
+----
+(gdb) print_heap n_htop-1 n_htop-2
+0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f6737145918
+0x00007f67371445b0 [0x00007f6737145909] cons -> 0x00007f6737145908
+
+----
+
+In _from space_ the head of the first cons cell has been overwritten
+with 0 (looks like a tuple of size 0) and the tail has been overwritten
+with a forwarding pointer pointing to the new cons cell in the _to space_.
+In _to space_ we now have the first cons cell with two
+backward pointers to the head and the tail of the cons in the _from space_.
+
+===== Moving the rest of the heap
+
+When the collector is done with the root set the _to space_ contains
+backward pointers to all still live terms. At this point the collector
+starts sweeping the _to space_. It uses two pointers `n_hp` pointing to
+the bottom of the unseen heap and `n_htop` pointing to the top of the heap.
+
+----
+n_htop:
+        0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f6737145918
+n_hp    0x00007f67371445b0 [0x00007f6737145909] cons -> 0x00007f6737145908
+----
+
+
+The GC will then look at the value pointed to by `n_hp`, in this case a
+cons pointing back to the _from space_. So it moves that cons to the to
+space, incrementing n_htop to make room for the new cons, and
+incrementing `n_hp` to indicate that the first cons is seen.
+
+----
+from space:
+
+0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
+0x00007f6737145938 [0x0000000000000080] Tuple size 2
+0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
+0x00007f6737145928 [0x0000000000000000] Tuple size 0
+0x00007f6737145920 [0xfffffffffffffffb] NIL
+0x00007f6737145918 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145910 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+0x00007f6737145908 [0x0000000000000000] Tuple size 0
+0x00007f6737145900 [0x00007f67371458e9] cons -> 0x00007f67371458e8
+0x00007f67371458f8 [0x000000000000065f] 101
+0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
+0x00007f67371458e8 [0x00000000000006cf] 108
+0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
+0x00007f67371458d8 [0x00000000000006cf] 108
+0x00007f67371458d0 [0xfffffffffffffffb] NIL
+0x00007f67371458c8 [0x00000000000006ff] 111
+
+to space:
+
+n_htop:
+        0x00007f67371445c8 [0x00007f67371458f9] cons -> 0x00007f67371458f8
+        0x00007f67371445c0 [0x000000000000048f] 72
+n_hp    0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f6737145918
+SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+----
+
+The same thing then happens with the second cons.
+
+----
+from space:
+
+0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
+0x00007f6737145938 [0x0000000000000080] Tuple size 2
+0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
+0x00007f6737145928 [0x0000000000000000] Tuple size 0
+0x00007f6737145920 [0x00007f67371445d1] cons -> 0x00007f67371445d0
+0x00007f6737145918 [0x0000000000000000] Tuple size 0
+0x00007f6737145910 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+0x00007f6737145908 [0x0000000000000000] Tuple size 0
+0x00007f6737145900 [0x00007f67371458e9] cons -> 0x00007f67371458e8
+0x00007f67371458f8 [0x000000000000065f] 101
+0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
+0x00007f67371458e8 [0x00000000000006cf] 108
+0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
+0x00007f67371458d8 [0x00000000000006cf] 108
+0x00007f67371458d0 [0xfffffffffffffffb] NIL
+0x00007f67371458c8 [0x00000000000006ff] 111
+
+to space:
+
+n_htop:
+        0x00007f67371445d8 [0xfffffffffffffffb] NIL
+        0x00007f67371445d0 [0x00007f6737145909] cons -> 0x00007f6737145908
+        0x00007f67371445c8 [0x00007f67371458f9] cons -> 0x00007f67371458f8
+n_hp    0x00007f67371445c0 [0x000000000000048f] 72
+SEEN    0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f67371445d0
+SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+----
+
+The next element in _to space_ is the immediate 72, which is only
+stepped over (with `n_hp++`). Then there is another cons which is moved.
+
+The same thing then happens with the second cons.
+
+----
+from space:
+
+0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
+0x00007f6737145938 [0x0000000000000080] Tuple size 2
+0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
+0x00007f6737145928 [0x0000000000000000] Tuple size 0
+0x00007f6737145920 [0x00007f67371445d1] cons -> 0x00007f67371445d0
+0x00007f6737145918 [0x0000000000000000] Tuple size 0
+0x00007f6737145910 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+0x00007f6737145908 [0x0000000000000000] Tuple size 0
+0x00007f6737145900 [0x00007f67371445e1] cons -> 0x00007f67371445e0
+0x00007f67371458f8 [0x0000000000000000] Tuple size 0
+0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
+0x00007f67371458e8 [0x00000000000006cf] 108
+0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
+0x00007f67371458d8 [0x00000000000006cf] 108
+0x00007f67371458d0 [0xfffffffffffffffb] NIL
+0x00007f67371458c8 [0x00000000000006ff] 111
+
+to space:
+
+n_htop:
+        0x00007f67371445e8 [0x00007f67371458e9] cons -> 0x00007f67371458e8
+        0x00007f67371445e0 [0x000000000000065f] 101
+        0x00007f67371445d8 [0xfffffffffffffffb] NIL
+n_hp    0x00007f67371445d0 [0x00007f6737145909] cons -> 0x00007f6737145908
+SEEN    0x00007f67371445c8 [0x00007f67371458f9] cons -> 0x00007f67371445e0
+SEEN    0x00007f67371445c0 [0x000000000000048f] 72
+SEEN    0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f67371445d0
+SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+----
+
+Now we come to a cons that points to a cell that has already been moved.
+The GC sees the IS_MOVED_CONS tag at 0x00007f6737145908 and copies the
+destination of the moved cell from the tail (`*n_hp++ = ptr[1];`). This
+way sharing is preserved during GC. This step does not affect _from space_,
+but the backward pointer in to space is rewritten.
+
+----
+to space:
+
+n_htop:
+        0x00007f67371445e8 [0x00007f67371458e9] cons -> 0x00007f67371458e8
+        0x00007f67371445e0 [0x000000000000065f] 101
+n_hp    0x00007f67371445d8 [0xfffffffffffffffb] NIL
+SEEN    0x00007f67371445d0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+SEEN    0x00007f67371445c8 [0x00007f67371458f9] cons -> 0x00007f67371445e0
+SEEN    0x00007f67371445c0 [0x000000000000048f] 72
+SEEN    0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f67371445d0
+SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+----
+
+Then the rest of the list (the string) is moved.
+
+----
+from space:
+
+0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
+0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
+0x00007f6737145938 [0x0000000000000080] Tuple size 2
+0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
+0x00007f6737145928 [0x0000000000000000] Tuple size 0
+0x00007f6737145920 [0x00007f67371445d1] cons -> 0x00007f67371445d0
+0x00007f6737145918 [0x0000000000000000] Tuple size 0
+0x00007f6737145910 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+0x00007f6737145908 [0x0000000000000000] Tuple size 0
+0x00007f6737145900 [0x00007f67371445e1] cons -> 0x00007f67371445e0
+0x00007f67371458f8 [0x0000000000000000] Tuple size 0
+0x00007f67371458f0 [0x00007f67371445f1] cons -> 0x00007f67371445f0
+0x00007f67371458e8 [0x0000000000000000] Tuple size 0
+0x00007f67371458e0 [0x00007f6737144601] cons -> 0x00007f6737144600
+0x00007f67371458d8 [0x0000000000000000] Tuple size 0
+0x00007f67371458d0 [0x00007f6737144611] cons -> 0x00007f6737144610
+0x00007f67371458c8 [0x0000000000000000] Tuple size 0
+
+to space:
+
+n_htop:
+n_hp
+SEEN    0x00007f6737144618 [0xfffffffffffffffb] NIL
+SEEN    0x00007f6737144610 [0x00000000000006ff] 111
+SEEN    0x00007f6737144608 [0x00007f6737144611] cons -> 0x00007f6737144610
+SEEN    0x00007f6737144600 [0x00000000000006cf] 108
+SEEN    0x00007f67371445f8 [0x00007f6737144601] cons -> 0x00007f6737144600
+SEEN    0x00007f67371445f0 [0x00000000000006cf] 108
+SEEN    0x00007f67371445e8 [0x00007f67371445f1] cons -> 0x00007f67371445f0
+SEEN    0x00007f67371445e0 [0x000000000000065f] 101
+SEEN    0x00007f67371445d8 [0xfffffffffffffffb] NIL
+SEEN    0x00007f67371445d0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+SEEN    0x00007f67371445c8 [0x00007f67371445e1] cons -> 0x00007f67371445e0
+SEEN    0x00007f67371445c0 [0x000000000000048f] 72
+SEEN    0x00007f67371445b8 [0x00007f67371445d1] cons -> 0x00007f67371445d0
+SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
+----
+
+===== Example Summary
+There are some things to note from this example. When terms are
+created in Erlang they are created bottom up, starting with the
+elements. The garbage collector works top down, starting with the
+top level structure and then copying the elements. This means that
+the direction of the pointers change after the first GC. This has
+no real implications but it is good to know when looking at actual
+heaps. You can not assume that structures should be bottom up.
+
+Also note that the GC does a breath first traversal. This means that
+locality for one term most often is worse after a GC. With the size of
+modern caches this should not be a problem. You could of course create
+a pathological example where it becomes a problem, but you can also
+create a pathological example where a depth first approach would cause
+problems.
+
+The third thing to note is that sharing is preserved which is really
+important otherwise we might end up using more space after a GC than
+before.
+
+Here's an expanded explanation about generations, using the additional information from your document:
+
+=== Generations in Erlang's Garbage Collection
+
+Erlang’s BEAM virtual machine uses a **generational copying garbage collector**, a method that efficiently manages memory based on the observation that most objects "die young". Thus, recent allocations are collected frequently, and surviving data gets promoted to an older generation that is less frequently collected.
+
+The PCB (Process Control Block) contains information about the heap, including:
+
+- **high_water**: This pointer marks the boundary between old and new objects on the heap. Objects below this line have survived previous collections and are considered "old". Objects above are newly created and more likely to be short-lived.
+  
+- **old_heap**: Pointer to the heap area designated for "older" objects. Objects are promoted to this area after surviving a minor garbage collection.
+
+- **old_htop**: Indicates the current top position in the old heap, signifying where new objects can be placed upon promotion.
+
+- **old_hend**: Marks the end boundary of the old heap area. It serves as a reference limit for when the old heap might require additional garbage collection or resizing.
+
+- **gen_gcs**: Counts the number of minor generational garbage collections performed on a process.
+
+- **max_gen_gcs**: Defines the maximum number of minor collections before the garbage collector performs a full sweep. This threshold ensures that periodically, the whole heap (both old and new) is cleaned up comprehensively.
+
+Additional PCB memory management-related fields include:
+
+- **off_heap**: Contains pointers to off-heap structures that the garbage collector must consider during collections. An example of off-heap data would be larger binaries.
+
+- **mbuf and mbuf_sz**: These denote heap fragments (memory buffers, or "m-bufs") used primarily when message-passing contention arises. Messages are copied into m-bufs to avoid lock contention or heap space issues.
+
+- **bin_vheap_sz, bin_vheap_mature, bin_old_vheap_sz, and bin_old_vheap**: These relate to binary data stored outside the main heap.  
+    * `bin_vheap_sz` tracks the size of binaries allocated in the process heap.
+    * `bin_vheap_mature` denotes the mature binary virtual heap size, indicating the size of binaries that have survived garbage collections.
+    * `bin_old_vheap_sz` and `bin_old_vheap` refer specifically to older generations of binaries that have been promoted and tracked separately from younger allocations.
+
+==== Visual Representation of Generational Heaps (conceptual)
+
+We can represent the heap and old heap arrangement as follows (in simplified form):
+
+[ditaa]
+----
+  hend ->  +----+
+           |....|
+  stop ->  |    |
+           |    |    +----+ old_hend
+           |    |    |    |
+  htop ->  |    |    |    |
+           |....|    |    | old_htop
+           |....|    |....|
+  heap ->  +----+    +----+ old_heap
+          The Heap   Old Heap
+
+----
+
+Here, we see a schematic view of two heap areas:
+
+- The regular heap on the left is where new objects are initially allocated.
+- The old heap on the right stores older, long-lived objects that have survived minor collections and have been promoted to the old generation.
+
+
+
+=== Practical Implications and Considerations
+
+Frequent minor garbage collections (tracked by `gen_gcs`) often point to a process that is allocating and discarding short-lived data rapidly. If you see this happening, it's usually a sign that you can gain performance by optimizing your code paths—particularly by reducing the creation of temporary or intermediate data structures that quickly become garbage. Doing so minimizes garbage collector overhead, leading to more efficient execution and lower CPU usage.
+
+Similarly, observing the `high_water` pointer moving continuously upward can signal that your process is generating an increasing amount of persistent data. This pattern implies more objects are surviving garbage collection cycles and getting promoted to the old generation, consuming memory over time. Keeping an eye on this helps detect potential memory leaks or inefficiencies in your data lifecycle. Ideally, you want stable heap usage, not a constantly rising tide.
+
+Other important fields such as `old_heap`, `old_htop`, and `old_hend` let you see how much data your process has promoted into the older generation heap, which is collected less frequently. Monitoring these can give insights into whether the process handles long-lived data effectively or if you might be keeping unnecessary references to outdated data.
+
+Similarly, excessive use of memory buffers (`mbuf`, `mbuf_sz`) typically signals contention or high throughput in inter-process messaging. If these numbers are growing unusually large, consider rethinking your messaging strategy—perhaps batching messages or restructuring communication patterns. The same principle applies to binary heaps (`bin_vheap_sz` and `bin_vheap_mature`). Large binary heaps could indicate a need to reconsider how binaries are handled, ensuring you don’t inadvertently retain large binaries longer than necessary.
+
+=== Suggestions for Optimization
+
+Understanding garbage collection in the BEAM VM can provide critical insights into optimizing your application's performance. Modern hardware has greatly reduced issues related to cache locality, but it's still important to recognize that the generational garbage collector in Erlang employs a breadth-first copying approach. This method can sometimes degrade data locality, introducing subtle performance nuances that might be noticeable in very performance-sensitive code paths.
+
+In addition, keep an eye on heap fragmentation, particularly the use of memory buffers (m-bufs). If your application heavily relies on message passing, you might experience significant heap fragmentation due to the frequent use of these buffers. Excessive growth of mbuf or mbuf_sz can indicate contention or inefficient message handling. In such scenarios, optimizing message passing strategies by batching messages or rethinking communication patterns can provide significant improvements.
+
+Monitoring garbage collection statistics such as the frequency of minor collections (gen_gcs) and the threshold for major collections (max_gen_gcs) is essential. Regularly reviewing these metrics enables you to detect inefficiencies early, such as excessive temporary data allocation or unintended long-lived data. Identifying these patterns early can help you correct memory inefficiencies and prevent memory leaks or unnecessary garbage collection overhead.
+
+Finally, consider scenarios where your calculation produces large amounts of temporary data. If frequent garbage collections become a bottleneck, proactively setting a larger initial heap size for the process can help. You can achieve this by using Erlang's spawn_opt with the {min_heap_size, Size} option. This approach reduces GC frequency by ensuring adequate heap space upfront, minimizing performance penalties associated with repeated memory reclamation.
+
+=== Stack and Heap Growth
+
+To effectively manage Erlang applications running on the BEAM, you must understand how process memory grows and shrinks. Specifically, processes in Erlang allocate memory dynamically from two primary areas: the stack and the heap.
+
+==== Stack Growth
+
+The stack holds function calls, return addresses, local variables, and intermediate data needed during computation. When a function call occurs, a new stack frame is created to store parameters, return addresses, and local variables. As your code makes deeper recursive calls, the stack naturally grows, expanding downward toward the heap area. Conversely, as functions complete, the stack shrinks by discarding frames that are no longer needed. The stack grows downward (towards lower memory addresses).
+
+Stack overflow occurs if your function calls become too deeply nested or you use recursion incorrectly. A carefully designed Erlang application should avoid excessively deep recursion or should implement tail-call optimized recursion to prevent unnecessary stack growth.
+
+==== Heap Growth
+
+The heap, on the other hand, stores Erlang terms like tuples, lists, maps, binaries, and other dynamically allocated structures. Unlike the stack, the heap grows upward (towards higher memory addresses). New data allocated by the process ends up at the top of the heap (`htop`), continuously moving upward. When the heap runs out of space, a garbage collection is triggered, reclaiming memory from unused terms.
+
+Garbage collection compacts live terms by copying them to a new area, reducing fragmentation. After GC, the heap size might shrink (due to reclaimed memory), remain constant, or grow if insufficient memory is reclaimed to satisfy the process’s needs.
+
+==== Interaction Between Stack and Heap
+
+In Erlang, the stack and heap are conceptually separate, yet physically co-located within the same contiguous memory block allocated for the process. They grow towards each other:
+
+- **Stack**: grows downward (lower addresses).
+- **Heap**: grows upward (towards higher addresses).
+
+A process runs out of memory if the stack and heap collide—this triggers garbage collection, attempting to reclaim heap space. If insufficient space can be reclaimed, BEAM allocates a larger memory area for the process.
+
+==== Practical Optimization Advice
+
+Keep an eye on stack depth and heap size during profiling (`observer` or `etop` can help with this). You might see excessive heap growth if temporary terms accumulate or if unnecessary copies occur. Also, monitor stack usage for deeply recursive or heavily nested calls.
+
+When your calculation requires a large amount of temporary heap space, consider pre-allocating a larger heap.
+
+Understanding this dynamic stack and heap interaction gives you precise control over your application's memory behavior, allowing you to write more performant, efficient, and stable Erlang code.
+
+
+=== Key Memory Characteristics and Optimization Opportunities
+
+To deepen your understanding and enhance your approach to memory management and garbage collection (GC) in Erlang and the BEAM, consider the following characteristics and insights from prior research:
+
+==== No Cycles: Reference Counting or Copying?
+
+In Erlang, terms are **immutable**, which naturally eliminates the possibility of creating cyclic references in memory. Because of this immutability, Erlang could theoretically use simpler garbage collection strategies such as reference counting. But reference counting comes with its overhead, particularly around frequent updates and multi-threaded contention. Instead, Erlang relies on a copying collector, partly because Erlang terms are usually small, and copying collectors offer better cache locality and minimal fragmentation.
+
+===== Typical Term Sizes and Distribution
+
+According to research by the HiPE (High-Performance Erlang) team, Erlang terms are typically small and predominantly consist of simple structures. Their measurements found the following approximate term distribution in typical Erlang applications:
+
+- Approximately 75% of all allocated terms are simple cons cells.
+- About 24% are non-cons terms but smaller than eight words in size.
+- Only around 1% are terms that are equal to or larger than 8 words.
+
+Given these observations, the generational copying garbage collection strategy suits Erlang’s workload particularly well. The majority of terms (around 99%) are short-lived or small, meaning they can be efficiently copied and managed with minimal overhead.
+
+===== Less Fragmentation, Better Locality with Copying GC
+
+Due to the compact nature of most Erlang terms, a copying garbage collector excels in preserving memory locality and reducing heap fragmentation. With small terms frequently being copied to new heap areas, the garbage collector maintains contiguous memory blocks, enhancing CPU cache locality. In practice, this means improved performance due to fewer cache misses and more predictable memory access patterns.
+
+===== Implications for Application Optimization
+
+Given these characteristics, the copying garbage collector provides clear advantages:
+
+- **Minimal Fragmentation**: Because memory is compacted during each garbage collection, there is very little heap fragmentation. This keeps memory utilization efficient.
+- **Improved Locality**: Copying live terms to new memory locations in one continuous memory area improves cache locality, enhancing execution speed on modern CPUs.
+
+However, there are trade-offs associated with the copying approach:
+
+- **Copy Overhead**: Constantly copying terms around can introduce overhead for larger data structures or long-lived terms, although typically negligible for Erlang's use case.
+- **Potential Impact on Large Terms**: While uncommon, large terms (over 8 words, representing roughly 1% of data) might incur performance penalties during copying. Such terms might be optimized by explicit binary or off-heap allocations.
+
+===== Why Not Reference Counting?
+
+At first glance, Erlang’s lack of cyclic structures suggests a reference-counting strategy could be used. But reference counting incurs overhead every time a term reference changes and does not inherently solve fragmentation issues. Given Erlang's use case—frequent allocation of small terms—copying collection still outperforms reference counting.
+
+==== Practical Takeaway
+
+Understanding that Erlang’s data profile fits naturally with generational copying GC clarifies why BEAM employs this method. It emphasizes a strategy for optimization that involves:
+
+- Minimizing unnecessary allocations and ephemeral data.
+- Avoiding large or complex data structures when possible, or moving large data off the main heap.
+- Setting heap sizes carefully for processes that generate large temporary data.
+
+By aligning your memory management practices with Erlang’s garbage collection strategy, you can optimize your applications for better performance and resource utilization.
