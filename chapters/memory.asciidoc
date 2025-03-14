@@ -79,33 +79,6 @@ this picture for the _C-stack_.
 The C-heap is allocated through malloc and a segment is allocated with
 mmap.
 
-// TODO: should this be in the preface?
-
-. A note on pictures of memory
-****
-
-*Note* When drawing overview pictures of system memory and stacks we
-will follow the convention that memory addresses grows upward. That is
-low memory addresses on the bottom of the page and high memory
-addresses on the top of the page. (Stacks most often grow downward
-starting at high addresses, so that new elements are pushed at the
-lowest address.)
-
-However when we draw a c-structure we will draw the fields from the
-top and down, even though the first field of the structure will be
-at the lowest address and the following fields at higher addresses.
-So pictures of structures have low address at the top of the page
-and high address at the bottom of the page.
-
-This means that a picture of a c-structure and a picture of a memory
-area will have their address positions on the page mirrored. This becomes
-somewhat confusing when we try to picture structures and heaps in the
-same picture.
-
-****
-
-
-
 === The memory subsystem
 
 Now that we dive into the memory subsystem it will once again
@@ -344,15 +317,88 @@ multiblock |     Block 2   |       | MSmmbcs kb
 
 ----
 
-// Want most data un multiblock carriers mbc
-// increase sbct, then increase smbcs and lmbcs
+
+===== Blocks, Carriers, and Allocation Strategies
+
+When an Erlang process needs memory, it doesn't directly request it from the operating system with each allocation. Instead, it interacts with specialized allocators provided by the _alloc_util_ framework (implemented in `erl_alloc_util.[ch]`). These allocators handle requests by distributing memory from larger contiguous regions known as "carriers."
+
+Carriers are memory regions allocated directly from the operating system. A carrier is allocated either through:
+
+- `sys_alloc` (using standard C library functions like `malloc()`), placing memory on the process heap, or
+- `mseg_alloc` (using `mmap()`), placing memory outside the typical C-heap area.
+
+Carriers are subdivided into smaller memory segments called "blocks." When memory is requested, blocks are allocated from these carriers. There are two primary carrier types:
+
+- **Singleblock Carrier**: A carrier containing exactly one block. Typically used for larger allocations.
+- **Multiblock Carrier**: Holds multiple smaller blocks of memory, serving requests for small-to-medium-sized allocations efficiently.
+
+===== Carrier Threshold (`sbct`) and its Impact
+
+The parameter known as _singleblock carrier threshold_ (`sbct`) determines the size boundary between what's considered a "small" and "large" allocation. Allocations larger than the `sbct` value use singleblock carriers, while smaller allocations use multiblock carriers.
+
+===== Why Most Allocations are Preferably Small (Multiblock Carriers)
+
+Multiblock carriers are favored for their efficiency with typical Erlang workloads—many small, short-lived allocations. Research by the HiPE team has shown most Erlang terms are small (less than eight words), fitting neatly into these multiblock carriers.
+
+A typical ERTS allocator usually maintains:
+
+- **One main multiblock carrier** per allocator to handle frequent, small-sized allocations. It rarely releases this carrier, reusing freed blocks internally to reduce fragmentation.
+- **Multiple singleblock carriers**, each allocated individually for large objects or binaries. Once these blocks are deallocated, the singleblock carriers are returned to the OS immediately.
+
+====== Memory Layout: Carriers and Blocks (Visualized)
+
+To clarify visually:
+
+[ditaa]
+-----------------------------------------
+
+hend ->  +----+
+         |....|
+stop ->  |    |
+         |    |    +----+ old_hend
+         |    |    |    |
+htop ->  |    |    |    |
+         |....|    |    | old_htop
+         |....|    |....|
+heap ->  +----+    +----+ old_heap
+        The Heap   Old Heap
+
+<High Memory Addresses>
+
++-------------------------------+  OS allocated
+|  Singleblock Carrier (> sbct) |
++-------------------------------+
+|                               |  
+|    Large Allocation (1 block) |
+|                               |
+|-------------------------------|
+|       Unused or padding       |
+|-------------------------------|
+|          Multiblock           |
+|       Carrier (main)          |
+|     Block 1 | Block 2 | ...   |
++-------------------------------+
+|                               |
+|        Allocated Heap         |
+|-------------------------------| <- start_brk (OS allocation boundary)
+|          C-Heap               |
++-------------------------------+
+(low addresses)
+
+-----------------------------------------
+
+
+===== When to Adjust the `sbct`
+
+Optimizing the singleblock carrier threshold (`sbct`) parameter is a matter of understanding your application's memory allocation patterns. Increasing `sbct` directs more allocations into multiblock carriers, improving memory reuse and reducing fragmentation. This is especially beneficial if your application frequently allocates moderate-sized data structures, causing fragmentation or frequent OS-level memory requests.
+
+Reducing `sbct`, however, forces more allocations into singleblock carriers, making sense when your application occasionally allocates large memory blocks. Managing these large allocations separately simplifies their reclamation and prevents interference with smaller allocations.
+
+If adjusting `sbct` alone does not resolve frequent minor garbage collections—often due to numerous short-lived allocations—consider increasing the process’s initial heap size (`min_heap_size`) to reduce allocation churn.
+
+In practice, the default `sbct` setting is suitable for most Erlang applications. Only fine-tune this parameter if profiling indicates specific problems with fragmentation, memory overhead, or unusual allocation patterns.
 
 ===== Memory allocation strategies
-
-// Are you intending for readers to take advantage of these allocation
-// strategies in their code? If so, this section needs to be much more
-// prominent, and not a subheading in a reference section. - bmacdonald
-
 
 To find a free block of memory in a multi block carrier an
 allocation strategy is used. Each type of allocator has
@@ -993,487 +1039,84 @@ link:http://www.erlang.org/doc/efficiency_guide/binaryhandling.html[].
 === Other interesting memory areas
 
 ==== The atom table.
-TODO
+
+Atoms in Erlang are unique identifiers represented as integers internally. All atoms are stored in a global structure known as the **atom table**. The atom table is a fixed-size structure, meaning there’s an upper limit to how many atoms can exist in a running Erlang system (by default, 1,048,576 atoms). While this might sound like a large number, careless usage (especially dynamically creating atoms from external data) can lead to atom exhaustion, which in turn crashes the entire BEAM VM—an event that's roughly as pleasant as unexpectedly stepping on a LEGO brick in the middle of the night.
+
+Each entry in the atom table contains metadata about an atom, including its string representation (the text of the atom itself), a unique internal identifier used by the runtime system, and additional information like reference counts and details about its usage in modules or functions.
+
+Erlang maintains atoms through three key memory allocator types:
+
+* `atom_text`: Contains the string representations of atoms. This area stores the actual text of atoms.
+* `atom_tab`: Stores the atom table itself—a hash table structure for fast lookup.
+* `atom_entry`: Allocates memory for each atom's metadata (internal representation, usage counts, etc.).
+
+Atoms are never garbage collected. Once an atom is created, it persists until the VM shuts down. This design decision simplifies implementation (and improves lookup performance), but comes with a risk: an uncontrolled atom creation (commonly through dynamic atom generation via something like `list_to_atom/1`) can lead to exhausting the atom table. Once the atom limit is reached, attempting to create a new atom results in a runtime error, potentially bringing the node down.
+
+Problems often arise when atoms are created carelessly or dynamically, such as when converting user-provided data directly into atoms, parsing large quantities of untrusted external input, or repeatedly generating atoms within loops or recursive functions. These scenarios can lead to rapid atom table growth, potentially exhausting the atom limit and causing severe system issues.
+
+To avoid this:
+
+* Always validate or whitelist user input before converting to atoms.
+* Use existing atoms wherever possible or, if dynamic identifiers are required, prefer binaries or strings.
+* Monitor the atom table usage regularly using tools like the Observer or built-in functions like 
+    - Atom Count (`erlang:system_info(atom_count)`): Number of unique atoms currently loaded.
+    - Atom Memory (`erlang:memory(atom)`): Total bytes used by atoms including overhead. 
+    - Atom Used Memory (`erlang:memory(atom_used)`): Only the bytes used by the actual atom strings.
+
+A simple check from the Erlang shell can give you a quick indication:
+
+```erlang
+1> erlang:system_info(atom_count).
+34319
+2> erlang:system_info(atom_limit).
+1048576
+3> erlang:memory(atom).
+336049
+4> erlang:memory(atom_used).
+324520
+```
+
+If you ever reach the atom limit, you have two practical solutions:
+
+**Increase the atom table size** (though this is generally a short-term band-aid and should not replace good atom hygiene):
+
+```shell
+    erl +t <new_max_atoms>
+```
+
+**Redesign your application** to avoid the unlimited creation of atoms—typically by using binaries, strings, or integer identifiers instead.
+
+Thus, atoms and their management require care—misuse can cause stability problems—but when handled correctly, they remain an extremely efficient way of referencing static, known keys or identifiers throughout your system.
+
+To safely convert strings to atoms without risk of atom exhaustion, Erlang provides the `list_to_existing_atom/1` function. This function will only succeed if the atom already exists. If you attempt to create a new atom with this function, it will throw an exception:
+
+[source,erlang]
+------------------------------------------
+
+1> list_to_existing_atom("Hello").
+** exception error: bad argument
+in function  list_to_existing_atom/1
+called as list_to_existing_atom("Hello")
+*** argument 1: not an already existing atom
+
+2> list_to_existing_atom("true").
+true
+------------------------------------------
+
 
 ==== Code
-TODO
+Another significant memory area is the code area, where compiled Erlang modules are loaded. Erlang modules, once compiled, are loaded into this code area of memory, which is shared among all processes running within the Erlang runtime system. The code area is generally static and persistent, as modules remain loaded unless explicitly unloaded or replaced (through hot-code loading).
 
-==== Constants
-TODO
+When you load or reload modules using functions such as `l(Module)` or `code:load_file(Module)`, the old code is not immediately removed but kept as the "old" version until no processes reference it. Erlang maintains two versions of each module simultaneously. This allows for safe upgrades without disrupting running processes.
 
+Constants defined in the Erlang code, such as numbers, atoms, and binaries, are stored in a constant pool within the module’s code segment. These constants are efficient in terms of memory usage within a single module, as they are stored only once. However, when constants are used outside of their module—such as during message passing or insertion into ETS tables—they are copied onto the receiving process's heap, potentially increasing overall memory usage significantly.
 
-=== Garbage Collection
-
-// This part of the content seems to be good, and probably worthy of being
-// a top-level heading. It might be a bit long, though. - bmacdonald
-
-
-When a process runs out of space on the stack and heap the process
-will try to reclaim space by doing a minor garbage collection. The
-code for this can be found in
-link:https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_gc.c[erl_gc.c].
-
-
-ERTS uses a generational copying garbage collector. A copying
-collector means that during garbage collection all live young terms
-are copied from the old heap to a new heap. Then the old heap is
-discarded. A generational collector works on the principle that
-most terms die young, they are temporary terms created, used,
-and thrown away. Older terms are promoted to the old generation
-which is collected more seldom, with the rational that once
-a term has become old it will probably live for a long time.
-
-Conceptually a garbage collection cycle works as follows:
-
-* First you collect all roots (e.g. the stack).
-* Then for each root, if the root points to a heap allocated object
-which doesn't have a forwarding pointer you copy the object to the new
-heap. For each copied object update the original with a forwarding
-pointer to the new copy.
-* Now go through the new heap and do the same as for the roots.
-
-We will go through an example to see how this is done in
-detail. We will go through a minor collection without an
-old generation, and we will only use the stack as the root set.
-In reality the process dictionary, trace data and probe data
-among other things are also included in the rootset.
-
-Let us look at how the call to garbage_collect in the gc_example
-behaves. The code will generate a string which is shared by two
-elements of a cons and a tuple, the tuple will the be eliminated
-resulting in garbage. After the GC there should only be one string on
-the heap. That is, first we generate the term 
-`+{["Hello","Hello"], "Hello"}+` (sharing the same string `"Hello"` in 
-all instances. Then we just keep the term `+["Hello","Hello"]+` when
-triggering a GC.
-
-NOTE: We will take the opportunity to go through how you, on a
-linux system, can use gdb to examine the behavior of ERTS.
-You can of course use the debugger of your choice. If you already know
-how to use gdb or if you have no interest in going into the debugger
-you can just ignore the meta text about how to inspect the system and
-just look at the diagrams and the explanations of how the GC works.
+Monitoring and managing code memory usage is essential, particularly in long-running systems that frequently perform hot-code upgrades. You can inspect loaded modules and their statuses using built-in functions such as `code:all_loaded/0`, and `erlang:memory(code)` to monitor the total memory usage by loaded modules and their constants. 
 
 
 [source,erlang]
-----
-include::../code/memory_chapter/src/gc_example.erl[]
-----
+------------------------------------------
+1> erlang:memory(code).
+6378630
+------------------------------------------
 
-After compiling the example I start an erlang shell, test the call
-and prepare for a new call to the example (without hitting return):
-
-----
-1> gc_example:example().
-["Hello","Hello"]
-2> spawn(gc_example,example,[]).
-----
-
-Then I use gdb to attach to my erlang node (OS PID: 2955 in this case)
-----
-$ gdb /home/happi/otp/lib/erlang/erts-6.0/bin/beam.smp 2955
-----
-
-
-NOTE: Depending on your settings for ptrace_scope you might have to
-precede the gdb invocation with 'sudo'.
-
-Then in gdb I set a breakpoint at the start of the main GC function and
-let the node continue:
-
-----
-(gdb) break garbage_collect_0
-(gdb) cont
-Continuing.
-----
-
-Now I hit enter in the Erlang shell and execution stops at the breakpoint:
-
-----
-Breakpoint 1, garbage_collect_0 (A__p=0x7f673d085f88, BIF__ARGS=0x7f673da90340) at beam/bif.c:3771
-3771	    FLAGS(BIF_P) |= F_NEED_FULLSWEEP;
-----
-
-Now we can inspect the PCB of the process:
-
-----
-(gdb) p *(Process *) A__p
-$1 = {common = {id = 1408749273747, refc = {counter = 1}, tracer_proc = 18446744073709551611, trace_flags = 0, u = {alive = {
-        started_interval = 0, reg = 0x0, links = 0x0, monitors = 0x0, ptimer = 0x0}, release = {later = 0, func = 0x0, data = 0x0, 
-        next = 0x0}}}, htop = 0x7f6737145950, stop = 0x7f6737146000, heap = 0x7f67371458c8, hend = 0x7f6737146010, heap_sz = 233, 
-  min_heap_size = 233, min_vheap_size = 46422, fp_exception = 0, hipe = {nsp = 0x0, nstack = 0x0, nstend = 0x0, ncallee = 0x7f673d080000, 
-    closure = 0, nstgraylim = 0x0, nstblacklim = 0x0, ngra = 0x0, ncsp = 0x7f673d0863e8, narity = 0, float_result = 0}, arity = 0, 
-  arg_reg = 0x7f673d086080, max_arg_reg = 6, def_arg_reg = {393227, 457419, 18446744073709551611, 233, 46422, 2000}, cp = 0x7f673686ac40, 
-  i = 0x7f673be17748, catches = 0, fcalls = 1994, rcount = 0, schedule_count = 0, reds = 0, group_leader = 893353197987, flags = 0, 
-  fvalue = 18446744073709551611, freason = 0, ftrace = 18446744073709551611, next = 0x7f673d084cc0, nodes_monitors = 0x0, 
-  suspend_monitors = 0x0, msg = {first = 0x0, last = 0x7f673d086120, save = 0x7f673d086120, len = 0, mark = 0x0, saved_last = 0x7d0}, u = {
-    bif_timers = 0x0, terminate = 0x0}, dictionary = 0x0, seq_trace_clock = 0, seq_trace_lastcnt = 0, 
-  seq_trace_token = 18446744073709551611, initial = {393227, 457419, 0}, current = 0x7f673be17730, parent = 1133871366675, 
-  approx_started = 1407857804, high_water = 0x7f67371458c8, old_hend = 0x0, old_htop = 0x0, old_heap = 0x0, gen_gcs = 0, 
-  max_gen_gcs = 65535, off_heap = {first = 0x0, overhead = 0}, mbuf = 0x0, mbuf_sz = 0, psd = 0x0, bin_vheap_sz = 46422, 
-  bin_vheap_mature = 0, bin_old_vheap_sz = 46422, bin_old_vheap = 0, sys_task_qs = 0x0, state = {counter = 41002}, msg_inq = {first = 0x0, 
-    last = 0x7f673d086228, len = 0}, pending_exit = {reason = 0, bp = 0x0}, lock = {flags = {counter = 1}, queue = {0x0, 0x0, 0x0, 0x0}, 
-    refc = {counter = 1}}, scheduler_data = 0x7f673bd6c080, suspendee = 18446744073709551611, pending_suspenders = 0x0, run_queue = {
-    counter = 140081362118912}, hipe_smp = {have_receive_locks = 0}}
-----
-
-Wow, that was a lot of information. The interesting part is about the stack and the heap:
-
-----
-hend = 0x7f6737146010,
-stop = 0x7f6737146000,
-htop = 0x7f6737145950,
-heap = 0x7f67371458c8,
-----
-
-By using some helper scripts we can inspect the stack and the heap in a meaningful
-way. (see xref:AP-listings[] for the definitions of the scripts in gdb_script.)
-
-----
-(gdb) source gdb_scripts 
-(gdb) print_p_stack A__p
-0x00007f6737146008 [0x00007f6737145929] cons -> 0x00007f6737145928
-(gdb) print_p_heap A__p
-0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
-0x00007f6737145938 [0x0000000000000080] Tuple size 2
-0x00007f6737145930 [0x00007f6737145919] cons -> 0x00007f6737145918
-0x00007f6737145928 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145920 [0xfffffffffffffffb] NIL
-0x00007f6737145918 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145910 [0x00007f67371458f9] cons -> 0x00007f67371458f8
-0x00007f6737145908 [0x000000000000048f] 72
-0x00007f6737145900 [0x00007f67371458e9] cons -> 0x00007f67371458e8
-0x00007f67371458f8 [0x000000000000065f] 101
-0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
-0x00007f67371458e8 [0x00000000000006cf] 108
-0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
-0x00007f67371458d8 [0x00000000000006cf] 108
-0x00007f67371458d0 [0xfffffffffffffffb] NIL
-0x00007f67371458c8 [0x00000000000006ff] 111
-----
-
-Here we can see the heap of the process after it has allocated the
-list "Hello" on the heap and the cons containing that list twice, and
-the tuple containing the cons and the list. The _root set_, in this
-case the stack, contains a pointer to the cons containing two copies
-of the list. The tuple is dead, that is, there are no references to
-it.
-
-The garbage collection starts by calculating the root set and by
-allocating a new heap (_to space_). By stepping into the GC code in the
-debugger you can see how this is done. I will not go through the
-details here. After a number of steps the execution will reach the
-point where all terms in the root set are copied to the new heap. This
-starts around (depending on version) line 1272 with a `while` loop in
-erl_gc.c.
-
-In our case the root is a cons pointing to address 0x00007f95666597f0
-containing the letter (integer) 'H'. When a cons cell is moved from
-the current heap, called _from space_, to _to space_ the value in the
-head (or car) is overwritten with a _moved cons_ tag (the value 0).
-
-After the first step where the root set is moved, the _from space_
-and the _to space_ looks like this:
-
-from space:
-
-----
-(gdb) print_p_heap p
-0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
-0x00007f6737145938 [0x0000000000000080] Tuple size 2
-0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
-0x00007f6737145928 [0x0000000000000000] Tuple size 0
-0x00007f6737145920 [0xfffffffffffffffb] NIL
-0x00007f6737145918 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145910 [0x00007f67371458f9] cons -> 0x00007f67371458f8
-0x00007f6737145908 [0x000000000000048f] 72
-0x00007f6737145900 [0x00007f67371458e9] cons -> 0x00007f67371458e8
-0x00007f67371458f8 [0x000000000000065f] 101
-0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
-0x00007f67371458e8 [0x00000000000006cf] 108
-0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
-0x00007f67371458d8 [0x00000000000006cf] 108
-0x00007f67371458d0 [0xfffffffffffffffb] NIL
-0x00007f67371458c8 [0x00000000000006ff] 111
-----
-
-to space:
-
-----
-(gdb) print_heap n_htop-1 n_htop-2
-0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f6737145918
-0x00007f67371445b0 [0x00007f6737145909] cons -> 0x00007f6737145908
-
-----
-
-In _from space_ the head of the first cons cell has been overwritten
-with 0 (looks like a tuple of size 0) and the tail has been overwritten
-with a forwarding pointer pointing to the new cons cell in the _to space_.
-In _to space_ we now have the first cons cell with two
-backward pointers to the head and the tail of the cons in the _from space_.
-
-
-When the collector is done with the root set the _to space_ contains
-backward pointers to all still live terms. At this point the collector
-starts sweeping the _to space_. It uses two pointers `n_hp` pointing to
-the bottom of the unseen heap and `n_htop` pointing to the top of the heap.
-
-----
-n_htop:
-        0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f6737145918
-n_hp    0x00007f67371445b0 [0x00007f6737145909] cons -> 0x00007f6737145908
-----
-
-
-The GC will then look at the value pointed to by `n_hp`, in this case a
-cons pointing back to the _from space_. So it moves that cons to the to
-space, incrementing n_htop to make room for the new cons, and
-incrementing `n_hp` to indicate that the first cons is seen.
-
-----
-from space:
-
-0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
-0x00007f6737145938 [0x0000000000000080] Tuple size 2
-0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
-0x00007f6737145928 [0x0000000000000000] Tuple size 0
-0x00007f6737145920 [0xfffffffffffffffb] NIL
-0x00007f6737145918 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145910 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-0x00007f6737145908 [0x0000000000000000] Tuple size 0
-0x00007f6737145900 [0x00007f67371458e9] cons -> 0x00007f67371458e8
-0x00007f67371458f8 [0x000000000000065f] 101
-0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
-0x00007f67371458e8 [0x00000000000006cf] 108
-0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
-0x00007f67371458d8 [0x00000000000006cf] 108
-0x00007f67371458d0 [0xfffffffffffffffb] NIL
-0x00007f67371458c8 [0x00000000000006ff] 111
-
-to space:
-
-n_htop:
-        0x00007f67371445c8 [0x00007f67371458f9] cons -> 0x00007f67371458f8
-        0x00007f67371445c0 [0x000000000000048f] 72
-n_hp    0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f6737145918
-SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-----
-
-The same thing then happens with the second cons.
-
-----
-from space:
-
-0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
-0x00007f6737145938 [0x0000000000000080] Tuple size 2
-0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
-0x00007f6737145928 [0x0000000000000000] Tuple size 0
-0x00007f6737145920 [0x00007f67371445d1] cons -> 0x00007f67371445d0
-0x00007f6737145918 [0x0000000000000000] Tuple size 0
-0x00007f6737145910 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-0x00007f6737145908 [0x0000000000000000] Tuple size 0
-0x00007f6737145900 [0x00007f67371458e9] cons -> 0x00007f67371458e8
-0x00007f67371458f8 [0x000000000000065f] 101
-0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
-0x00007f67371458e8 [0x00000000000006cf] 108
-0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
-0x00007f67371458d8 [0x00000000000006cf] 108
-0x00007f67371458d0 [0xfffffffffffffffb] NIL
-0x00007f67371458c8 [0x00000000000006ff] 111
-
-to space:
-
-n_htop:
-        0x00007f67371445d8 [0xfffffffffffffffb] NIL
-        0x00007f67371445d0 [0x00007f6737145909] cons -> 0x00007f6737145908
-        0x00007f67371445c8 [0x00007f67371458f9] cons -> 0x00007f67371458f8
-n_hp    0x00007f67371445c0 [0x000000000000048f] 72
-SEEN    0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f67371445d0
-SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-----
-
-The next element in _to space_ is the immediate 72, which is only
-stepped over (with `n_hp++`). Then there is another cons which is moved.
-
-The same thing then happens with the second cons.
-
-----
-from space:
-
-0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
-0x00007f6737145938 [0x0000000000000080] Tuple size 2
-0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
-0x00007f6737145928 [0x0000000000000000] Tuple size 0
-0x00007f6737145920 [0x00007f67371445d1] cons -> 0x00007f67371445d0
-0x00007f6737145918 [0x0000000000000000] Tuple size 0
-0x00007f6737145910 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-0x00007f6737145908 [0x0000000000000000] Tuple size 0
-0x00007f6737145900 [0x00007f67371445e1] cons -> 0x00007f67371445e0
-0x00007f67371458f8 [0x0000000000000000] Tuple size 0
-0x00007f67371458f0 [0x00007f67371458d9] cons -> 0x00007f67371458d8
-0x00007f67371458e8 [0x00000000000006cf] 108
-0x00007f67371458e0 [0x00007f67371458c9] cons -> 0x00007f67371458c8
-0x00007f67371458d8 [0x00000000000006cf] 108
-0x00007f67371458d0 [0xfffffffffffffffb] NIL
-0x00007f67371458c8 [0x00000000000006ff] 111
-
-to space:
-
-n_htop:
-        0x00007f67371445e8 [0x00007f67371458e9] cons -> 0x00007f67371458e8
-        0x00007f67371445e0 [0x000000000000065f] 101
-        0x00007f67371445d8 [0xfffffffffffffffb] NIL
-n_hp    0x00007f67371445d0 [0x00007f6737145909] cons -> 0x00007f6737145908
-SEEN    0x00007f67371445c8 [0x00007f67371458f9] cons -> 0x00007f67371445e0
-SEEN    0x00007f67371445c0 [0x000000000000048f] 72
-SEEN    0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f67371445d0
-SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-----
-
-Now we come to a cons that points to a cell that has already been moved.
-The GC sees the IS_MOVED_CONS tag at 0x00007f6737145908 and copies the
-destination of the moved cell from the tail (`*n_hp++ = ptr[1];`). This
-way sharing is preserved during GC. This step does not affect _from space_,
-but the backward pointer in to space is rewritten.
-
-----
-to space:
-
-n_htop:
-        0x00007f67371445e8 [0x00007f67371458e9] cons -> 0x00007f67371458e8
-        0x00007f67371445e0 [0x000000000000065f] 101
-n_hp    0x00007f67371445d8 [0xfffffffffffffffb] NIL
-SEEN    0x00007f67371445d0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-SEEN    0x00007f67371445c8 [0x00007f67371458f9] cons -> 0x00007f67371445e0
-SEEN    0x00007f67371445c0 [0x000000000000048f] 72
-SEEN    0x00007f67371445b8 [0x00007f6737145919] cons -> 0x00007f67371445d0
-SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-----
-
-Then the rest of the list (the string) is moved.
-
-----
-from space:
-
-0x00007f6737145948 [0x00007f6737145909] cons -> 0x00007f6737145908
-0x00007f6737145940 [0x00007f6737145929] cons -> 0x00007f6737145928
-0x00007f6737145938 [0x0000000000000080] Tuple size 2
-0x00007f6737145930 [0x00007f67371445b1] cons -> 0x00007f67371445b0
-0x00007f6737145928 [0x0000000000000000] Tuple size 0
-0x00007f6737145920 [0x00007f67371445d1] cons -> 0x00007f67371445d0
-0x00007f6737145918 [0x0000000000000000] Tuple size 0
-0x00007f6737145910 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-0x00007f6737145908 [0x0000000000000000] Tuple size 0
-0x00007f6737145900 [0x00007f67371445e1] cons -> 0x00007f67371445e0
-0x00007f67371458f8 [0x0000000000000000] Tuple size 0
-0x00007f67371458f0 [0x00007f67371445f1] cons -> 0x00007f67371445f0
-0x00007f67371458e8 [0x0000000000000000] Tuple size 0
-0x00007f67371458e0 [0x00007f6737144601] cons -> 0x00007f6737144600
-0x00007f67371458d8 [0x0000000000000000] Tuple size 0
-0x00007f67371458d0 [0x00007f6737144611] cons -> 0x00007f6737144610
-0x00007f67371458c8 [0x0000000000000000] Tuple size 0
-
-to space:
-
-n_htop:
-n_hp
-SEEN    0x00007f6737144618 [0xfffffffffffffffb] NIL
-SEEN    0x00007f6737144610 [0x00000000000006ff] 111
-SEEN    0x00007f6737144608 [0x00007f6737144611] cons -> 0x00007f6737144610
-SEEN    0x00007f6737144600 [0x00000000000006cf] 108
-SEEN    0x00007f67371445f8 [0x00007f6737144601] cons -> 0x00007f6737144600
-SEEN    0x00007f67371445f0 [0x00000000000006cf] 108
-SEEN    0x00007f67371445e8 [0x00007f67371445f1] cons -> 0x00007f67371445f0
-SEEN    0x00007f67371445e0 [0x000000000000065f] 101
-SEEN    0x00007f67371445d8 [0xfffffffffffffffb] NIL
-SEEN    0x00007f67371445d0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-SEEN    0x00007f67371445c8 [0x00007f67371445e1] cons -> 0x00007f67371445e0
-SEEN    0x00007f67371445c0 [0x000000000000048f] 72
-SEEN    0x00007f67371445b8 [0x00007f67371445d1] cons -> 0x00007f67371445d0
-SEEN    0x00007f67371445b0 [0x00007f67371445c1] cons -> 0x00007f67371445c0
-----
-
-There are some things to note from this example. When terms are
-created in Erlang they are created bottom up, starting with the
-elements. The garbage collector works top down, starting with the
-top level structure and then copying the elements. This means that
-the direction of the pointers change after the first GC. This has
-no real implications but it is good to know when looking at actual
-heaps. You can not assume that structures should be bottom up.
-
-Also note that the GC does a breath first traversal. This means that
-locality for one term most often is worse after a GC. With the size of
-modern caches this should not be a problem. You could of course create
-a pathological example where it becomes a problem, but you can also
-create a pathological example where a depth first approach would cause
-problems.
-
-The third thing to note is that sharing is preserved which is really
-important otherwise we might end up using more space after a GC than
-before.
-
-Generations..
-
-[ditaa]
-----
-  hend ->  +----+
-           |....|
-  stop ->  |    |
-           |    |    +----+ old_hend
-           |    |    |    |
-  htop ->  |    |    |    |
-           |....|    |    | old_htop
-           |....|    |....|
-  heap ->  +----+    +----+ old_heap
-          The Heap   Old Heap
-
-
-----
-
- `high_water, old_hend, old_htop, old_heap,
- gen_gcs, max_gen_gcs, off_heap,  mbuf, mbuf_sz, psd, bin_vheap_sz,
- bin_vheap_mature, bin_old_vheap_sz, bin_old_vheap`.
-
-//  ==== TODO
-//
-// Growth of the stack and heap, Shrinking. No Stack overflow? 
-//
-// Random thoughts:
-//
-// Erlang has no updates - there can be no cycles: use reference count.
-//
-// Erlang terms are small.
-//
-// The HiPE group did some measures:
-// 75% cons cells
-// 24% !cons but smaller than 8 words
-//  1% >= 8 words
-//
-// Less fragmentation & better locality with copying collector
-//
-// Advantages with 1 heap/process:
-// + Free reclamation when a process dies
-// + Small root set
-// + Improved cache locallity
-// + Cheap stack/heap test
-//
-// Disadvantages with 1 heap/process:
-// - Message passing is expensive
-// - Uses more space (fragmentation)
-//
-
-//  The garbage collector, generations, full sweep. 
-
-
-// Put in pat II:
-//  Getting information about stacks,
-//  heaps and the GC. 
-//  Tweaking stack and heap
-//  parameters. 
-
-// Hibernation. 

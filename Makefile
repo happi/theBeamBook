@@ -7,7 +7,7 @@ all: pdf html
 pdf: beam-book.pdf
 
 chapters/contributors.txt: .git
-	git --no-pager log | git --no-pager shortlog -s -n | awk '{$$1=""}1' | grep -v "Your Name" > $@
+	git --no-pager log | git --no-pager shortlog -s -n | awk '{$$1=""}1' | grep -v "happi" | grep -v "Erik Stenman" | grep -v "Your Name" > $@
 
 beam-book.pdf:  chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
 	asciidoctor-pdf  -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram -r ./style/custom-admonition-block.rb  -a config=./style/ditaa.cfg --doctype=book -a pdf-style=./style/pdf-theme.yml book.asciidoc -o $@

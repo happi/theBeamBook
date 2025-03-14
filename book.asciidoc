@@ -45,6 +45,8 @@ include::chapters/scheduling.asciidoc[]
 
 include::chapters/memory.asciidoc[]
 
+include::chapters/gc.asciidoc[]
+
 include::chapters/data_structures.asciidoc[]
 
 include::chapters/io.asciidoc[]

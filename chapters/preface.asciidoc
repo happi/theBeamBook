@@ -44,13 +44,32 @@ With this knowledge, you will be able to understand
 how your application behaves when running on the BEAM, and you will also
 be able to find and fix problems with the performance of your application.
 
-//In the second part of this book, we will go through how you successfully
-//run, monitor, and scale your BEAM application.
-
 You don’t need to be an Erlang programmer to read this book, but you
 will need some basic understanding of what Erlang is. This following
 section will give you some Erlang background.
 
+. A note on pictures of memory
+****
+
+*Note* When drawing overview pictures of system memory and stacks we
+will follow the convention that memory addresses grows upward. That is
+low memory addresses on the bottom of the page and high memory
+addresses on the top of the page. (Stacks most often grow downward
+starting at high addresses, so that new elements are pushed at the
+lowest address.)
+
+However when we draw a c-structure we will draw the fields from the
+top and down, even though the first field of the structure will be
+at the lowest address and the following fields at higher addresses.
+So pictures of structures have low address at the top of the page
+and high address at the bottom of the page.
+
+This means that a picture of a c-structure and a picture of a memory
+area will have their address positions on the page mirrored. This becomes
+somewhat confusing when we try to picture structures and heaps in the
+same picture.
+
+****
 
 === Erlang
 
