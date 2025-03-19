@@ -1,4 +1,4 @@
-= The BEAM Book
+= The BEAM Book: Understanding the Erlang Runtime System
 :author: Erik Stenman
 :encoding: utf-8
 :lang: en
