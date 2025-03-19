@@ -1,10 +1,9 @@
-= The Erlang Runtime System
+= The BEAM Book
 :author: Erik Stenman
 :encoding: utf-8
 :lang: en
-:toc: left
-:toclevels: 3
-:experimental:
+:toc: macro
+:toclevels: 2
 :icons: font
 :partnums:
 :sectnums:
@@ -16,6 +15,48 @@
 :ditaa-transparent: true
 :attribute-missing: warn
 :xrefstyle: short
+[cols="^.^,^.^", options="autowidth"]
+ifdef::pdf[]
+:pdf-width: 90%
+:pdf-scale-images: true
+:pdf-scale-tables: true
+endif::[]
+
+
+[.text-center]
+The BEAM Book
+
+Written by Erik Stenman and contributors.
+
+This work is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0).
+This means you are free to share, copy, redistribute, and modify this book under the following terms:
+
+Attribution: Credit must be given to the original authors and contributors.
+No Additional Restrictions: You cannot impose legal restrictions that prevent others from using the book freely under the same terms.
+Contributors: Special thanks to Richard Carlsson, Yoshihiro Tanaka, Roberto Aloi and Dmytro Lytovchenko.
+For full attribution details, visit:
+
+link:https://github.com/happi/theBeamBook/graphs/contributors[].
+
+Free Digital Version Available.
+
+This book is freely available online at
+link:https://github.com/happi/theBeamBook/[]
+under the Creative Commons license. This printed edition is provided for convenience.
+
+For more information on the Creative Commons license, visit:
+
+link:https://creativecommons.org/licenses/by/4.0/[].
+
+First Edition, 2025
+
+ISBN:
+
+[.text-center]
+© 2025 Erik Stenman.
+
+toc::[]
+
 
 include::chapters/preface.asciidoc[]
 

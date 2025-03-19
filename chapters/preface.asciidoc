@@ -166,3 +166,4 @@ the book.
 Finally, a big thank you to everyone who has contributed with edits and fixes:
 
 include::contributors.txt[]
+
