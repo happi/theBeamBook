@@ -10,6 +10,9 @@ pdf-a4: beam-book-a4.pdf
 
 pdf-publish: beam-book-publish.pdf
 
+chapters/contributors.txt: .git
+	git --no-pager log | git --no-pager shortlog -s -n | awk '{$$1=""}1' | grep -v "happi" | grep -v "Erik Stenman" | grep -v "Your Name" > $@
+
 # A4 Format (Default)
 beam-book-a4.pdf: chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
 	asciidoctor-pdf -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram \
