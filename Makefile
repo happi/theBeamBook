@@ -10,24 +10,36 @@ pdf-a4: beam-book-a4.pdf
 
 pdf-publish: beam-book-publish.pdf
 
-chapters/contributors.txt: .git
-	git --no-pager log | git --no-pager shortlog -s -n | awk '{$$1=""}1' | grep -v "happi" | grep -v "Erik Stenman" | grep -v "Your Name" > $@
+chapters/contributors.txt:
+	{ \
+	echo '[cols="3*",frame=none,grid=none]'; \
+	echo '|==='; \
+	git --no-pager log | git --no-pager shortlog -s -n \
+	| awk '{$$1=""; sub(/^ /, ""); print}' \
+	| grep -Ev "happi|Erik Stenman|Your Name" \
+	| paste - - - | sed 's/^\(.*\)\t\(.*\)\t\(.*\)$$/| \1 | \2 | \3/' \
+	| sed 's/\t/|/g' \
+	| sed 's/| */| /g'; \
+	echo '|==='; \
+	} > $@
 
 # A4 Format (Default)
 beam-book-a4.pdf: chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
 	asciidoctor-pdf -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram \
 	-r ./style/custom-admonition-block.rb -a config=./style/ditaa.cfg \
-	--doctype=book -a pdf-style=./style/pdf-theme.yml \
+	--doctype=book -a pdf-theme=./style/pdf-theme.yml \
 	-a pdf-width=595.28 -a pdf-height=841.89 \
 	-a pdf-margin-top=0.75in -a pdf-margin-bottom=0.75in \
 	-a pdf-margin-inner=0.75in -a pdf-margin-outer=0.5in \
 	book.asciidoc -o $@
 
 # Print-Ready 6"x9" for Publishing
-beam-book-publish.pdf: chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
+beam-book-publish.pdf: style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
 	asciidoctor-pdf -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram \
 	-r ./style/custom-admonition-block.rb -a config=./style/ditaa.cfg \
-	--doctype=book -a pdf-style=./style/pdf-theme-publish.yml \
+	--doctype=book -a pdf-theme=style/pdf-publish-theme.yml \
+	-a pdf-margin-top=0.75in -a pdf-margin-bottom=0.75in \
+	-a pdf-margin-inner=0.75in -a pdf-margin-outer=0.5in \
 	book.asciidoc -o $@ --trace
 
 

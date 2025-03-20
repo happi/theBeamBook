@@ -152,6 +152,7 @@ As an end user you can provide your own functions
 implemented in C by using the _Native Implemented Functions_ (_NIF_)
 interface (see <<NIFs>>).
 
+<<<
 === Acknowledgments
 
 First of all I want to thank the whole OTP team at Ericsson both for maintaining Erlang
@@ -164,6 +165,7 @@ major contributions to the book, and HappiHacking and TubiTV for sponsoring work
 the book.
 
 Finally, a big thank you to everyone who has contributed with edits and fixes:
+
 
 include::contributors.txt[]
 

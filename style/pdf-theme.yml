@@ -21,16 +21,19 @@ page:
   background_color: FFFFFF
   layout: portrait
   initial_zoom: FitH
-  margin: [0.82in, 0.67in, 0.75in, 0.67in]
+  # margin: [0.82in, 0.67in, 0.75in, 0.67in]
+  margin: [0.5in, 0.67in, 0.67in, 0.67in]
   # margin_inner and margin_outer keys are used for recto/verso print margins when media=prepress
-  margin_inner: 0.55in
-  margin_outer: 0.39in
+  # margin_inner: 0.55in
+  # margin_outer: 0.39in
+  margin_inner: 0.75in
+  margin_outer: 0.59in
   size: A4
 base:
   align: justify
   # color as hex string (leading # is optional)
   font_color: 000000
-  font_family: Times-Roman
+  font_family: Noto Serif
   font_size: 10
   line_height_length: 11.25
   line_height: $base_line_height_length / $base_font_size
@@ -41,31 +44,31 @@ base:
   border_color: EEEEEE
   border_radius: 4
   border_width: 0.5
-header:
-  border-color: #dddddd
-  height: 0.65in
-  line-height: 1.0
-  vertical-align: bottom
-  recto:
-    right:
-      content: '{document-title} {part-title}'
-  verso:
-    left:
-      content: $header-recto-right-content
-  running-content:
-    start-at: 4
-footer:
-  border-color: #dddddd
-  height: 0.65in
-  line-height: 1.0
-  vertical-align: top
-  padding: [3, 0, 0, 0]
-  recto:
-    right:
-      content: '{part-title} {chapter-title}     {page-number}/{page-count}'
-  verso:
-    left:
-      content: '{page-number}/{page-count}     {section-or-chapter-title}'
+# header:
+#   border-color: #dddddd
+#   height: 0.65in
+#   line-height: 1.0
+#   vertical-align: bottom
+#   recto:
+#     right:
+#       content: '{document-title} {part-title}'
+#   verso:
+#     left:
+#       content: $header-recto-right-content
+#   running-content:
+#     start-at: 4
+# footer:
+#   border-color: #dddddd
+#   height: 0.65in
+#   line-height: 1.0
+#   vertical-align: top
+#   padding: [3, 0, 0, 0]
+#   recto:
+#     right:
+#       content: '{part-title} {chapter-title}     {page-number}/{page-count}'
+#   verso:
+#     left:
+#       content: '{page-number}/{page-count}     {section-or-chapter-title}'
 role:
   line-through:
     text_decoration: line-through
@@ -84,20 +87,19 @@ horizontal_rhythm: $base_line_height_length
 vertical_spacing: $vertical_rhythm
 link:
   font_color: 428BCA
-# literal is currently used for inline monospaced in prose and table cells
-literal:
+codespan:
   font_color: B12146
   font_family: M+ 1mn
 button:
   content: "[\u2009%s\u2009]"
   font_style: bold
-key:
+kbd:
   background_color: F5F5F5
   border_color: CCCCCC
   border_offset: 2
   border_radius: 2
   border_width: 0.5
-  font_family: $literal_font_family
+  font_family: $codespan_font_family
   separator: "\u202f+\u202f"
 mark:
   background_color: FFFF00
@@ -121,26 +123,25 @@ heading:
   margin_bottom: $vertical_rhythm * 0.9
   min_height_after: $base_line_height_length * 1.5
 title_page:
-  align: right
+  text_align: right
   logo:
     top: 10%
   title:
     top: 55%
     font_size: $heading_h1_font_size
-    font_color: 000000
+    font_color: $role_subtitle_font_color
     line_height: 0.9
   subtitle:
     font_size: $heading_h3_font_size
     font_style: bold_italic
     line_height: 1
   authors:
-    margin_top: $heading_h3_font_size * 1.25
-    font_size: $heading_h3_font_size
+    margin_top: $base_font_size * 1.25
+    font_size: $base_font_size_large
     font_color: 181818
   revision:
     margin_top: $base_font_size * 1.25
 block:
-  margin_top: 0
   margin_bottom: $vertical_rhythm
 caption:
   align: left
@@ -174,7 +175,7 @@ admonition:
   label:
     text_transform: uppercase
     font_style: bold
-blockquote:
+quote:
   font_size: $base_font_size_large
   border_color: $base_border_color
   border_width: 0
@@ -193,7 +194,7 @@ verse:
 # code is used for source blocks (perhaps change to source or listing?)
 code:
   font_color: $base_font_color
-  font_family: $literal_font_family
+  font_family: $codespan_font_family
   #font_family: Courier
   font_size: ceil($base_font_size)
   padding: $code_font_size
@@ -202,8 +203,8 @@ code:
   line_gap: 3.8
   background_color: F5F5F5
 conum:
-  font_family: $literal_font_family
-  font_color: $literal_font_color
+  font_family: $codespan_font_family
+  font_color: $codespan_font_color
   font_size: $base_font_size
   line_height: 4 / 3
   glyphs: circled
@@ -241,7 +242,7 @@ description_list:
   term_font_style: bold
   term_spacing: $vertical_rhythm / 4
   description_indent: $horizontal_rhythm * 1.25
-outline_list:
+list:
   indent: $horizontal_rhythm * 1.5
   # NOTE outline_list_item_spacing applies to list items that do not have complex content
   item_spacing: $vertical_rhythm / 2
@@ -268,3 +269,24 @@ toc:
 footnotes:
   font_size: round($base_font_size * 0.75)
   item_spacing: $outline_list_item_spacing / 2
+index:
+  column_gap: $vertical_rhythm
+header:
+  font_size: $base_font_size_small
+  line_height: 1
+  vertical_align: middle
+footer:
+  font_size: $base_font_size_small
+  # NOTE if background_color is set, background and border will span width of page
+  border_color: DDDDDD
+  border_width: 0.25
+  height: $base_line_height_length * 2.5
+  line_height: 1
+  padding: [$base_line_height_length / 2, 1, 0, 1]
+  vertical_align: top
+  recto:
+    right:
+      content: '{page-number}'
+  verso:
+    left:
+      content: $footer_recto_right_content
