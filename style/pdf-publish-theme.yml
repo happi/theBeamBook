@@ -1,38 +1,35 @@
-extends: ./style/pdf-theme.yml
+extends: pdf-theme.yml
 
 page:
-  size: 6x9in
-  margin: [0.5in, 0.5in, 0.5in, 0.5in]  # top, right, bottom, left
+  size: [6in, 9in]
+  margin: [0.75in, 0.75in, 0.75in, 0.75in]
+  margin-inner: 0.85in   # Inside margin (gutter)
+  margin-outer: 0.75in  # Outside margin
+  margin-top: 0.75in
+  margin-bottom: 0.85in
   bleed: 0.125in
 
-title_page:
-  align: center
-  title:
-    font_size: 14  # Reduce title size (default is ~36)
-    line_height: 0.9
-  subtitle:
-    font_size: 10
-    font_style: bold_italic
-  authors:
-    font_size: 10
-  revision:
-    font_size: 9
 
 base:
-  font-size: 10  # Reduce size slightly for 6x9 format
-  line-height: 1.4
-
-code:
-  background-color: #f5f5f5
-  border-radius: 3
-  font_size: 8  # Default may be 10, shrink to fit
-  line_height: 1.2
-
-table:
-  font-size: 9  # Smaller text to fit tables
-  cell-padding: 3
+  font_size: 9.5
+  line_height: 1.3
 
 heading:
-  font-size: 12
-  font-style: bold
-  font-color: #111111
+  h1_font_size: 18
+  h2_font_size: 14
+  h3_font_size: 12
+  h4_font_size: 11
+  h5_font_size: 10
+  h6_font_size: 9.5
+
+code:
+  font_size: 8.5
+  line_height: 1.1
+
+table:
+  font_size: 8.5
+  cell_padding: 2
+
+footer:
+  height: 0.70in
+  line_height: 1

@@ -1,5 +1,11 @@
 = The BEAM Book: Understanding the Erlang Runtime System
+Erik Stenman
 :author: Erik Stenman
+:title: The BEAM Book: Understanding the Erlang Runtime System
+:subject: Computer Science, Programming Languages
+:keywords: Erlang, BEAM, ERTS, Concurrency, Programming
+:producer: HappiHacking
+:creator: Asciidoctor PDF
 :encoding: utf-8
 :lang: en
 :toc: macro
@@ -15,12 +21,8 @@
 :ditaa-transparent: true
 :attribute-missing: warn
 :xrefstyle: short
-[cols="^.^,^.^", options="autowidth"]
-ifdef::pdf[]
-:pdf-width: 90%
-:pdf-scale-images: true
-:pdf-scale-tables: true
-endif::[]
+:footer:
+:footer-style: normal
 
 
 [.text-center]
@@ -31,14 +33,15 @@ Written by Erik Stenman and contributors.
 This work is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0).
 This means you are free to share, copy, redistribute, and modify this book under the following terms:
 
-Attribution: Credit must be given to the original authors and contributors.
-No Additional Restrictions: You cannot impose legal restrictions that prevent others from using the book freely under the same terms.
-Contributors: Special thanks to Richard Carlsson, Yoshihiro Tanaka, Roberto Aloi and Dmytro Lytovchenko.
-For full attribution details, visit:
+ * Attribution: Credit must be given to the original authors and contributors.
+ * No Additional Restrictions: You cannot impose legal restrictions that prevent others from using the book freely under the same terms.
 
+*Contributors:* Special thanks to Richard Carlsson, Yoshihiro Tanaka, Roberto Aloi and Dmytro Lytovchenko.
+
+For full attribution details, visit:
 link:https://github.com/happi/theBeamBook/graphs/contributors[].
 
-Free Digital Version Available.
+*Free Digital Version Available.*
 
 This book is freely available online at
 link:https://github.com/happi/theBeamBook/[]
@@ -50,10 +53,11 @@ link:https://creativecommons.org/licenses/by/4.0/[].
 
 First Edition, 2025
 
-ISBN:
+ISBN: 978-91-531-4253-9
 
 [.text-center]
 © 2025 Erik Stenman.
+
 
 toc::[]
 
@@ -88,7 +92,7 @@ include::chapters/memory.asciidoc[]
 
 include::chapters/gc.asciidoc[]
 
-include::chapters/data_structures.asciidoc[]
+// include::chapters/data_structures.asciidoc[]
 
 include::chapters/io.asciidoc[]
 
