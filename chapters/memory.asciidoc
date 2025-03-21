@@ -136,9 +136,10 @@ With this knoweledge and some tools that we will look at later
 you should be able to detect and fix problems if your system
 ends up in one of these corner cases.
 
-For a nice story about the troubles the system might get into
-and how to analyze and correct the behavior read
-Fred Hébert’s essay https://blog.heroku.com/archives/2013/11/7/logplex-down-the-rabbit-hole["Troubleshooting Down the Logplex Rabbit Hole"].
+For a nice story about the troubles the system might get into and how to analyze
+and correct the behavior read Fred Hébert’s essay
+https://blog.heroku.com/archives/2013/11/7/logplex-down-the-rabbit-hole["Troubleshooting
+Down the Logplex Rabbit Hole"].
 
 
 When we are talking about a memory allocator in this book we
@@ -321,30 +322,66 @@ multiblock |     Block 2   |       | MSmmbcs kb
 
 ===== Blocks, Carriers, and Allocation Strategies
 
-When an Erlang process needs memory, it doesn't directly request it from the operating system with each allocation. Instead, it interacts with specialized allocators provided by the _alloc_util_ framework (implemented in `erl_alloc_util.[ch]`). These allocators handle requests by distributing memory from larger contiguous regions known as "carriers."
+When an Erlang process needs memory, it doesn't directly request it from the
+operating system with each allocation. Instead, it interacts with specialized
+allocators provided by the _alloc_util_ framework (implemented in
+`erl_alloc_util.[ch]`). These allocators handle requests by distributing memory
+from larger contiguous regions known as "carriers."
 
-Carriers are memory regions allocated directly from the operating system. A carrier is allocated either through:
+Carriers are memory regions allocated directly from the operating system. A
+carrier is allocated either through:
 
-- `sys_alloc` (using standard C library functions like `malloc()`), placing memory on the process heap, or
-- `mseg_alloc` (using `mmap()`), placing memory outside the typical C-heap area.
+ - `sys_alloc` (using standard C library functions like `malloc()`), placing
+ memory on the process heap, or
+ 
+ - `mseg_alloc` (using `mmap()`), placing memory outside the typical C-heap
+ area.
 
-Carriers are subdivided into smaller memory segments called "blocks." When memory is requested, blocks are allocated from these carriers. There are two primary carrier types:
+Carriers are subdivided into smaller memory segments called "blocks." When
+memory is requested, blocks are allocated from these carriers. There are two
+primary carrier types:
 
-- **Singleblock Carrier**: A carrier containing exactly one block. Typically used for larger allocations.
-- **Multiblock Carrier**: Holds multiple smaller blocks of memory, serving requests for small-to-medium-sized allocations efficiently.
+ - **Multiblock Carrier**: These hold multiple smaller blocks, suitable for
+ frequent, smaller allocations. By default, allocators typically request
+ multiblock carriers in approximately 8 MB chunks (tunable via system flags),
+ efficiently handling common Erlang memory patterns. 
+ 
+ - **Singleblock Carrier**: Dedicated to exactly one large block. Allocations
+ exceeding the single block carrier threshold are placed in
+ single-block carriers directly allocated from the OS.
 
 ===== Carrier Threshold (`sbct`) and its Impact
 
-The parameter known as _singleblock carrier threshold_ (`sbct`) determines the size boundary between what's considered a "small" and "large" allocation. Allocations larger than the `sbct` value use singleblock carriers, while smaller allocations use multiblock carriers.
+The parameter known as _singleblock carrier threshold_ (`sbct`) determines the
+size boundary between what's considered a "small" and "large" allocation.
+Allocations larger than the `sbct` value use singleblock carriers, while smaller
+allocations use multiblock carriers.
+
+By default, the sbct threshold is set so that larger allocations, those
+significantly bigger than typical Erlang terms—are isolated in single-block
+carriers. Smaller objects, which constitute most allocations, efficiently share
+space within multiblock carriers.
+
+This threshold (sbct) is tunable if your application demonstrates unusual
+allocation patterns. Adjusting it affects how the runtime system balances
+between fragmentation (caused by large allocations in multiblock carriers) and
+overhead (due to many single-block carriers).
 
 ===== Why Most Allocations are Preferably Small (Multiblock Carriers)
 
-Multiblock carriers are favored for their efficiency with typical Erlang workloads—many small, short-lived allocations. Research by the HiPE team has shown most Erlang terms are small (less than eight words), fitting neatly into these multiblock carriers.
+Multiblock carriers are favored for their efficiency with typical Erlang
+workloads—many small, short-lived allocations. Research by the HiPE team has
+shown most Erlang terms are small (less than eight words), fitting neatly into
+these multiblock carriers.
 
 A typical ERTS allocator usually maintains:
 
-- **One main multiblock carrier** per allocator to handle frequent, small-sized allocations. It rarely releases this carrier, reusing freed blocks internally to reduce fragmentation.
-- **Multiple singleblock carriers**, each allocated individually for large objects or binaries. Once these blocks are deallocated, the singleblock carriers are returned to the OS immediately.
+ - **One main multiblock carrier** per allocator to handle frequent, small-sized
+ allocations. It rarely releases this carrier, reusing freed blocks internally
+ to reduce fragmentation. 
+ - **Multiple singleblock carriers**, each allocated
+ individually for large objects or binaries. Once these blocks are deallocated,
+ the singleblock carriers are returned to the OS immediately.
 
 ====== Memory Layout: Carriers and Blocks (Visualized)
 
@@ -391,13 +428,25 @@ heap ->  +----+    +----+ old_heap
 
 ===== When to Adjust the `sbct`
 
-Optimizing the singleblock carrier threshold (`sbct`) parameter is a matter of understanding your application's memory allocation patterns. Increasing `sbct` directs more allocations into multiblock carriers, improving memory reuse and reducing fragmentation. This is especially beneficial if your application frequently allocates moderate-sized data structures, causing fragmentation or frequent OS-level memory requests.
+Optimizing the singleblock carrier threshold (`sbct`) parameter is a matter of
+understanding your application's memory allocation patterns. Increasing `sbct`
+directs more allocations into multiblock carriers, improving memory reuse and
+reducing fragmentation. This is especially beneficial if your application
+frequently allocates moderate-sized data structures, causing fragmentation or
+frequent OS-level memory requests.
 
-Reducing `sbct`, however, forces more allocations into singleblock carriers, making sense when your application occasionally allocates large memory blocks. Managing these large allocations separately simplifies their reclamation and prevents interference with smaller allocations.
+Reducing `sbct`, however, forces more allocations into singleblock carriers,
+making sense when your application occasionally allocates large memory blocks.
+Managing these large allocations separately simplifies their reclamation and
+prevents interference with smaller allocations.
 
-If adjusting `sbct` alone does not resolve frequent minor garbage collections—often due to numerous short-lived allocations—consider increasing the process’s initial heap size (`min_heap_size`) to reduce allocation churn.
+If adjusting `sbct` alone does not resolve frequent minor garbage
+collections—often due to numerous short-lived allocations—consider increasing
+the process’s initial heap size (`min_heap_size`) to reduce allocation churn.
 
-In practice, the default `sbct` setting is suitable for most Erlang applications. Only fine-tune this parameter if profiling indicates specific problems with fragmentation, memory overhead, or unusual allocation patterns.
+In practice, the default `sbct` setting is suitable for most Erlang
+applications. Only fine-tune this parameter if profiling indicates specific
+problems with fragmentation, memory overhead, or unusual allocation patterns.
 
 ===== Memory allocation strategies
 
@@ -448,7 +497,15 @@ for temporary allocations.
 __________________________
 
 
+The choice of allocation strategy influences how efficiently free memory is
+reused and directly impacts fragmentation and performance. The default strategy
+for most allocators is often **best fit** (`bf`) or **address order best fit**
+(`aobf`), which balances memory utilization against allocation speed.
 
+Alternative strategies, such as **address order first fit** or **good fit**, can
+be configured per allocator (using the `+M<S>as <strategy>` system flag).
+Selecting a different strategy can mitigate memory fragmentation at the expense
+of higher CPU overhead during allocation searches.
 
 
 ==== The temporary allocator: temp_alloc
