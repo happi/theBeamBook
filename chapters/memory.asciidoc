@@ -724,7 +724,25 @@ Monitoring `literal_alloc` is usually uneventful, but frequent dynamic module
 updates or loading large literal-heavy modules repeatedly might make it worth a
 glance.
 
-Here's a corrected and structured summary of the **System Flags for Memory**, aligned with the official Erlang OTP documentation:
+
+=== Per-Scheduler Allocator Instances
+
+In modern OTP (since R13B), most memory allocators described above (e.g.,
+`eheap_alloc`, `binary_alloc`, `ets_alloc`) have multiple instances to minimize
+contention in SMP (Symmetric Multi-Processing) environments. By default, each
+scheduler thread maintains its own instance of these allocators, plus one
+additional instance shared by driver async threads.
+
+This per-scheduler allocation approach partitions memory management,
+significantly reducing lock contention and improving scalability on multicore
+systems. It also implies that memory usage and fragmentation are handled
+separately for each scheduler, which can affect how you interpret memory
+statistics or troubleshoot memory-related issues.
+
+When examining allocator metrics (e.g., through `recon_alloc` or
+`erlang:system_info`), you'll see statistics aggregated across multiple
+allocator instances. Be aware of this when analyzing memory patterns.
+
 
 === System Flags for Memory
 
