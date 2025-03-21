@@ -772,7 +772,7 @@ Memory allocator system flags follow this syntax:
 - `Y`: sys_alloc  
 - `u`: alloc_util (affects all alloc_util-based allocators)
 
-### Commonly Used Flags
+=== Commonly Used Flags
 
 **Allocation Strategy (`as`):**
 
@@ -850,7 +850,7 @@ Example:
 ```
 _(Enable tagging for driver_alloc.)_
 
-### Special Flags for `mseg_alloc`
+=== Special Flags for `mseg_alloc`
 
 `mseg_alloc` (Memory Segment Allocator) has specific settings:
 
@@ -878,7 +878,7 @@ _(Enable tagging for driver_alloc.)_
   ```
   _(Stores up to 20 cached segments.)_
 
-### Special Flags for `sys_alloc`
+=== Special Flags for `sys_alloc`
 
 `sys_alloc` interfaces with the system’s malloc:
 
@@ -896,7 +896,7 @@ _(Enable tagging for driver_alloc.)_
   ```
   _(malloc requests 512 KB padding.)_
 
-### Literal Allocator (`literal_alloc`)
+=== Literal Allocator (`literal_alloc`)
 
 Stores literals (compile-time constants):
 
@@ -906,7 +906,7 @@ Stores literals (compile-time constants):
   ```
   _(Set literal allocator super carrier to 2 GB.)_
 
-### Global and Convenience Flags
+=== Global and Convenience Flags
 
 - **Minimal/Maximal Allocation Setup (`ea`):**
   ```
@@ -928,7 +928,7 @@ Stores literals (compile-time constants):
 
 ---
 
-### Practical Examples
+=== Practical Examples
 
 **Reduce fragmentation with address-order best fit across all allocators:**  
 ```
@@ -947,7 +947,7 @@ Stores literals (compile-time constants):
 
 ---
 
-### Recommendations
+=== Recommendations
 
 - Start with default settings unless issues arise.
 - Monitor allocator usage (`erlang:system_info/1`, `recon_alloc`) before tuning.
