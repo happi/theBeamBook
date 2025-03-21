@@ -176,18 +176,19 @@ parameters of that allocator when starting Erlang.
 [[table-allocators]]
 [options="header"]
 |===============================================================================
-|Name                    | Description           | C-name     | Type-name | Flag
-| Basic allocator        | malloc interface      | sys_alloc  | SYSTEM    | Y
-|Memory segment allocator| mmap interface        | mseg_alloc | -         | M
-| Temporary allocator    | Temporary allocations | temp_alloc | TEMPORARY | T
-| Heap allocator         | Erlang heap data      | eheap_alloc| EHEAP     | H
-| Binary allocator       | Binary data           |binary_alloc| BINARY    | B
-| ETS allocator          | ETS data              | ets_alloc  | ETS       | E
-| Driver allocator       | Driver data           |driver_alloc| DRIVER    | R
-| Short lived allocator  | Short lived memory    | sl_alloc   |SHORT_LIVED| S
-| Long lived allocator   | Long lived memory     | ll_alloc   |LONG_LIVED | L
-| Fixed allocator        | Fixed size data       | fix_alloc  |FIXED_SIZE | F
-| Standard allocator     | For most other data   | std_alloc  | STANDARD  | D
+|Name                    | Description           | C-name       | Type-name | Flag
+| Basic allocator        | malloc interface      | sys_alloc    | SYSTEM    | Y
+|Memory segment allocator| mmap interface        | mseg_alloc   | -         | M
+| Temporary allocator    | Temporary allocations | temp_alloc   | TEMPORARY | T
+| Heap allocator         | Erlang heap data      | eheap_alloc  | EHEAP     | H
+| Binary allocator       | Binary data           |binary_alloc  | BINARY    | B
+| ETS allocator          | ETS data              | ets_alloc    | ETS       | E
+| Driver allocator       | Driver data           |driver_alloc  | DRIVER    | R
+| Short lived allocator  | Short lived memory    | sl_alloc     |SHORT_LIVED| S
+| Long lived allocator   | Long lived memory     | ll_alloc     |LONG_LIVED | L
+| Fixed allocator        | Fixed size data       | fix_alloc    |FIXED_SIZE | F
+| Standard allocator     | For most other data   | std_alloc    | STANDARD  | D
+| Literal allocator      | Module constants      | literal_alloc| LITERAL   | *(none)*
 |===============================================================================
 
 
@@ -492,97 +493,457 @@ buffers or work stacks.
 
 ==== The heap allocator: eheap_alloc
 
-The heap allocator, is used for allocating memory blocks
-where tagged Erlang terms are stored, such as Erlang process heaps
-(all generations), heap fragments, and the beam_registers.
+The heap allocator manages memory blocks for a process’s private data: Erlang
+terms stored on the process heap (new and old generations), plus related
+structures like heap fragments and beam registers. Almost every Erlang term a
+process creates ends up in memory obtained through `eheap_alloc`.
 
-This is probably the memory areas you are most interested in as an
-Erlang developer or when tuning an Erlang system. We will talk more
-about how these areas are managed in the upcoming sections on garbage
-collection and process memory. There we will also cover what a heap
-fragment is.
+By default, each scheduler has one `eheap_alloc` instance, so memory for processes
+running on that scheduler remains mostly local, reducing contention. The
+allocator’s frequent tasks include:
+
+* Process Heap: Each Erlang process has its own heap where it stores data such as
+tuples, lists, maps, integers, and any small binaries (<= 64 bytes).
+
+* Heap Fragments: If a process briefly needs more memory but cannot immediately GC
+(e.g., constructing a large message), the VM may allocate a “heap fragment” from
+eheap_alloc. On the next garbage collection, these fragments are merged or
+freed. 
+
+* Register Arrays: Some runtime-implementation details (e.g., the
+“beam_registers” data structure) also use eheap_alloc. As an Erlang developer,
+you typically optimize around eheap_alloc usage by controlling process heap
+sizes or by understanding when your processes generate large, short-lived data.
+Good practice includes carefully sizing process heaps if they frequently handle
+big data, rather than allowing many minor GCs.
 
 
 ==== The binary allocator: binary_alloc
 
-The binary allocator is used for, yes you guessed it, binaries.
-Binaries can be of quite varying sizes and have varying life spans.
-This allocator uses the _best fit_ allocation strategy by default.
+The binary allocator handles memory for (yes, you guessed it) binaries.
+Specifically, it manages binaries larger than 64 bytes (called refc binaries),
+storing them off-heap and using reference counting to track their usage. Each
+process heap holds just a small wrapper (a `ProcBin`) pointing to the actual
+binary.
+
+These binaries vary widely, from modestly sized binaries (hundreds of bytes) up
+to massive binaries measured in megabytes (such as entire file contents or
+external data from networks).
+
+The allocator has a few interesting characteristics:
+
+* **Best-Fit Strategy:**  
+  It chooses the smallest suitable free block to store a new binary, which
+  reduces fragmentation, think of it as a meticulous Tetris player fitting
+  binaries neatly into memory.
+
+* **Reference Counting:**  
+  Off-heap binaries stick around until the very last process stops referencing
+  them. If just one forgetful process clings to a huge binary, it stays alive,
+  sometimes annoyingly longer than you'd prefer.
+
+* **Sub-Binaries (Slices):**  
+  When you match binaries like `<<X:32, Rest/binary>>`, the smaller binary
+  (`Rest`) still references the original larger binary, avoiding copying is
+  great, until you realize you've accidentally kept a giant binary alive just to
+  reference a tiny bit. In these cases, calling `binary:copy/1` is your friend.
+
+If memory mysteriously grows, check for large binaries hanging around due to
+references lingering in processes. Occasionally, you might need to gently remind
+the garbage collector (via `erlang:garbage_collect/1`) or let processes
+hibernate to reclaim the memory faster.
 
 ==== The ETS allocator: ets_alloc
 
-The ETS allocator is used for most ETS related data,
-except for some short lived or temporary data used by ETS tables-
+The allocator `ets_alloc` manages memory for your beloved ETS (Erlang Term
+Storage) tables. By default, ETS tables aren't tied to individual processes,
+meaning they hang around even when your processes take their garbage out. Keep
+in mind a few key details:
+
+* **Long-Lived Data:**  
+  Once you place data into an ETS table, it moves out of process heaps and
+  settles into its own cozy allocator. Standard process garbage collection won't
+  tidy up this space. If you want memory back, you must explicitly remove data
+  or delete the table.
+
+* **Diverse Use Cases:**  
+  This allocator deals with everything ETS-related—from classic hash tables to
+  fancy `ordered_set` structures and internal metadata. Popular or large tables
+  can easily become memory-hungry beasts, so watch out.
+
+* **Short-Lived ETS Data:**  
+  Sometimes ETS might borrow other allocators temporarily, for quick tasks like
+  matching or intermediate results, but the main data lives in `ets_alloc`.
+
+Because ETS tables can grow surprisingly large, occasionally check their
+size with functions like `ets:info(Tab, memory)` or keep an eye on overall
+`ets_alloc` usage through your system metrics.
 
 ==== The driver allocator: driver_alloc
 
-The driver allocator is used for ports, linked in drivers and NIFs.
+The driver allocator handles memory for ports, linked-in drivers, and NIF
+resources. In simpler terms, if you're reaching beyond Erlang's safety
+net—interacting with I/O drivers, external libraries, or file descriptors—you'll
+end up here. Key points to keep in mind:
+
+* **Port & Driver Data:**  
+  Allocations here include structures for network sockets, open file
+  descriptors, and buffers specific to your linked-in drivers.
+
+* **NIF-Allocated Data:**  
+  When a NIF reaches out with `enif_alloc`, the memory ultimately comes from
+  this allocator. The VM politely waits until you call `enif_free`, or your NIF
+  object gracefully exits the stage, to reclaim this space.
+
+* **Potential For External Leaks:**  
+  Because NIFs and drivers bypass Erlang’s usual memory-safety rules, a
+  misbehaving driver might unintentionally hold onto memory, creating the
+  digital equivalent of a leaky faucet. Keeping an eye on your `driver_alloc`
+  usage helps catch these drips.
+
+Though developers rarely manipulate `driver_alloc` directly, it's wise to
+monitor this allocator in production environments, especially if your 
+are using NIFs.
 
 ==== The short lived allocator: sl_alloc
 
-The short lived allocator is used for lists and buffers that are
-expected to be short lived. Short lived data can live longer than
-temporary data.
+The short-lived allocator (`sl_alloc`) handles memory for data structures with
+lifespans that surpass the blink-and-you-miss-it nature of temporary
+allocations, but not by much. Think of it as memory that's sticking around just
+long enough to say hello and have a quick coffee before heading out. Typical
+examples include:
 
-// alloc_info_request async bif_timer_sl binary_buffer busy_caller
-// busy_caller_table code_ix_lock_q db_fixation db_match_spec_run_heap
-// db_proc_cleanup_state ethread_short_lived external_term_data
-// extra_port_list extra_root fd_list fixed_del gc_info_request
-// misc_aux_work misc_op_list pending_suspend pollset_update_req
-// port_names port_task port_task_handle_list prepared_code proc_list
-// ptab_list_chunk_info ptab_list_deleted_el ptab_list_pids ptimer_sl
-// re_stack re_subject sched_wall_time_request short_lived_thr_queue
-// sl_migration_paths ssb system_messages_queue temp_thr_prgr_data
-// tmp_cpu_ids unicode_buffer
+* **Intermediate Buffers:**  
+  Small buffers needed for short operations that linger briefly across
+  scheduling points—but definitely don't plan on staying overnight.
 
+* **Ephemeral Lists:**  
+  Temporary runtime structures—such as quick-fire system message buffers or
+  short-lived scheduling metadata—that disappear almost as soon as you notice
+  them.
+
+Erlang/OTP leverages `sl_alloc` for transient operations like match state
+objects, ephemeral I/O buffers, and other fleeting entities. Although these
+allocations can outlive truly temporary memory, they're still expected to depart
+swiftly, leaving minimal footprints behind.
+
+If your application is particularly chatty—generating numerous short-lived
+allocations (such as frequent small driver calls or brief
+computations) `sl_alloc` might heat up significantly. Checking usage with tools
+like `recon_alloc:usage()` can tell you whether `sl_alloc` is overused.
 
 ==== The long lived allocator: ll_alloc
 
-The long lived allocator is used for long lived data, such
-as atoms, modules, funs and long lived tables
+The long lived allocator handles data intended to stay alive for extended
+periods, often as long as the Erlang node itself. Typical examples include:
 
-// atom_entry atom_tab atom_text aux_work_timeouts bif_timer_table code
-// code cpu_data cpu_groups_map cs_prog_path db_match_pseudo_proc
-// db_match_pseudo_proc db_tabs ddll_errcodes driver_event_state drv_tab
-// ethread_long_lived export_entry export_entry export_tab fd_status
-// fd_tab fp_exception fun_entry instr_info internal_async_data
-// ll_migration_paths ll_temp_term ll_temp_term long_lived_thr_queue
-// misc_aux_work_q module_entry module_tab poll_fds poll_result_events
-// pollset port_tab pre_alloc_data preloaded proc_lock_waiter proc_tab
-// process_interval run_queue_balancing run_queues scheduler_data
-// scheduler_data scheduler_sleep_info select_fds taint_list
-// thr_prgr_data thr_prgr_internal_data timer_wheel waiter_object
+- **Atoms:** Once created, atoms persist indefinitely, making them permanent
+residents of `ll_alloc`.
 
+- **Loaded Modules and Code:** Compiled modules, exported functions, and
+metadata related to anonymous functions (`funs`) are stored here. For instance,
+when you load a module via `code:load_file(my_module)`, its metadata lands
+in `ll_alloc`.
 
+- **Scheduler and System Structures:** Internal runtime structures—like
+scheduler run queues (`run_queue`), pollset information (`pollset`), and the
+process registry (`proc_tab`)—live here because they're fundamental to VM
+operations.
+
+Because objects in `ll_alloc` tend to stick around, this allocator typically
+grows slowly but continuously during a node's lifetime. If your system
+frequently loads and unloads modules, you might see fluctuations. For instance,
+repeatedly executing hot-code loading without properly unloading old versions
+can gradually inflate memory usage in `ll_alloc`.
+
+In practice, most systems won't reclaim much memory from here unless you're
+explicitly unloading modules or performing node restarts. Hence, it's wise to
+occasionally glance at `recon_alloc:usage(ll_alloc)` to detect unexpected spikes
+or fragmentation—especially if your application dynamically manages modules or
+extensive long-term data.
 
 ==== The fixed size allocator: fix_alloc
 
-The fixed allocator is used for objects of a fixed size, such as PCBs,
-message refs and a few others. The fixed size allocator uses the
-_address order best fit_ allocation strategy by default.
+The fixed allocator, `fix_alloc`, specializes in allocating fixed-size
+objects—typically small C structs whose size never changes (e.g., message
+references, driver event data, monitors). Since these objects come in uniform
+sizes, the allocator can efficiently handle them:
 
-// driver_event_data_state driver_select_data_state monitor_sh msg_ref
-// nlink_sh proc sl_thr_q_element
+By default, fix_alloc uses "Address Order Best Fit",
+returning freed objects neatly into lists of same-sized blocks, effectively
+minimizing fragmentation. Think of it like perfectly stacking identical LEGO
+bricks rather than randomly tossing different-sized pieces into a box.
+
+Examples include internal VM structures like ErlMessage, monitor references, and
+scheduler bookkeeping data.
+
+While developers don't usually interact directly with fix_alloc, it's essential
+at the system level. Efficient allocation here ensures the runtime isn't bogged
+down managing tiny, fragmented allocations, helping Erlang keep its reputation
+for handling concurrency gracefully.
 
 
 ==== The standard allocator: std_alloc
 
-The standard allocator is used by the other types of data.
-(active_procs alloc_info_request arg_reg bif_timer_ll bits_buf bpd
-calls_buf db_heir_data db_heir_data db_named_table_entry dcache
-ddll_handle ddll_processes ddll_processes dist_entry dist_tab
-driver_lock ethread_standard fd_entry_buf fun_tab gc_info_request
-io_queue line_buf link_lh module_refs monitor_lh monitor_lh monitor_sh
-nlink_lh nlink_lh nlink_sh node_entry node_tab nodes_monitor
-port_data_heap port_lock port_report_exit port_specific_data proc_dict
-process_specific_data ptimer_ll re_heap reg_proc reg_tab
-sched_wall_time_request stack suspend_monitor thr_q_element thr_queue
-zlib )
+When memory doesn't neatly fit into Erlang's specialized allocator buckets, it
+finds a home in `std_alloc`—the runtime's versatile catch-all allocator. Think
+of it as Erlang’s “miscellaneous drawer” for memory.
 
+This allocator handles a diverse mix of allocations. This can include references
+to ephemeral data that's ambiguously short- or long-lived, dynamically sized
+structures, VM subsystem data without clear categorization, or simply memory
+allocations too unique to neatly classify elsewhere.
 
-// === TODO: system flags for memory
+Just like the other allocators, you can adjust `std_alloc` behavior with startup
+flags such as `+Ms` or `+Msbct`. Usually, you leave it alone, but it's good to
+know it's tweakable when needed.
 
-// TODO
+In troubleshooting, `std_alloc` can become a prime suspect for unexplained
+memory spikes. Tools like `erlang:system_info({allocator, std_alloc})` or
+`recon_alloc` can quickly reveal if it’s hoarding more memory than you
+anticipated.
+
+Since `std_alloc` gathers memory requests that defy neat categorization, it's
+normal for it to accumulate significant usage on busy nodes. If you see this
+allocator consistently growing, it's usually a sign to double-check application
+behavior or revisit your assumptions about what's "normal."
+
+==== The literal allocator: literal_alloc
+
+The `literal_alloc` stores compile-time constants, often called the _literal
+pool_, in loaded Erlang modules. Think of it as the VM's "read-only memory
+shelf," where Erlang safely stores constants like large static binaries, tuples,
+or lists defined at compile time.
+
+Unlike typical allocators, `literal_alloc` is managed globally rather than per
+scheduler, as literals aren't frequently modified or reclaimed during runtime.
+Once loaded, these literals remain until their corresponding module is
+explicitly purged or reloaded.
+
+Monitoring `literal_alloc` is usually uneventful, but frequent dynamic module
+updates or loading large literal-heavy modules repeatedly might make it worth a
+glance.
+
+Here's a corrected and structured summary of the **System Flags for Memory**, aligned with the official Erlang OTP documentation:
+
+=== System Flags for Memory
+
+Memory allocator system flags follow this syntax:
+
+```
++M<S><P> <V>
+```
+
+- `<S>` is a single uppercase letter identifying the allocator.
+- `<P>` specifies the parameter.
+- `<V>` specifies the value to use.
+
+**Allocator identifiers (`<S>`):**
+
+- `B`: binary_alloc  
+- `D`: std_alloc  
+- `E`: ets_alloc  
+- `F`: fix_alloc  
+- `H`: eheap_alloc  
+- `I`: literal_alloc  
+- `L`: ll_alloc  
+- `M`: mseg_alloc  
+- `R`: driver_alloc  
+- `S`: sl_alloc  
+- `T`: temp_alloc  
+- `Y`: sys_alloc  
+- `u`: alloc_util (affects all alloc_util-based allocators)
+
+### Commonly Used Flags
+
+**Allocation Strategy (`as`):**
+
+Determines how memory blocks are selected within carriers.
+
+- `bf`: Best fit
+- `aobf`: Address order best fit
+- `aoff`: Address order first fit
+- `aoffcbf`: Address order first fit carrier best fit
+- `ageffcbf`: Age order first fit carrier best fit
+- `gf`: Good fit
+- `af`: A fit
+
+Example:
+```
++MBas bf
+```
+_(Binary allocator uses best-fit strategy.)_
+
+**Singleblock Carrier Threshold (`sbct`):**  
+Defines the threshold in KB above which allocations use singleblock carriers.
+
+Example:
+```
++MBsbct 1024
+```
+_(Binary allocations above 1024 KB use singleblock carriers.)_
+
+**Multiblock Carrier Settings:**
+
+- **Smallest (`smbcs`) and Largest (`lmbcs`) Multiblock Carrier Size:**  
+  Control minimum/maximum sizes for multiblock carriers (KB).
+- **Carrier Growth Stages (`mbcgs`):**  
+  Defines carrier size growth between minimum and maximum.
+
+Example:
+```
++MBsmbcs 512 +MBlmbcs 8192
+```
+_(Binary allocator multiblock carriers range from 512 KB to 8 MB.)_
+
+**Abandon Carrier Utilization Limit (`acul`):**  
+Percentage threshold below which carriers are abandoned and reused.
+
+Example:
+```
++MBacul 50
+```
+_(Binary carriers with utilization below 50% are marked abandoned.)_
+
+**Abandon Carrier Free Utilization Limit (`acful`):**  
+Below this utilization, the VM informs the OS that unused memory can be reclaimed.
+
+Example:
+```
++MDacful 10
+```
+_(std_alloc marks memory as reclaimable by OS if utilization is below 10%.)_
+
+**Multiple Thread-specific Instances (`t`):**  
+Controls if allocators use multiple instances (one per scheduler).
+
+Example:
+```
++MHt true
+```
+_(eheap_alloc uses separate allocator instances per scheduler thread.)_
+
+**Allocation Tagging (`atags`):**  
+Adds tags to allocations, useful for debugging with instrumentation.
+
+Example:
+```
++MRatags true
+```
+_(Enable tagging for driver_alloc.)_
+
+### Special Flags for `mseg_alloc`
+
+`mseg_alloc` (Memory Segment Allocator) has specific settings:
+
+- **Super Carrier Size (`scs`):**
+  ```
+  +MMscs 1024
+  ```
+  _(Creates a 1GB super carrier.)_
+
+- **Use Large Pages (`lp`):**
+  ```
+  +MMlp on
+  ```
+  _(Enable large/huge pages support.)_
+
+- **Super Carrier Only (`sco`):**
+  ```
+  +MMsco true
+  ```
+  _(Allocations occur only within the super carrier.)_
+
+- **Maximum Cached Segments (`mcs`):**
+  ```
+  +MMmcs 20
+  ```
+  _(Stores up to 20 cached segments.)_
+
+### Special Flags for `sys_alloc`
+
+`sys_alloc` interfaces with the system’s malloc:
+
+- **Trim Threshold (`tt`):**  
+  Releases memory back to the OS when the free heap exceeds threshold.
+  ```
+  +MYtt 256
+  ```
+  _(Set trim threshold to 256 KB.)_
+
+- **Top Pad (`tp`):**  
+  Extra memory malloc requests from OS to reduce subsequent calls.
+  ```
+  +MYtp 512
+  ```
+  _(malloc requests 512 KB padding.)_
+
+### Literal Allocator (`literal_alloc`)
+
+Stores literals (compile-time constants):
+
+- **Literal Super Carrier Size (`scs`):**
+  ```
+  +MIscs 2048
+  ```
+  _(Set literal allocator super carrier to 2 GB.)_
+
+### Global and Convenience Flags
+
+- **Minimal/Maximal Allocation Setup (`ea`):**
+  ```
+  +Mea min|max|config
+  ```
+  _(Quick configuration presets for all allocators.)_
+
+- **Lock Physical Memory (`lpm`):**
+  ```
+  +Mlpm all|no
+  ```
+  _(Locks VM memory into physical RAM.)_
+
+- **Dirty Allocator Instances (`dai`):**
+  ```
+  +Mdai max|<number>
+  ```
+  _(Allocator instances specifically for dirty schedulers.)_
+
+---
+
+### Practical Examples
+
+**Reduce fragmentation with address-order best fit across all allocators:**  
+```
++Muas aobf
+```
+
+**Limit maximum memory for ETS allocator (e.g., 2 GB):**  
+```
++MEamax 2097152
+```
+
+**Enable allocation tagging for debugging across all allocators:**  
+```
++Muatags true
+```
+
+---
+
+### Recommendations
+
+- Start with default settings unless issues arise.
+- Monitor allocator usage (`erlang:system_info/1`, `recon_alloc`) before tuning.
+- Incrementally test changes in controlled environments.
+- Avoid aggressive tuning without benchmarks and profiling.
+
+[NOTE]
+====
+Most memory allocator flags described above are highly implementation-dependent.
+Their behavior, availability, and defaults can change or be removed entirely
+without prior notice. Moreover, the runtime (`erts_alloc`) may ignore or adjust
+provided settings based on internal heuristics or system constraints. Always
+validate settings with actual system metrics and testing.
+====
 
 === Process Memory
 
