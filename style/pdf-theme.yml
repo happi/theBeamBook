@@ -171,12 +171,12 @@ admonition:
     version:
       name: fa-tags
       stroke_color: A26D6D
-      size: 24
+      size: 12
   label:
     text_transform: uppercase
     font_style: bold
 quote:
-  font_size: $base_font_size_large
+  font_size: 10
   border_color: $base_border_color
   border_width: 0
   border_left_width: 5
