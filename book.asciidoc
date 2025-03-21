@@ -6,6 +6,7 @@ Erik Stenman
 :keywords: Erlang, BEAM, ERTS, Concurrency, Programming
 :producer: HappiHacking
 :creator: Asciidoctor PDF
+:doctype: book
 :encoding: utf-8
 :lang: en
 :toc: macro
@@ -66,6 +67,7 @@ include::chapters/preface.asciidoc[]
 
 // Part I
 [[P-ERTS]]
+
 = Understanding ERTS
 
 include::chapters/introduction.asciidoc[]
@@ -102,6 +104,7 @@ include::chapters/c.asciidoc[]
 
 // Part II
 [[P-Running]]
+
 = Running ERTS
 
 include::chapters/ops.asciidoc[]
