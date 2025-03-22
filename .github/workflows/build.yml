@@ -1,34 +1,46 @@
----
-
 name: Build PDF
 on:
   pull_request:
   push:
     branches:
       - master
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: asciidoctor/docker-asciidoctor:latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: install tools
-        run: apk add git rsync erlang
-      - name: Sort out git ownership
-        run: git config --global --add safe.directory ${GITHUB_WORKSPACE}
-      - name: build
-        run: make
-      - name: release
 
-        if: ${{ github.ref == 'refs/heads/master' }}
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fix permissions before build
+        run: |
+          sudo chown -R 1000:1000 ${{ github.workspace }}
+
+      - name: Build PDF in devcontainer
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/happi/thebeambook-devcontainer:latest
+          options: |
+            --user builder
+            -v ${{ github.workspace }}:/workspaces/theBeamBook
+            -w /workspaces/theBeamBook
+          run: |
+            make
+
+      - name: Release PDF
+        if: github.ref == 'refs/heads/master'
         uses: softprops/action-gh-release@v0.1.14
         with:
           tag_name: latest
           files: |
-            beam-book.pdf
-
-...
+            beam-book-a4.pdf
