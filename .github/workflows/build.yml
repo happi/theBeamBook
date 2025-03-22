@@ -36,11 +36,14 @@ jobs:
             -w /workspaces/theBeamBook
           run: |
             make
+      - name: Rename PDF
+        run: |
+          mv beam-a4-book.pdf beam-book.pdf
 
       - name: Release PDF
         if: github.ref == 'refs/heads/master'
-        uses: softprops/action-gh-release@v0.1.14
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           files: |
-            beam-book-a4.pdf
+            beam-book.pdf
