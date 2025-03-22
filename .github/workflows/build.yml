@@ -36,9 +36,8 @@ jobs:
             -w /workspaces/theBeamBook
           run: |
             make
-      - name: Rename PDF
-        run: |
-          mv beam-book-a4.pdf beam-book.pdf
+            mv beam-book-a4.pdf beam-book.pdf
+            ls -al *.pdf
 
       - name: Release PDF
         if: github.ref == 'refs/heads/master'
