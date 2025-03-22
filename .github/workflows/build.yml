@@ -40,7 +40,7 @@ jobs:
             ls -al *.pdf
 
       - name: Release PDF
-        if: github.ref == 'refs/heads/master'
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
