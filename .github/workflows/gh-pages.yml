@@ -43,9 +43,8 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/happi/thebeambook-devcontainer:latest
-          options: -v ${{ github.workspace }}:/workspaces/theBeamBook
+          options: -v ${{ github.workspace }}:/workspaces/theBeamBook -w /workspaces/theBeamBook
           run: |
-            cd /workspaces/theBeamBook
             make && mv site _site && ls -al
 
       - name: Build pages
