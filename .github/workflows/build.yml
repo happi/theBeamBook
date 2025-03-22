@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*.*.*'  
 
 jobs:
   build:
@@ -37,10 +39,8 @@ jobs:
           run: |
             make
             mv beam-book-a4.pdf beam-book.pdf
-            ls -al *.pdf
 
       - name: Release PDF
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
