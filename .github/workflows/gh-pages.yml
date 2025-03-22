@@ -25,7 +25,7 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
-    container: asciidoctor/docker-asciidoctor:latest
+    container: ghcr.io/happi/thebeambook-devcontainer:latest
 
     steps:
       - name: Checkout
