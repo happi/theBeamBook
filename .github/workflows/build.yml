@@ -38,7 +38,7 @@ jobs:
             make
       - name: Rename PDF
         run: |
-          mv beam-a4-book.pdf beam-book.pdf
+          mv beam-book-a4.pdf beam-book.pdf
 
       - name: Release PDF
         if: github.ref == 'refs/heads/master'
