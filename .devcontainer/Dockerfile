@@ -1,8 +1,10 @@
 FROM erlang:27
 
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive \
+    # Set Erlang flags for unicode text and shell history
+    ERL_AFLAGS="+pc unicode -kernel shell_history enabled"
 
-# Create a default user for the devcontainer
+    # Create a default user for the devcontainer
 RUN useradd -ms /bin/bash builder
 
 # Install dependencies
@@ -33,9 +35,6 @@ RUN git clone https://github.com/erlang/rebar3.git && \
     ./bootstrap && \
     ./rebar3 local install
 
-# Set Erlang flags for unicode text and shell history
-ENV ERL_AFLAGS "+pc unicode -kernel shell_history enabled"
-
 # Initialize PostgreSQL database for examples
 USER postgres
 RUN /etc/init.d/postgresql start && \
@@ -48,4 +47,4 @@ USER builder
 RUN git config --global --add safe.directory /workspaces/theBeamBook
 
 # Set the default command to start PostgreSQL and keep the container running
-CMD service postgresql start && tail -f /var/lib/postgresql/data/logfile
+CMD ["/bin/bash", "-c", "service postgresql start && tail -f /var/lib/postgresql/data/logfile"]
