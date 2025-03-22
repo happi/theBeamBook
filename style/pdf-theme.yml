@@ -218,9 +218,6 @@ image:
   align: center
   caption:
     align: center
-prose:
-  margin_top: $block_margin_top
-  margin_bottom: $block_margin_bottom
 sidebar:
   background_color: EEEEEE
   border_color: E1E1E1
