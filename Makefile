@@ -21,7 +21,7 @@ chapters/contributors.txt:
 	| sed 's/\t/|/g' \
 	| sed 's/| */| /g'; \
 	echo '|==='; \
-	} > $@ && cat $@
+	} > $@
 
 # A4 Format (Default)
 beam-book-a4.pdf: chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
