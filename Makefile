@@ -24,13 +24,16 @@ chapters/contributors.txt:
 	} > $@
 
 # A4 Format (Default)
-beam-book-a4.pdf: chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
+beam-book-a4.pdf: style/custom-print-highlight-theme.yml chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
 	asciidoctor-pdf -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram \
 	-r ./style/custom-admonition-block.rb -a config=./style/ditaa.cfg \
 	--doctype=book -a pdf-theme=./style/pdf-theme.yml \
 	-a pdf-width=595.28 -a pdf-height=841.89 \
 	-a pdf-margin-top=0.75in -a pdf-margin-bottom=0.75in \
 	-a pdf-margin-inner=0.75in -a pdf-margin-outer=0.5in \
+	-a source-highlighter=rouge \
+	-a rouge-style=pastie \
+	-a rouge-linenums-mode=table \
 	book.asciidoc -o $@
 
 # Print-Ready 6"x9" for Publishing
@@ -40,6 +43,9 @@ beam-book-publish.pdf: style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc
 	--doctype=book -a pdf-theme=style/pdf-publish-theme.yml \
 	-a pdf-margin-top=0.75in -a pdf-margin-bottom=0.75in \
 	-a pdf-margin-inner=0.75in -a pdf-margin-outer=0.5in \
+	-a source-highlighter=rouge \
+	-a rouge-style=pastie \
+	-a rouge-linenums-mode=table \
 	book.asciidoc -o $@ --trace
 
 
@@ -47,7 +53,10 @@ html: chapters/contributors.txt $(ASSET_CHAPTERS)
 	cp -r images site
 	asciidoctor -r asciidoctor-diagram -r ./style/custom-admonition-block.rb \
 	-a config=style/ditaa.cfg --backend=html5 --doctype=book \
-	-o site/index.html book.asciidoc --trace
+	-o site/index.html book.asciidoc --trace \
+	-a source-highlighter=rouge \
+  	-a rouge-style=thankful_eyes \
+  	-a rouge-linenums-mode=table
 	rsync -R code/*/*.png site
 
 code/book/ebin/generate_op_doc.beam: code/book/src/generate_op_doc.erl

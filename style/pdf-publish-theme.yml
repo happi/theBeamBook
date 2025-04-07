@@ -1,4 +1,4 @@
-extends: pdf-theme.yml
+extends: custom-print-highlight-theme
 
 page:
   size: [6in, 9in]
