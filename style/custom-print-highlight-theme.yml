@@ -1,0 +1,33 @@
+extends: pdf-theme
+
+code:
+  font_color: #2e3436
+  background_color: #ffffff
+  border_color: #cccccc
+  border_radius: 2
+  border_width: 0.5
+  padding: [6, 6, 6, 6]
+  font_family: Courier
+  font_size: 9
+  line_height: 1.3
+
+literal:
+  font_color: #2e3436
+  background_color: #ffffff
+  border_color: #cccccc
+  border_radius: 2
+  border_width: 0.5
+  padding: [6, 6, 6, 6]
+  font_family: Courier
+  font_size: 9
+  line_height: 1.3
+
+# Table of contents tweaks for print clarity
+toc:
+  title:
+    font_color: #333333
+
+sidebar:
+  background_color: #f9f9f9
+  border_color: #dddddd
+  font_color: #2e3436
