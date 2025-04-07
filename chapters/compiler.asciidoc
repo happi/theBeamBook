@@ -999,7 +999,7 @@ recognizes JSON tokens. By looking at the JSON definition
 http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf
 we can see that there are only a handful of tokens that we need to handle.
 
-[source,erlang]
+[source,lex]
 ----
 include::../code/compiler_chapter/src/json_tokens.xrl[]
 ----

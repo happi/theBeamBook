@@ -58,31 +58,34 @@ be right.
 
 === How to read this book
 
+The Erlang BEAM VM is a great piece of engineering that can run on anything from
+a gum-stick computer to the largest multicore system with terabytes of memory.
+In order to be able to optimize the performance of such a system for your
+application, you need to not only know your application, but you also need to
+have a thorough understanding of the VM itself.
+
+In xref:P-ERTS[] of this book you will get a deep understanding of how the
+runtime system works.
+
+With this knowledge, you will be able to understand
+how your application behaves when running on the BEAM, and you will also
+be able to find and fix problems with the performance of your application.
+
 In xref:P-Running[] of this book we will look at how to
-operate ERTS, how to connect to and inspect a running system,
-// how to tune the runtime system for your application
-and how to profile and debug
-your application and the runtime system. In order to really know
-how to tune the system you need to know what it does. In
-xref:P-ERTS[] of this book you will get a deep understanding of
-how the runtime system works.
+operate ERTS, how to connect to and inspect a running system.
 
-The following chapters will go over each
-component of the system by itself.
-You should be able to read any one of these
-chapters without having a full understanding of how the other
-components are implemented, but you will need a basic understanding of
-what each component is. The rest of this introductory chapter should
-give you enough basic understanding and vocabulary to be able to jump
-between the rest of the chapters in part I in any order you like.
+The following chapters will go over each component of the system by itself. You
+should be able to read any one of these chapters without having a full
+understanding of how the other components are implemented, but you will need a
+basic understanding of what each component is. The rest of this introductory
+chapter should give you enough basic understanding and vocabulary to be able to
+jump between the rest of the chapters in part I in any order you like.
 
-However, if you have the time,
-read the book in
-order the first time. Words that are specific to Erlang and ERTS or
-used in a specific way in this book are usually explained at their
-first occurrence. Then, when you know the vocabulary, you can come
-back and use Part I as a reference whenever you have a problem with a
-particular component.
+However, if you have the time, read the book in order the first time. Words that
+are specific to Erlang and ERTS or used in a specific way in this book are
+usually explained at their first occurrence. Then, when you know the vocabulary,
+you can come back and use Part I as a reference whenever you have a problem with
+a particular component.
 
 
 [[ERTS]]

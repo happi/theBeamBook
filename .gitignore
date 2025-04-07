@@ -13,6 +13,7 @@ git-log.xml
 book-revhistory.xml
 beam-book-from-ab.xml
 beam-book.pdf
+beam-book-a4.pdf
 opcodes_doc.asciidoc
 .#.gitignore
 genop.tab

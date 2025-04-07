@@ -2,74 +2,78 @@
 Preface
 --------
 
+Erlang and Elixir runs on one of the most robust virtual machines ever built. This book
+shows you how it works, not only conceptually, but at the level where things actually
+happen.
 
-This book is not about how to write correct and
-beautiful code, I am assuming that you already know how to do
-that. This book isn’t really about performance tuning
-either, although the final chapters cover things like tracing and
-profiling which can help you find bottlenecks and unnecessary usage of
-resources.
+This book is not a style guide. It’s not about syntax or best practices. It won’t teach
+you how to structure your GenServers or argue about supervision trees.
 
-Leading up to those last chapters, the real goal with this
-book is to give you all the information, all the gory details of the BEAM VM, that
-you may need in order to really understand the performance of your Erlang
-application.
+What it will do is walk you through the internals of the BEAM. How it schedules
+processes. How it allocates memory. How it handles concurrency. How it makes
+trade-offs under pressure. The things that matter when your system is live, and
+bugs don’t show up in tests.
+
+Toward the end, we’ll get into tracing, profiling, and performance tuning. But
+the real goal is to give you the tools to understand what your code is doing at
+runtime, and why.
+
+When you know how the system behaves, you can stop guessing.
 
 [[who_is_this_book_for]]
 About this book
 ~~~~~~~~~~~~~~~
 
+This book is for you if:
 
-For anyone who:
+* You want to understand how Erlang really works.
+* You want to tune a BEAM installation for performance or reliability.
+* You want to debug crashes and strange behavior inside the VM.
+* You want to get the most out of your systems in production.
+* Or maybe you just want to build your own runtime, from the ground up.
 
-* Wants to tune an Erlang installation.
-* Wants to know how to debug VM crashes.
-* Wants to improve the performance of Erlang applications.
-* Wants to understand how Erlang really works.
-* Wants to learn how to build your own runtime environment.
+If you're only here for performance tricks, feel free to skip ahead to the later
+chapters. But if you want to understand what’s going on beneath those tools, how
+the system actually works, start from the beginning.
 
-If all you want
-to do is performance tweaking, then jump to the last part of the book … but to really
-understand those chapters in depth, you should read the rest of the book.
+The deeper your understanding, the better your decisions.
 
-=== How to read this book
+=== Conventions Used in This Book
 
-The Erlang BEAM VM is a great piece of engineering that can run on anything from a gum-stick computer to the largest
-multicore system with terabytes of memory. In order to be able to
-optimize the performance of such a system for your application, you
-need to not only know your application, but you also need to have a
-thorough understanding of the VM itself.
+The BEAM VM can run on a wide range of systems, from small embedded hardware to
+large multi-core servers with terabytes of memory. To optimize the performance
+of BEAM applications effectively, you must understand how the VM utilizes memory
+and other resources.
 
-With this knowledge, you will be able to understand
-how your application behaves when running on the BEAM, and you will also
-be able to find and fix problems with the performance of your application.
+Throughout this book, we use diagrams extensively to explain memory structures
+and data layouts clearly. Because memory layouts and stack operations can vary
+in their representation, here are the conventions we've adopted for diagrams:
+
+* **Memory Diagrams**:
+  
+  - Memory addresses increase upwards in our diagrams. 
+  
+  - Low memory addresses appear at the bottom; high addresses at the top. 
+  
+  - Stacks typically grow downward, starting at higher addresses, with new
+  elements pushed onto lower addresses.
+
+* **C-Structure Diagrams**:
+  
+  - C-structures are represented with their first fields at the top, even though
+  these first fields occupy lower memory addresses. 
+  
+  - This results in diagrams of structures appearing inverted relative to
+  general memory-area diagrams.
+
+Be aware that when structures and memory areas appear together in diagrams,
+their address representations will be mirrored. Understanding this convention
+will help prevent confusion when interpreting visual examples throughout the
+book.
 
 You don’t need to be an Erlang programmer to read this book, but you
 will need some basic understanding of what Erlang is. This following
 section will give you some Erlang background.
-
-. A note on pictures of memory
-****
-
-*Note* When drawing overview pictures of system memory and stacks we
-will follow the convention that memory addresses grows upward. That is
-low memory addresses on the bottom of the page and high memory
-addresses on the top of the page. (Stacks most often grow downward
-starting at high addresses, so that new elements are pushed at the
-lowest address.)
-
-However when we draw a c-structure we will draw the fields from the
-top and down, even though the first field of the structure will be
-at the lowest address and the following fields at higher addresses.
-So pictures of structures have low address at the top of the page
-and high address at the bottom of the page.
-
-This means that a picture of a c-structure and a picture of a memory
-area will have their address positions on the page mirrored. This becomes
-somewhat confusing when we try to picture structures and heaps in the
-same picture.
-
-****
 
 === Erlang
 

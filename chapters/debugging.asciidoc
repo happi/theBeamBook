@@ -537,6 +537,11 @@ Then you can start EDB with:
 _build/default/bin/edb dap
 ```
 
+This command launches EDB, allowing it to interface with your development environment through the DAP, providing a robust debugging experience.
+
+Current State and Stability
+At the time of writing, EDB is an early-stage, rapidly evolving tool. Its integration and usability, while promising, can still be challenging, particularly regarding IDE setup, node connections, and environment compatibility. Stability can vary significantly depending on OTP versions and developer tooling choices.
+
 === Crash Dumps in Erlang
 
 Crash dumps provide information for diagnosing failures in Erlang systems. They contain details about system state, memory usage, process information, and call stacks at the time of a crash. Understanding how to interpret these files can significantly speed up debugging and prevent future crashes.
