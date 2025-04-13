@@ -45,7 +45,10 @@ non backwards compatible way this number would be changed.
 The file genop.tab is used as input by `beam_makeops` which is a perl script
 which generate code from the ops tabs. The generator is used both to generate
 Erlang code for the compiler (beam_opcodes.hrl and beam_opcodes.erl) and to
-generate C code for the emulator ( TODO: Filenames).
+generate C code for the emulator (beam_opcodes.c and beam_opcodes.h; for
+the traditional BEAM interpreter beam_hot.h, beam_warm.h, beam_cold.h are
+also generated; and for BeamAsm beamasm_emit.h and beamasm_protos.h are
+generated).
 
 Any line in the file starting with "#" is a comment and ignored by
 `beam_makeops`. The file can contain definitions, which turns into a
