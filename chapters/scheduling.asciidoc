@@ -101,7 +101,7 @@ By using the _Load Charts_ tab in the Observer we can see that all
 four schedulers are fully loaded while the busy processes execute.
 
 ----
-observer:start().
+2> observer:start().
 ok
 3> RunThem(8).
 ----
