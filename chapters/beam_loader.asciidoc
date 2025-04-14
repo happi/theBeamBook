@@ -141,7 +141,7 @@ macro in `beam_emu.c` to do the work.
 
 %macro: move_return:: this tells `ops.tab` to generate the code for `move_return`. If there
 is no `%macro` line, the instruction has to be implemented by hand in beam_emu.c. The code
-for the instruction will be places in `beam_hot.h` or `beam_cold.h` depending on if the
+for the instruction will be placed in `beam_hot.h` or `beam_cold.h` depending on if the
 `%hot` or `%cold` directive is active.
 
 MoveReturn:: tells the code generator to that the name of the c-macro in beam_emu.c to use
@@ -330,7 +330,7 @@ compiles to:
 
 The values in the condition are only allowed to be either integers
 or atoms. If the value is of any other type the compiler will not emit a
-`select_val` instruction. The loader uses a couple of hearistics to figure
+`select_val` instruction. The loader uses a couple of heuristics to figure
 out what type algorithm to use when doing the `select_val`.
 
 jump_on_val:: Create a jump table and use the value as the index. This if very

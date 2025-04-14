@@ -104,8 +104,8 @@ Given the file beamexample1.erl:
 id(I) when is_integer(I) -> I.
 ----
 
-When compiled with `erlc -S beamexample.erl` we get the following
-beamexmaple.S file:
+When compiled with `erlc -S beamexample1.erl` we get the following
+beamexmaple1.S file:
 
 [source,erlang]
 ----
@@ -204,7 +204,7 @@ see in the next section there are several different call instructions.
 
 === Calls
 
-As we have seen in xref:CH-Calls[] there are several different types
+As we will see in xref:CH-Calls[], there are several different types
 of calls in Erlang. To distinguish between local and remote calls
 in the instruction set, remote calls have `+_ext+` in their instruction
 names. Local calls just have a label in the code of the module, while
