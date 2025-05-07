@@ -524,8 +524,8 @@ T the timer is inserted into the slot at `+(tiw_pos+T)%TIW_SIZE+`.
 The timer stored in the timing wheel is a pointer to an `ErlTimer`
 struct. See link:https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h[erl_time.h]. If several timers are
 inserted into the same slot they are linked together in a linked list
-by the `prev` and `next` fields. The `count` field is set to 
-`T/TIW_SIZE` 
+by the `prev` and `next` fields. The `count` field is set to
+`T/TIW_SIZE`
 
 
 [[ErlTimer]]
@@ -599,7 +599,56 @@ Looking at it that way, the scheduler loop looks like this:
 . While needed pick a port task to execute
 . Pick a process to execute
 
-// TODO: Expand on these bullets
+=== The Scheduler Loop
+
+Conceptually you can look at the scheduler as the driver of program
+execution in the Erlang VM. In reality, that is, the way the C code
+is structured, it is the emulator (`process_main` in beam_emu.c) that
+drives the execution and it calls the scheduler as a subroutine to find
+the next process to execute.
+
+Still, we will pretend that it is the other way around, since it makes
+a nice conceptual model for the scheduler loop. That is, we see it
+as the scheduler picking a process to execute and then handing over
+the execution to the emulator.
+
+Looking at it that way, the scheduler loop looks like this:
+
+. Update reduction counters.
++
+Each process is allotted a number of reductions (small units of execution).
+When the reduction count is exceeded, the process is preempted and another is scheduled.
+
+. Check timers
++
+Timers (e.g., `receive ... after`) are checked via a timing wheel.
+If a timeout has expired, the associated process is moved to the ready queue.
+
+. If needed check balance
++
+The system occasionally checks if some scheduler threads are overloaded.
+If so, load balancing decisions are made.
+
+. If needed migrate processes and ports
++
+Processes and ports may be moved between scheduler threads to rebalance CPU load in multicore environments.
+
+. Do auxiliary scheduler work
++
+This includes handling dirty NIFs, process exits, tracing hooks, and other deferred runtime maintenance tasks.
+
+. If needed check IO and update time
++
+Polls file descriptors or ports for I/O readiness and may update system time or wall clocks.
+
+. While needed pick a port task to execute
++
+Tasks such as TCP reads or writes, or invoking driver callbacks, are performed here before scheduling a process.
+
+. Pick a process to execute
++
+A runnable process is selected from the run queue, considering priority and fairness, and handed to the emulator for execution.
+
 
 === Load Balancing
 
