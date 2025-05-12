@@ -245,7 +245,18 @@ is a process identifier and it points to a process. The process does
 not reside on the heap of any process but is handled by the PCB.
 A ((port)) works in much the same way.
 
-//  (TODO: MORE ON THIS REF!)
+A PID immediate is packed into a single machine word: the two least
+significant bits are the primary tag `11`, the next two bits are the
+subtype `00`, and the remaining high-order bits hold the PID value.
+On a 32-bit system those 28 bits are subdivided into a 15-bit process
+index (an offset into the process table), a 13-bit serial (to
+distinguish reused indices), and a small creation field. When you
+print a PID in the shell it appears as `<Node.Index.Serial>`, where
+the creation (Node) disambiguates across restarts. Ports use the same
+layout (subtype `01`), splitting their high-order bits into a port
+number and creation. Because the entire reference lives in one word,
+equality (and inequality) tests on PIDs and ports reduce to a single
+integer comparison.
 
 There are two types of integers in ERTS, ((small integers)) and
 ((bignums)). Small integers fit in one machine word minus four tag bits,
