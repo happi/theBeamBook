@@ -347,6 +347,9 @@ is allowed to be any term, as in `[1|2]`. These are called _((improper
 lists))_ and will be a surprise to any functions that expect a proper list
 as input, when they do not find a `[]` as the last element.
 
+==== Lists on 64-Bit Machines  
+On 64-bit systems each cons cell is two full words (one for the head pointer, one for the tail pointer), aligned to 8 bytes, with no separate header. The list tag in the low two bits of each word still identifies the cell as a cons. Because there’s no header word per cell, Erlang gains a 33% space savings versus a boxed tuple, at the cost of one extra pointer dereference per element.  
+
 === Strings
 
 A _((string))_ in Erlang (written `"..."`) is just a list of integers
@@ -438,6 +441,11 @@ Term Format)), via ((`term_to_binary()`)). This uses a much more compact
 byte encoding for strings. You should generally not need to worry about
 strings in those cases -- it's the on-heap representation that you should
 avoid hanging on to.
+
+==== IO Lists  
+IO lists extend erlang strings by allowing binaries, nested lists, strings, and integers to be concatenated without flattening. Each element is either a binary chunk or a list node, and the driver outputs them in sequence with minimal copying.  
+
+
 
 === Boxed Terms
 
@@ -601,15 +609,13 @@ heap.
 
 The reference number is `(Data2 bsl 50) + (Data1 bsl 18) + Data0`.
 
-.Outline
-****
+==== Floats  
+Erlang floats are boxed heap terms tagged with the `FLONUM` subtag. Each float occupies two machine words: a header word (primary tag `00`, subtag `0110`) and a 64-bit IEEE 754 payload word. The emulator treats floats as opaque “boxed” values for garbage‐collection and comparison, using native CPU instructions for arithmetic when available, and falling back to software routines otherwise.  
 
-*TODO*
+==== Records  
+Records are a compile-time convenience built on tuples: a record of arity N is simply an N-element tuple with the first element an atom naming the record. Access and update macros translate into fixed-index tuple lookups or `setelement/3` calls. Because the tuple header (primary tag `00`, subtag `0000`) encodes the arity, record size and field offsets are known at runtime without extra metadata.  
 
- The implementation of floats,  ports, pids. Strings as lists, IO lists,
- lists on 64-bit machines. Binaries, sub binaries, and copying. Records.
+=== Conclusion
 
- Possibly: The half-word machine. Sharing and deep copy. (or this will be in GC)
-
- Outro/conclusion
-****
+In this chapter we have explored how Erlang’s dynamic type system is implemented in the ERTS, covering the tagging scheme that unifies immediates and boxed terms for efficient runtime type checks and comparisons. We saw how the underlying tag bits and heap layouts reflect Erlang’s strong yet dynamic typing model. Understanding these encodings will make it easier
+to grasp the later chapters on memory allocation and garbage collection, where we will examine how boxed terms are managed on the process heap.
