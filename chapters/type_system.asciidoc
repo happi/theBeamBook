@@ -561,14 +561,11 @@ This allows efficient iteration without flattening or copying data.
 We will talk more about binaries in xref:CH-Memory[].
 
 ==== Bignums
-Integers that do not fit in a small integer (word size - 4 bits) are
-stored on the heap as so-called _((bignums))_ (or _((arbitrary precision integers))_).
-A bignum has a header word followed by a number of words which encode the
-integer. The sign part of the bignum tag (`s`) in the header encodes the
-sign of the number (s=0 for positive numbers, and s=1 for negative
-numbers).
+Any integer too large to fit into a small immediate (word size minus four tag bits) is represented as a _bignum_, which is a boxed term whose header word encodes both its sign and the number of “limb” words that follow. The header’s primary tag (`00`) marks it as a heap‐allocated header, the four‐bit subtag (`001`) identifies it as a bignum, and the highest bit of that subtag carries the sign (0 = positive, 1 = negative). Each subsequent limb is a full machine word holding a slice of the integer in base 2^D_EXP (typically 28 bits on 32-bit builds, 60 bits on 64-bit builds), arranged little-endian (least significant limb first).
 
-// TODO: Describe bignum encoding. (And arithmetic ?)
+Multi-precision arithmetic operates directly on these limb arrays. Addition and subtraction are implemented by scanning limbs word-by-word with carry or borrow propagation (`I_add`/`I_sub`), emitting a result limb array whose length may grow by one if there is a final carry. Multiplication uses either the quadratic schoolbook algorithm (`I_mul`) for small limb counts or the Karatsuba divide-and-conquer method (`I_mul_karatsuba`) when operand lengths exceed a threshold, with intermediate double-precision products split into high and low halves. Division and remainder use Knuth’s Algorithm D (`I_div`/`I_rem`) to compute quotient and remainder limb arrays, adjusting the result sign according to operand signs.
+
+Internally each limb is an **`ErtsDigit`**, and you access the limb array of a bignum via the `BIG_V(xp)` macro, which yields an `ErtsDigit*` pointer to the least significant word. Individual limbs are read or written with `BIG_DIGIT(xp, i)` (0-based index, little-endian). All of the core routines in **big.c**—for instance, `I_add`, `I_sub`, `I_mul`, `I_mul_karatsuba`, `I_div`, and `I_rem`—operate directly on these `ErtsDigit*` arrays, handling carry/borrow, multi-precision multiplies, and long-division steps. Once the result digits are computed, `big_norm` recomputes the boxed header (tag, arity, sign) and may even reintegrate the result as a small immediate if it fits in the tag bits.
 
 NOTE: While bignums resemble binaries in that they both are just "`chunks
 of bytes`", bignums are always stored on the heap in their entirety, and
