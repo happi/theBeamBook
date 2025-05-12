@@ -526,7 +526,37 @@ collector does not need to inspect the payload. It is therefore possible to
 use a different storage strategy tailored to them; in particular, reference
 counting binaries will never run into the problem of circular references.
 
-// TODO: draw a picture of binaries and their tags.
+.BINARY LAYOUT AND TAGGING
+[ditaa]
+```
+  Heap/Refc Binary Header Word (32-bit view)
+  +------------------------------------------+
+  |  20-bit or 28-bit length/offset field    |
+  +----------------+-------------+-----------+
+  | subtag (4-bit) | primary tag | padding?  |
+  +----------------+-------------+-----------+
+```
+
+* primary tag `00` indicates a boxed term header.
+* subtag `1001` marks a heap binary (payload on heap).
+* subtag `1000` marks a reference-counted binary (ProcBin).
+
+Following the header:
+* For *heap binaries*, the binary payload bytes follow immediately.
+* For *refc binaries*, the header is followed by a ProcBin struct.
+
+*Sub binaries* (subtag `1010`) are views into an existing binary.
+They store a header word with length and offset fields, followed by two
+machine words. This avoids copying payload data when slicing or matching parts of a binary.
+
+*Match contexts* (subtag `0001`, `BINARY_AGGREGATE`) are used by the
+binary pattern-matching engine. They reference segments of one or more
+enclosing binaries without allocating new payload space:
+* They contain a header word with the total number of segments.
+* They include an array of `{pointer, length}` tuples pointing into the
+  original binaries.
+
+This allows efficient iteration without flattening or copying data.
 
 We will talk more about binaries in xref:CH-Memory[].
 
