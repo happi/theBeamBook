@@ -123,12 +123,17 @@ flavor, `jit` (which is the default on supported platforms), and the
 non-JIT flavor `emu`. You may also see the name `smp`, but that is just an
 alias meaning the default flavor on the current platform.
 
-When you run `make`, you can select the flavor as follows:
-
 [source,sh]
 ----
-> make FLAVOR=emu
+> make TYPE=emu
 ----
+
+or the debug version of the JIT-enabled flavor:
+[source,sh]
+----
+> make TYPE=debug
+----
+
 
 (Naturally, if you have configured with `--disable-jit`, or your platform
 does not support it, it will not be able to build the `jit` flavor even if

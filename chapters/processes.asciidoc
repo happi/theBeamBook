@@ -460,96 +460,133 @@ can grow and shrink as needed. We will see exactly how this works in
 later chapters. The PCB on the other hand is statically allocated and
 contains a number of fields that controls the process.
 
-We can actually inspect some of these memory areas by using _HiPE's
-Built In Functions_ (HiPE BIFs) for introspection. With these BIFs we
-can print out the memory content of stacks, heaps, and the PCB. The
-raw data is printed and in most cases a human readable version is
-pretty printed alongside the data. To really understand everything
-that we see when we inspect the memory we will need to know more about
-the Erlang tagging scheme (which we will go through in xref:CH-TypeSystem[]
-and about the execution model and error handling
-which we will go through in xref:CH-BEAM[], but using these
-tools will give us a nice view of how a process really is just memory.
+We can inspect some of these memory regions with built-in introspection calls.
+For example, `erlang:process_info/2` lets you ask a process for its `stack_size`,
+`heap_size`, `total_heap_size`, or a raw `backtrace` binary,
+while the `current_stacktrace` item returns the stack as a structured
+list of `{M,F,A,Location}` tuples that you can pattern-match or pretty-print yourself.
+The shell helper `c:bt(Pid)` is just a convenience wrapper around `erlang:process_display(Pid, backtrace)` and prints the same crash-dump-style listing you once obtained from `hipe_bifs:show_estack/1`. Combined with `process_info` items such as `memory` or `reductions`, these queries give a safe, officially supported view of a process’s stack, heap, and PCB-like fields.
 
-// TODO: replace the HiPE BIFs section
+For a deeper, byte-level view the runtime ships with the **Erlang Toolkit for Pathologist (EPT)**—a collection of GDB macros (`etp-stack`, `etp-heap`, `etp-pcb`, and friends) that walk live BEAM data structures in a paused VM or core dump.  ETP prints the raw machine words exactly as they sit in memory, leaving interpretation to you.
 
-.HiPE's Built In Functions (HiPE BIFs)
-****
-The HiPE BIFs are not an official part of Erlang/OTP.
-They are not supported by the OTP team.
-They might be removed or changed at any time, so
-don't base your mission critical services on them.
+See xref:[AP-BuildingERTS] for more information on how to build the a debug version of the
+Erlang runtime system with ETP support. 
 
-These BIFs examine the internals of ERTS in a way that
-might not be safe. The BIFs for introspection often just
-print to standard out and you might be surprised where that
-output ends up.
+Unlike the built-in introspection functions, which quietly decode the tag bits and hand you fully formed Erlang terms, ETP shows the unfiltered words; to understand them you must apply the tagging scheme (xref:CH-TypeSystem) and the BEAM execution model (xref:CH-BEAM) yourself.
 
-These BIFs can lock up a scheduler thread for a long time
-without using any reductions (we will look at what that
-means in the next chapter). Printing the heap of a
-very large process for example can take a long time.
-
-These BIFs are only meant to be used for debugging
-and you use them at your own risk. You should probably
-not run them on a live system.
-
-Many of the HiPE BIFs where written by the author in
-the mid nineties (before 64 bit Erlang existed) and
-the printouts on a 64 bit machine might be a bit off.
-There are new versions of these BIFs that do a better
-job, hopefully they will be included in ERTS at the
-time of the printing of this book. Otherwise you
-can build your own version with the patch provided
-in the code section and the instructions in xref:AP-BuildingERTS[].
-
-****
-
-We can see the context of the stack of a process with `hipe_bifs:show_estack/1`:
+We can see the context of the stack of a process with `erlang:process_display/2`:
 
 [source,erlang]
 ----
-1> hipe_bifs:show_estack(self()).
- |                BEAM  STACK              |
- |            Address |           Contents |
- |--------------------|--------------------| BEAM ACTIVATION RECORD
- | 0x00007f9cc3238310 | 0x00007f9cc2ea6fe8 | BEAM PC shell:exprs/7 + 0x4e
- | 0x00007f9cc3238318 | 0xfffffffffffffffb | []
- | 0x00007f9cc3238320 | 0x000000000000644b | none
- |--------------------|--------------------| BEAM ACTIVATION RECORD
- | 0x00007f9cc3238328 | 0x00007f9cc2ea6708 | BEAM PC shell:eval_exprs/7 + 0xf
- | 0x00007f9cc3238330 | 0xfffffffffffffffb | []
- | 0x00007f9cc3238338 | 0xfffffffffffffffb | []
- | 0x00007f9cc3238340 | 0x000000000004f3cb | cmd
- | 0x00007f9cc3238348 | 0xfffffffffffffffb | []
- | 0x00007f9cc3238350 | 0x00007f9cc3237102 | {value,#Fun<shell.5.104321512>}
- | 0x00007f9cc3238358 | 0x00007f9cc323711a | {eval,#Fun<shell.21.104321512>}
- | 0x00007f9cc3238360 | 0x00000000000200ff | 8207
- | 0x00007f9cc3238368 | 0xfffffffffffffffb | []
- | 0x00007f9cc3238370 | 0xfffffffffffffffb | []
- | 0x00007f9cc3238378 | 0xfffffffffffffffb | []
- |--------------------|--------------------| BEAM ACTIVATION RECORD
- | 0x00007f9cc3238380 | 0x00007f9cc2ea6300 | BEAM PC shell:eval_loop/3 + 0x47
- | 0x00007f9cc3238388 | 0xfffffffffffffffb | []
- | 0x00007f9cc3238390 | 0xfffffffffffffffb | []
- | 0x00007f9cc3238398 | 0xfffffffffffffffb | []
- | 0x00007f9cc32383a0 | 0xfffffffffffffffb | []
- | 0x00007f9cc32383a8 | 0x000001a000000343 | <0.52.0>
- |....................|....................| BEAM CATCH FRAME
- | 0x00007f9cc32383b0 | 0x0000000000005a9b | CATCH 0x00007f9cc2ea67d8
- |                    |                    |  (BEAM shell:eval_exprs/7 + 0x29)
- |********************|********************|
- |--------------------|--------------------| BEAM ACTIVATION RECORD
- | 0x00007f9cc32383b8 | 0x000000000093aeb8 | BEAM PC normal-process-exit
- | 0x00007f9cc32383c0 | 0x00000000000200ff | 8207
- | 0x00007f9cc32383c8 | 0x000001a000000343 | <0.52.0>
- |--------------------|--------------------|
+1> erlang:process_display(self(), backtrace).
+Program counter: 0x00007fdf9baa2e78 (erlang:self/0 + 32)
+
+0x00007fdedf247480 Return addr 0x00007fdf9baa2118 (erlang:process_display/2 + 128)
+y(0)     []
+y(1)     backtrace
+y(2)     <0.89.0>
+
+0x00007fdedf2474a0 Return addr 0x00007fdf9bbb7644 (erl_eval:do_apply/7 + 308)
+y(0)     none
+y(1)     []
+
+0x00007fdedf2474b8 Return addr 0x00007fdf9bf0e430 (shell:exprs/7 + 536)
+y(0)     []
+y(1)     []
+y(2)     []
+y(3)     []
+y(4)     cmd
+y(5)     []
+y(6)     {value,#Fun<shell.5.46532814>}
+y(7)     {eval,#Fun<shell.23.46532814>}
+y(8)     #Ref<0.908573933.3456499713.143140>
+y(9)     []
+
+0x00007fdedf247510 Return addr 0x00007fdf9bf0dc60 (shell:eval_exprs/7 + 152)
+y(0)     []
+y(1)     []
+y(2)     []
+y(3)     []
+y(4)     <0.88.0>
+y(5)     Catch 0x00007fdf9bf0dd0e (shell:eval_exprs/7 + 326)
+
+0x00007fdedf247548 Return addr 0x00007fdf9bf0d87c (shell:eval_loop/4 + 564)
+y(0)     #Ref<0.908573933.3456499713.143140>
+y(1)     #Ref<0.908573933.3456499713.143160>
+y(2)     <0.88.0>
+
+0x00007fdedf247568 Return addr 0x00007fdf9ba2d1f8 (<terminate process normally>)
 true
-2>
 ----
 
 We will look closer at the values on the stack and the
 heap in xref:CH-TypeSystem[].
+
+
+You can inspect the heap of a process with RTP and a debug version of
+the BEAM. 
+
+Assuming you have built a debug version:
+
+[source,bash]
+----
+$ERL_TOP/bin/cerl -debug -rgdb
+GNU gdb (Ubuntu 15.0.50.20240403-0ubuntu1) 15.0.50.20240403-git
+...
+Reading symbols from beam.debug.smp...
+%---------------------------------------------------------------------------
+% Use etp-help for a command overview and general help.
+%
+% To use the Erlang support module, the environment variable ROOTDIR
+% must be set to the toplevel installation directory of Erlang/OTP,
+% so the etp-commands file becomes:
+%     $ROOTDIR/erts/etc/unix/etp-commands
+% Also, erl and erlc must be in the path.
+%---------------------------------------------------------------------------
+etp-set-max-depth 20
+etp-set-max-string-length 100
+--------------- System Information ---------------
+OTP release: 24
+ERTS version: 12.3.2.17
+Arch: x86_64-pc-linux-gnu
+Endianness: Little
+Word size: 64-bit
+BeamAsm support: yes
+--Type <RET> for more, q to quit, c to continue without paging--
+SMP support: yes
+Thread support: yes
+Kernel poll: Supported
+Debug compiled: yes
+Lock checking: yes
+Lock counting: no
+System not initialized
+--------------------------------------------------
+----
+Then you can start the BEAM with run.
+
+[source,bash]
+----
+
+(gdb) run
+Starting program: /home/happi/hh/theBeamBook/otp24/bin/x86_64-pc-linux-gnu/beam.debug.smp -- -root /home/happi/hh/theBeamBook/otp24 -progname /home/happi/hh/theBeamBook/otp24/bin/cerl -debug -- -home /home/happi -- -emu_type debug
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) y
+Debuginfod has been enabled.
+To make this setting permanent, add 'set debuginfod enabled on' to .gdbinit.
+warning: could not find '.gnu_debugaltlink' file for /lib/x86_64-linux-gnu/libtinfo.so.6
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7fffb6baf6c0 (LWP 2185)]
+...
+[New Thread 0x7fff9f4fa6c0 (LWP 2232)]
+Erlang/OTP 24 [erts-12.3.2.17] [source] [64-bit] [smp:16:16] [ds:16:16:10] [async-threads:1] [jit] [type-assertions] [debug-compiled] [lock-checking]
+
+Eshell V12.3.2.17  (abort with ^G)
+1>
+----
+
 The content of the heap is printed by `hipe_bifs:show_heap/1`.
 Since we do not want to list a large heap here we'll just
 spawn a new process that does nothing and show that heap:
@@ -681,8 +718,9 @@ this chapter, instead we will cover those in xref:CH-BEAM[].
 
 If you want to dig even deeper than we will go in this chapter you can
 look at the C source code. The ((PCB)) is implemented as a C struct called `process` in the file
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h[`erl_process.h`].
-
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h[`erl_process.h` OTP19].
+or https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_process.h[`erl_process.h`]
+for the latest version.
 
 The field `id` contains the process ID (or PID).
 
@@ -878,7 +916,7 @@ safely write data. If a sending process can not get the lock, it would
 write to the `m-buf` instead. When all data of a message has been
 copied to the `m-buf`, the message is linked to the process through the
 mailbox. The linking (`LINK_MESSAGE` in
-link:https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_message.h[erl_message.h])
+link:https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_message.h[erl_message.h])
 appends the message to the receiver's
 message queue.
 
