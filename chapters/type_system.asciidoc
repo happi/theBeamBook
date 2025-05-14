@@ -347,8 +347,22 @@ is allowed to be any term, as in `[1|2]`. These are called _((improper
 lists))_ and will be a surprise to any functions that expect a proper list
 as input, when they do not find a `[]` as the last element.
 
-==== Lists on 64-Bit Machines  
-On 64-bit systems each cons cell is two full words (one for the head pointer, one for the tail pointer), aligned to 8 bytes, with no separate header. The list tag in the low two bits of each word still identifies the cell as a cons. Because there’s no header word per cell, Erlang gains a 33% space savings versus a boxed tuple, at the cost of one extra pointer dereference per element.  
+Since each cons cell is identified by the tag in the pointer to the cell,
+there is no need for a separate header word, and a cons cell `[A|B]` thus
+uses 33% less memory than a boxed 2-tuple `{A,B}`. This is also reflected
+by a corresponding speed improvement, since only two heap words need to be
+initialized rather than three. Therefore, lists are the preferred temporary
+data structure for sequences of items.
+
+Note however that for longer term representation of large amounts of data,
+lists can use a lot of memory. Suppose you have a million small integers,
+each of which could be represented in 2 bytes. On a 64-bit Erlang system,
+representing this as a list `[1234, 2001, ...]` would use one million cons
+cells each holding a 64-bit immedate integer and a 64-bit pointer to the
+next cell in the list, i.e., 16 bytes per cell. That's 16 megabytes instead
+of 2. It would be more space-efficient to pack this data into a binary, but
+it all depends on how you need to access these numbers.
+
 
 === Strings
 
