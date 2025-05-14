@@ -27,7 +27,7 @@ chapters/contributors.txt:
 beam-book-a4.pdf: style/custom-print-highlight-theme.yml chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
 	asciidoctor-pdf -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram \
 	-r ./style/custom-admonition-block.rb -a config=./style/ditaa.cfg \
-	--doctype=book -a pdf-theme=./style/pdf-theme.yml \
+	--doctype=book -a pdf-theme=./style/pdf-theme.yml -a pdf-fontsdir=./style/fonts \
 	-a pdf-width=595.28 -a pdf-height=841.89 \
 	-a pdf-margin-top=0.75in -a pdf-margin-bottom=0.75in \
 	-a pdf-margin-inner=0.75in -a pdf-margin-outer=0.5in \
@@ -52,11 +52,11 @@ beam-book-publish.pdf: style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc
 html: chapters/contributors.txt $(ASSET_CHAPTERS)
 	cp -r images site
 	asciidoctor -r asciidoctor-diagram -r ./style/custom-admonition-block.rb \
-	-a config=style/ditaa.cfg --backend=html5 --doctype=book \
-	-o site/index.html book.asciidoc --trace \
-	-a source-highlighter=rouge \
-  	-a rouge-style=thankful_eyes \
-  	-a rouge-linenums-mode=table
+	  -a config=style/ditaa.cfg --backend=html5 --doctype=book \
+	  -o site/index.html book.asciidoc --trace \
+	  -a source-highlighter=rouge \
+	  -a rouge-style=thankful_eyes \
+	  -a rouge-linenums-mode=table
 	rsync -R code/*/*.png site
 
 code/book/ebin/generate_op_doc.beam: code/book/src/generate_op_doc.erl
