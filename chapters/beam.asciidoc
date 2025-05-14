@@ -715,17 +715,9 @@ amount of work without using up its reductions.
 
 [WARNING]
 ====
-// TODO: check term_to_binary and friends to see is this still is true
-There are some BIFs that can run for a long time only using 1
-reduction, like `term_to_binary` and `binary_to_term`. Try to make
-sure that you only call these BIFs with small terms or binaries, or
-you might lock up the scheduler for a very long time.
-
-Also, if you write your own NIFs, make sure they can yield and that
+If you write your own NIFs, make sure they can yield and that
 they bump the reduction counter by an amount proportional to their
 run time.
-// TODO: briefly mention dirty schedulers here
-
 ====
 
 We will go through the details of how the scheduler works in
