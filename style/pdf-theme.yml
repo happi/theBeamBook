@@ -18,10 +18,10 @@ font:
       italic: GEM_FONTS_DIR/mplus1mn-italic-subset.ttf
       bold_italic: GEM_FONTS_DIR/mplus1mn-bold_italic-subset.ttf
     Hack:
-      normal:      /workspaces/theBeamBook/style/fonts/hack/Hack-Regular.ttf
-      italic:      /workspaces/theBeamBook/style/fonts/hack/Hack-Italic.ttf
-      bold:        /workspaces/theBeamBook/style/fonts/hack/Hack-Bold.ttf
-      bold_italic: /workspaces/theBeamBook/style/fonts/hack/Hack-BoldItalic.ttf
+      normal:      hack/Hack-Regular.ttf
+      italic:      hack/Hack-Italic.ttf
+      bold:        hack/Hack-Bold.ttf
+      bold_italic: hack/Hack-BoldItalic.ttf
 page:
   background_color: FFFFFF
   layout: portrait
