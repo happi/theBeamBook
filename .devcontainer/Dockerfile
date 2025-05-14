@@ -27,7 +27,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # Additional Ruby packages
-RUN gem install asciidoctor-pdf asciidoctor-diagram rouge
+RUN gem install asciidoctor-pdf asciidoctor-diagram asciidoctor-diagram-ditaamini \
+  asciidoctor-diagram-plantuml asciidoctor-epub3 rouge
 
 # Install rebar3
 RUN git clone https://github.com/erlang/rebar3.git && \
