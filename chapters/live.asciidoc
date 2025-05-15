@@ -170,7 +170,7 @@ restart.
 =====
 heart_beat_kill_pid = 30009
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:10:10]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 ERTS is starting in /home/happi/eserlang/Book/code
 
@@ -202,7 +202,7 @@ heart: Mon Feb 13 12:33:09 2017: Executed "run_erl -daemon /tmp/erl_pipe/
 =====
 heart_beat_kill_pid = 30084
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:10:10]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 ERTS is starting in /home/happi/eserlang/Book/code
 
@@ -286,7 +286,7 @@ generate the boot script from the release file:
 ~~~
 > erl
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:10:10]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 Eshell V8.1  (abort with ^G)
 1> systools:make_script("example_server", [local]).
 ok

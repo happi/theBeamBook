@@ -39,7 +39,7 @@ and one Elixir node. First we start an Erlang node called
 ----
 $ erl -sname node1
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 Eshell V8.1  (abort with ^G)
 (node1@GDC08)1> nodes().
@@ -53,7 +53,7 @@ Then in another terminal window we start an Elixir node called `node2`. (Note th
 ----
 $ iex --sname node2
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 Interactive Elixir (1.4.0) - press Ctrl+C to exit (type h() ENTER for help)
 iex(node2@GDC08)1>
@@ -112,7 +112,7 @@ We launch a node on the remote machine, telling it to use the same cookie passph
 ----
 happi@gds01:~$ erl -sname node3 -setcookie pepparkaka
 Erlang/OTP 18 [erts-7.3] [source-d2a6d81] [64-bit] [smp:8:8]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 Eshell V7.3  (abort with ^G)
 (node3@gds01)1> net_kernel:connect('node1@GDC08').
@@ -225,7 +225,7 @@ be able to connect to another node. If you don't specify the `-name` or
 ----
 $ erl -sname node4 -remsh node2
 Erlang/OTP 18 [erts-7.3] [source-d2a6d81] [64-bit] [smp:8:8]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 Eshell V7.3  (abort with ^G)
 (node2@GDC08)1> 
@@ -237,7 +237,7 @@ Or using Elixir:
 ----
 $ iex --sname node4 --remsh node2
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 Interactive Elixir (1.4.0) - press Ctrl+C to exit (type h() ENTER for help)
 iex(node2@GDC08)1>
@@ -305,7 +305,7 @@ will see how the shell configurations are loaded. First `node1` in `dir1`:
 ----
 GDC08:~/example/dir1$ iex --sname node1
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit]
-              [smp:4:4] [async-threads:10] [hipe] [kernel-poll:false]
+              [smp:4:4] [async-threads:10]  [kernel-poll:false]
 
 ERTS is starting in /home/happi/example/dir1
  on [node1@GDC08]
@@ -322,7 +322,7 @@ Then `node2` in `dir2`:
 ----
 GDC08:~/example/dir2$ iex --sname node2
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit]
-              [smp:4:4] [async-threads:10] [hipe] [kernel-poll:false]
+              [smp:4:4] [async-threads:10]  [kernel-poll:false]
 
 ERTS is starting in /home/happi/example/dir2
  on [node2@GDC08]
@@ -339,7 +339,7 @@ Then `node3` in `dir1`, but launching a remote shell on `node2`:
 ----
 GDC08:~/example/dir1$ iex --sname node3 --remsh node2@GDC08
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 ERTS is starting in /home/happi/example/dir1
  on [node3@GDC08]
@@ -357,7 +357,7 @@ As we see, the remote shell started up in `dir2`, since that is the directory of
 ----
 GDC08:~/example/dir2$ erl -sname node4
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 ERTS is starting in /home/happi/example/dir2
  on [node4@GDC08]
@@ -503,7 +503,7 @@ Then you start the ssh daemon on the Erlang node:
 ----
 gds01> erl
 Erlang/OTP 18 [erts-7.3] [source-d2a6d81] [64-bit] [smp:8:8]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 Eshell V7.3  (abort with ^G)
 1> ssh:start().

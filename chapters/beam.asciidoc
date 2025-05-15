@@ -561,7 +561,6 @@ add(A,B) -> id(A) + id(B).
 
 Compiled to BEAM code this will look as follows (or would, before the
 `swap` instruction was added -- see xref:SEC-stack_example[]):
-// TODO: modernize this with a less obsolete example
 
 [source, Erlang]
 -------------------------------------------
