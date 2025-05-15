@@ -773,7 +773,7 @@ $2 = {common =
       last_htop = 0x7fff9eaf8298, last_mbuf = 0x0, heap_hfrag = 0x0, last_old_htop = 0x0,
       debug_reds_in = 4000
      }
-  ----
+----
 
 If you want to dig even deeper than we will go in this chapter you can
 look at the C source code. The ((PCB)) is implemented as a C struct called `process` in the file
