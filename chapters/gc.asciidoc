@@ -54,8 +54,6 @@ In xref:Using-GDB[] we will go through how to use gdb to inspect the
 system in detail. Here we use some of our own helper scripts that
 unfortunately has been lost in time. 
 
-// TODO: Rewrite using  Erlang Pathologist Toolkit
-
 [source,erlang]
 ----
 include::../code/memory_chapter/src/gc_example.erl[]
