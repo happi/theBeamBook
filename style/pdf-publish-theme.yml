@@ -1,4 +1,4 @@
-extends: custom-print-highlight-theme
+extends: custom-print-highlight
 
 page:
   size: [6in, 9in]

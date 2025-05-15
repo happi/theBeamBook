@@ -1,4 +1,4 @@
-extends: pdf-theme
+extends: pdf
 
 code:
   font_color: #2e3436
