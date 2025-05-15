@@ -20,8 +20,7 @@ sender(P2) ->
   P2 ! self(),
   receive ready -> ok end,
   P2 ! M,
-  %% Print the PCB of P2
-  hipe_bifs:show_pcb(P2),
+  io:format("~p~n",[P2]),
   ok.
 
 receiver(How) ->

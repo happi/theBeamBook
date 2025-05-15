@@ -200,25 +200,6 @@ While a process is running the emulator keeps the number of reductions
 left to execute in the (register mapped) variable `FCALLS` (see
 `beam_emu.c`).
 
-We can examine this value with `hipe_bifs:show_pcb/1`:
-
-----
-iex(13)> :hipe_bifs.show_pcb self
- P: 0x00007efd7c2c0400
- -----------------------------------------------------------------
- Offset| Name          |              Value |             *Value |
-     0 | id            | 0x00000270000004e3 |                    |
-
- ...
-
-   328 | rcount        | 0x0000000000000000 |                    |
-   336 | reds          | 0x000000000000a528 |                    |
-
- ...
-
-   320 | fcalls        | 0x00000000000004a3 |                    |
-----
-
 The field `reds` keep track of the total number of reductions a
 process has done up until it was last suspended. By monitoring this
 number you can see which processes do the most work.
@@ -246,68 +227,6 @@ it will instead go into the state _waiting_ (for a message).
 In the next section we will take a look at all the different
 states a process can be in.
 
-// I have compiled a table of variable names used for reduction counting
-// as a reference for you if you want to dive into the source code. In
-// xref:redvars[] you can see the variables used globally and in the PCB
-// and in the emulator and the scheduler.
-
-// [[redvars]]
-// [cols="1,2a"]
-// |====
-// | Global
-
-// |
-
-// [cols="1,3"]
-// !====
-// ! Variable ! Use
-
-// ! `function_calls` ! static (file global) variable in `erl_process.c`, number of function calls since last system-level activity
-
-// !====
-
-// | In PCB
-
-// |
-
-// [cols="1,3"]
-// !====
-// ! Variable                         ! Use
-// ! p->fcalls                        !
-// ! p->reds                          !
-// ! REDS_IN == (`+p->def_arg_reg[5]+`) ! reds while swapped out?
-
-// !====
-
-// | beam_emu.c
-
-// |
-
-// [cols="1,3"]
-// !====
-// ! Variable   ! Use
-// ! FCALLS     ! register mapped var for reductions
-// ! reds_used  ! used reductions during execution, calls in erl_process.c schedule
-// ! reds (c_p->fcalls) !
-// ! neg_o_reds ! ("negative old value of reds when call saving is active")
-// !====
-
-// | erl_process.c schedule/2
-
-// |
-
-// [cols="1,3"]
-// !====
-// ! Variable         ! Use
-// ! calls            ! argument to schedule
-// ! context_reds     !
-// ! fcalls           !
-// ! input_reductions !
-// ! actual_reds      !
-// ! reds             !
-// !====
-
-// |====
 
 === The Process State (or _status_)
 

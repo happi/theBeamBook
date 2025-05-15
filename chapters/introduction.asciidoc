@@ -128,7 +128,7 @@ but not a node. In such a system the function `Node.alive?`
 ----
 $ iex
 Erlang/OTP 19 [erts-8.1] [source-0567896] [64-bit] [smp:4:4]
-              [async-threads:10] [hipe] [kernel-poll:false]
+              [async-threads:10]  [kernel-poll:false]
 
 Interactive Elixir (1.4.0) - press Ctrl+C to exit (type h() ENTER for help)
 iex(1)> Node.alive?
