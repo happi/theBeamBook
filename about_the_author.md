@@ -1,0 +1,5 @@
+Erik Stenman is a seasoned software engineer, researcher, and entrepreneur with deep expertise in Erlang, BEAM, and high-performance distributed systems. As one of the early pioneers in BEAM internals, Erik has spent decades optimizing concurrent systems, designing fault-tolerant architectures, and pushing the boundaries of scalable computing.
+
+With a background in computer science research and industry leadership, Erik has worked on large-scale backend systems, fintech infrastructure, and advanced debugging techniques for BEAM-based applications. His passion for efficiency, reliability, and simplicity has led him to build and advise on some of the most resilient distributed architectures in production today.
+
+In The BEAM Book, Erik shares his extensive knowledge of Erlang’s runtime system, providing an in-depth look at BEAM internals, memory management, process scheduling, and debugging techniques. Whether you're a seasoned developer or new to the world of functional programming, Erik's insights will help you master the engine behind some of the world’s most robust systems.
