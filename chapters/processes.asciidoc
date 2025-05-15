@@ -471,7 +471,7 @@ these queries give a view of a process’s stack, heap, and PCB-like fields.
 
 For a deeper, byte-level view the runtime ships with the **Erlang Toolkit for Pathologist (EPT)**—a collection of GDB macros (`etp-stackdump`, `etp-heapdump`, `etp-process-info`, and friends) that walk live BEAM data structures in a paused VM or core dump. 
 
-See xref:[AP-BuildingERTS] for more information on how to build the a debug version of the
+See xref:AP-BuildingERTS[] for more information on how to build the a debug version of the
 Erlang runtime system with ETP support. 
 
 We can see the context of the stack of a process with `erlang:process_display/2`:
