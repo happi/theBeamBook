@@ -7,10 +7,6 @@
 include::../code/beam_modules_chapter/src/beamfile.erl[]
 ----
 
-// [source,erlang]
-// ----
-// include::../stack_machine.erl[]
-// ----
 
 [source,erlang]
 ----
@@ -48,15 +44,6 @@ include::../code/beam_chapter/src/vsm.c[]
 include::../code/beam_chapter/src/token_threaded_vsm.c[]
 ----
 
-// [source,erlang]
-// ----
-// include::../add.erl[]
-// ----
-
-// [source,beam]
-// ----
-// include::../add.S[]
-// ----
 
 [[listing-share]]
 
@@ -89,20 +76,3 @@ show.
 include::../code/type_system_chapter/src/show.erl[]
 ----
 
-[source,c]
-----
-include::../code/building_chapter/hipe_debug.patch[]
-----
-
-
-// [[listing-lbS]]
-// [source,beam]
-// ----
-// include::../lb.S[]
-// ----
-
-// [[listing-gdb]]
-// [source,c]
-// ----
-// include::../gdb_scripts[]
-// ----
