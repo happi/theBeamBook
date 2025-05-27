@@ -48,7 +48,7 @@ async_receive() ->
     receive
         {busy_port_example, Data} ->
             Data
-    after 2000 -> timepout
+    after 2000 -> timeout
     end.
 
 call_port(Msg) ->

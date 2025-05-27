@@ -504,7 +504,7 @@ Received data: 14
 Received data: 16
 Received data: 18
 Received data: 20
-[timepout,2,4,6,8,10,12,14,16,18]
+[timeout,2,4,6,8,10,12,14,16,18]
 ```
 We see that the first 5 messages are not asyncronous, but the last 5 are. This is because the port is busy and the send operation is blocking. The port is busy because the id of the message is below 14 and the call is to the `bar` function. The port is busy for 5 seconds and then the last 5 messages are sent asyncronously.
 
