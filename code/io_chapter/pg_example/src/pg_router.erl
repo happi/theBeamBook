@@ -13,5 +13,5 @@ stop() ->
 dispatch() ->
     [
         {"/websocket", websocket_handler, []},
-        {"/[...]", cowboy_static, {priv_dir, my_app, "static"}}
+        {"/[...]", cowboy_static, {priv_dir, pg_example, "static"}}
     ].
