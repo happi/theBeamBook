@@ -28,8 +28,8 @@ jobs:
       - name: Upload PDF artefact
         uses: actions/upload-artifact@v4
         with:
-          name: beam-book-pdf
-          path: beam-book.pdf
+          name: beam-book-a4-pdf
+          path: beam-book-a4.pdf
           if-no-files-found: error
 
       # 4 ▸ publish the PDF to the release page on a tagged commit         
@@ -38,5 +38,5 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: beam-book.pdf
+          file: beam-book-a4.pdf
           tag: ${{ github.ref_name }}
