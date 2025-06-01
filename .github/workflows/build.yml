@@ -1,4 +1,4 @@
-name: Build PDF
+name: Old Build PDF
 on:
   pull_request:
   push:
