@@ -1,4 +1,4 @@
-name: Build PDF (Devcontainer)
+name: Build PDF
 
 on:
   # Rebuild the book on every commit pushed to, or merged into, the canonical branch.
