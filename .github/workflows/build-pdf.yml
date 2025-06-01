@@ -21,7 +21,7 @@ jobs:
       - uses: devcontainers/ci@v0.3
         with:
           # Needed so the post‑job cleanup doesn’t try to push an image
-          push: false
+          push: never
           runCmd: |
             make
 
