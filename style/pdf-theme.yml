@@ -39,7 +39,7 @@ page:
   # margin_outer: 0.39in
   margin_inner: 0.75in
   margin_outer: 0.59in
-  size: A4
+  
 base:
   align: justify
   # color as hex string (leading # is optional)
