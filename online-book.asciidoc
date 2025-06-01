@@ -1,0 +1,20 @@
+:media: screen
+:pdf-theme: style/pdf-theme.yml                  // A4 / screen theme
+:pdf-fontsdir: style/fonts
+:source-highlighter: rouge
+:rouge-style: pastie
+:rouge-linenums-mode: table
+:toc:
+:toclevels: 2
+
+include::book.asciidoc[]
+
+[break-before=recto,leveloffset=+1,include-title=true]
+include::chapters/ap-code_listings.asciidoc[]
+[break-before=recto,include-title=true]
+[[bibliography]]
+[break-before=recto,leveloffset=+1,include-title=true]
+include::chapters/references.asciidoc[]
+[break-before=recto,include-title=true]
+[index]
+== Index

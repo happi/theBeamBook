@@ -286,9 +286,12 @@ footer:
   line_height: 1
   padding: [$base_line_height_length / 2, 1, 0, 1]
   vertical_align: top
-  recto:
+  running-content:
+    start-at: after-toc     # page numbering begins on first body page
+  recto:                    # right-hand (odd) pages
     right:
       content: '{page-number}'
-  verso:
+
+  verso:                    # left-hand (even) pages
     left:
-      content: $footer_recto_right_content
+      content: '{page-number}'

@@ -23,30 +23,31 @@ chapters/contributors.txt:
 	echo '|==='; \
 	} > $@
 
-# A4 Format (Default)
-beam-book-a4.pdf: style/custom-print-highlight-theme.yml chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
-	asciidoctor-pdf -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram \
-	-r ./style/custom-admonition-block.rb -a config=./style/ditaa.cfg \
-	--doctype=book -a pdf-theme=./style/pdf-theme.yml -a pdf-fontsdir=./style/fonts \
-	-a pdf-width=595.28 -a pdf-height=841.89 \
-	-a pdf-margin-top=0.75in -a pdf-margin-bottom=0.75in \
-	-a pdf-margin-inner=0.75in -a pdf-margin-outer=0.5in \
+## A4 screen/PDF reading (Default)
+beam-book-a4.pdf: style/custom-print-highlight-theme.yml chapters/opcodes_doc.asciidoc online-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
+	bundle exec asciidoctor-pdf -r asciidoctor-diagram \
+	-r ./style/custom-pdf-converter.rb \
+	-r ./style/custom-admonition-block.rb \
+	-a config=./style/ditaa.cfg \
+	-a pdf-theme=./style/pdf-theme.yml \
+	-a pdf-fontsdir=./style/fonts \
 	-a source-highlighter=rouge \
 	-a rouge-style=pastie \
 	-a rouge-linenums-mode=table \
-	book.asciidoc -o $@
+ 	online-book.asciidoc -o $@
 
-# Print-Ready 6"x9" for Publishing
-beam-book-publish.pdf: style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
-	asciidoctor-pdf -r ./style/custom-pdf-converter.rb -r asciidoctor-diagram \
-	-r ./style/custom-admonition-block.rb -a config=./style/ditaa.cfg \
-	--doctype=book -a pdf-theme=style/pdf-publish-theme.yml -a pdf-fontsdir=./style/fonts \
-	-a pdf-margin-top=0.75in -a pdf-margin-bottom=0.75in \
-	-a pdf-margin-inner=0.75in -a pdf-margin-outer=0.5in \
+# Print-ready 6×9 for PoD
+beam-book-publish.pdf: style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc print-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
+	bundle exec asciidoctor-pdf -r asciidoctor-diagram \
+	-r ./style/custom-pdf-converter.rb \
+	-r ./style/custom-admonition-block.rb \
+	-a config=./style/ditaa.cfg \
+	-a pdf-theme=style/pdf-publish-theme.yml \
+	-a pdf-fontsdir=./style/fonts \
 	-a source-highlighter=rouge \
 	-a rouge-style=pastie \
 	-a rouge-linenums-mode=table \
-	book.asciidoc -o $@ --trace
+ 	print-book.asciidoc -o $@ --trace
 
 
 html: chapters/contributors.txt $(ASSET_CHAPTERS)
