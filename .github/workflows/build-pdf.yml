@@ -20,7 +20,9 @@ jobs:
       #    This action honours devcontainer.json / .devcontainer/Dockerfile
       - uses: devcontainers/ci@v0.3
         with:
-          # Script to execute inside the container (same as you do locally)
+          # Needed so the post‑job cleanup doesn’t try to push an image
+          imageName: ghcr.io/${{ github.repository }}-devcontainer
+          push: false
           runCmd: |
             make
 
