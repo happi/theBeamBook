@@ -44,22 +44,22 @@ If the issue occurs sporadically, running the system under **load testing** with
 
 Once the issue is reproducible, the next step is **isolating the problem** to a specific module, process, or function:
 
-- Check **process message queues** using:
-  ```erlang
-  process_info(Pid, messages).
-  ```
-  A long message queue could indicate a performance bottleneck.
+Check **process message queues** using:
+```erlang
+process_info(Pid, messages).
+```
+A long message queue could indicate a performance bottleneck.
   
-- Inspect **ETS tables** and memory usage:
-  ```erlang
-  ets:info(my_table, size).
-  erlang:memory().
-  ```
+Inspect **ETS tables** and memory usage:
+```erlang
+ets:info(my_table, size).
+erlang:memory().
+```
 
-- Use **selective tracing** to focus only on processes related to the issue:
-  ```erlang
-  dbg:p(self(), [m]).  % Trace only the current process
-  ```
+Use **selective tracing** to focus only on processes related to the issue:
+```erlang
+dbg:p(self(), [m]).  % Trace only the current process
+```
 
 By isolating the faulty component, you **narrow the scope of debugging** and avoid unnecessary distractions.
 
@@ -128,15 +128,15 @@ handle_info(_Unexpected, State) ->
 
 Many issues arise due to insufficient **logging and monitoring**. Improving system observability includes:
 
-- Using **structured logging** (`lager`, `logger`) with **log levels**:
-  ```erlang
-  logger:log(info, "User logged in: ~p", [UserId]).
-  ```
+Using **structured logging** (`lager`, `logger`) with **log levels**:
+```erlang
+logger:log(info, "User logged in: ~p", [UserId]).
+```
 
-- Implementing **real-time monitoring**:
-  ```erlang
-  recon:bin_leak(10). % Detects potential memory leaks.
-  ```
+Implementing **real-time monitoring**:
+```erlang
+recon:bin_leak(10). % Detects potential memory leaks.
+```
 
 Better logging helps detect anomalies **before they escalate** into major failures.
 

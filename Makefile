@@ -24,12 +24,11 @@ chapters/contributors.txt:
 	} > $@
 
 ## A4 screen/PDF reading (Default)
-beam-book-a4.pdf: style/custom-print-highlight-theme.yml chapters/opcodes_doc.asciidoc online-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
+beam-book-a4.pdf: style/pdf-online-theme.yml style/pdf-theme.yml chapters/opcodes_doc.asciidoc online-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
 	bundle exec asciidoctor-pdf -r asciidoctor-diagram \
 	-r ./style/custom-pdf-converter.rb \
 	-r ./style/custom-admonition-block.rb \
 	-a config=./style/ditaa.cfg \
-	-a pdf-theme=./style/pdf-theme.yml \
 	-a pdf-fontsdir=./style/fonts \
 	-a source-highlighter=rouge \
 	-a rouge-style=pastie \
@@ -37,12 +36,11 @@ beam-book-a4.pdf: style/custom-print-highlight-theme.yml chapters/opcodes_doc.as
  	online-book.asciidoc -o $@
 
 # Print-ready 6×9 for PoD
-beam-book-publish.pdf: style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc print-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
+beam-book-publish.pdf: style/custom-print-highlight-theme.yml style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc print-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
 	bundle exec asciidoctor-pdf -r asciidoctor-diagram \
 	-r ./style/custom-pdf-converter.rb \
 	-r ./style/custom-admonition-block.rb \
 	-a config=./style/ditaa.cfg \
-	-a pdf-theme=style/pdf-publish-theme.yml \
 	-a pdf-fontsdir=./style/fonts \
 	-a source-highlighter=rouge \
 	-a rouge-style=pastie \
@@ -54,7 +52,7 @@ html: chapters/contributors.txt $(ASSET_CHAPTERS)
 	cp -r images site
 	asciidoctor -r asciidoctor-diagram -r ./style/custom-admonition-block.rb \
 	  -a config=style/ditaa.cfg --backend=html5 --doctype=book \
-	  -o site/index.html book.asciidoc --trace \
+	  -o site/index.html online-book.asciidoc --trace \
 	  -a source-highlighter=rouge \
 	  -a rouge-style=thankful_eyes \
 	  -a rouge-linenums-mode=table
