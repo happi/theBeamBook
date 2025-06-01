@@ -22,6 +22,12 @@ font:
       italic:      hack/Hack-Italic.ttf
       bold:        hack/Hack-Bold.ttf
       bold_italic: hack/Hack-BoldItalic.ttf
+    Courier:
+      normal: hack/Hack-Regular.ttf
+      italic: hack/Hack-Italic.ttf
+      bold: hack/Hack-Bold.ttf
+      bold_italic: hack/Hack-BoldItalic.ttf
+      
 page:
   background_color: FFFFFF
   layout: portrait
