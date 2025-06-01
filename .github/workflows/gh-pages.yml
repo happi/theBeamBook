@@ -1,5 +1,5 @@
 # Sample workflow for building and deploying site to GitHub Pages
-name: Deploy site https://happi.github.io/theBeamBook/
+name: Deploy site
 
 on:
   push:
