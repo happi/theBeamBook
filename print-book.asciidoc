@@ -1,0 +1,5 @@
+:media: prepress
+
+
+// include the real content
+include::book.asciidoc[]

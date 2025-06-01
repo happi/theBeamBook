@@ -1,5 +1,3 @@
-= The BEAM Book: Understanding the Erlang Runtime System
-Erik Stenman
 :author: Erik Stenman
 :title: The BEAM Book: Understanding the Erlang Runtime System
 :subject: Computer Science, Programming Languages
@@ -9,6 +7,8 @@ Erik Stenman
 :doctype: book
 :encoding: utf-8
 :lang: en
+:title-page-blank:
+:chapter-page-layout: recto
 :toc: macro
 :toclevels: 2
 :icons: font
@@ -26,6 +26,10 @@ Erik Stenman
 :footer-style: normal
 
 
+= The BEAM Book: Understanding the Erlang Runtime System
+Erik Stenman
+
+[break-before=recto,include-title=true]
 [.text-center]
 The BEAM Book
 
@@ -59,76 +63,89 @@ ISBN: 978-91-531-4253-9
 [.text-center]
 © 2025 Erik Stenman.
 
-
+[break-before=recto, include-title=true]
 toc::[]
 
-
+[break-before=recto,include-title=true]
 include::chapters/preface.asciidoc[]
 
 // Part I
+[break-before=recto,include-title=true]
 [[P-ERTS]]
 
 = Understanding ERTS
-
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/introduction.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/compiler.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/processes.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/type_system.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/beam.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/beam_modules.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/beam_instructions.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/calls.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/beam_loader.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/scheduling.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/memory.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/gc.asciidoc[]
 
 // include::chapters/data_structures.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/io.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/distribution.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/c.asciidoc[]
 
 // Part II
+[break-before=recto,include-title=true]
 [[P-Running]]
-
 = Running ERTS
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/ops.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/debugging.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/tracing.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/testing.asciidoc[]
 
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/profiling.asciidoc[]
 
 // include::chapters/monitor.asciidoc[]
 // include::chapters/tweak.asciidoc[]
-
+[break-before=recto,include-title=true]
 [[appendix]]
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/building.asciidoc[]
-
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/ap-beam_instructions.asciidoc[]
-
-include::chapters/ap-code_listings.asciidoc[]
-
-[[bibliography]]
-include::chapters/references.asciidoc[]
-
-[index]
-== Index

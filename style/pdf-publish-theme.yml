@@ -3,7 +3,7 @@ extends: custom-print-highlight
 page:
   size: [6in, 9in]
   margin: [0.75in, 0.75in, 0.75in, 0.75in]
-  margin-inner: 0.85in   # Inside margin (gutter)
+  margin-inner: 0.97in   # Inside margin (gutter)
   margin-outer: 0.75in  # Outside margin
   margin-top: 0.75in
   margin-bottom: 0.85in

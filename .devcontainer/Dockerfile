@@ -1,35 +1,25 @@
 FROM erlang:27
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    # Set Erlang flags for unicode text and shell history
     ERL_AFLAGS="+pc unicode -kernel shell_history enabled"
 
-    # Create a default user for the devcontainer
 RUN useradd -ms /bin/bash builder
 
-# Install dependencies
+# --- OS deps ----------------------------------------------------
 RUN apt-get update && apt-get install -y \
-    git \
-    gcc \
-    rsync \
-    postgresql \
-    postgresql-contrib \
-    wget \
-    curl \
-    make \
-    build-essential \
-    ruby \
-    ruby-dev \
-    asciidoctor \
-    default-jre \
-    graphviz \
+    git gcc rsync wget curl make build-essential \
+    ruby ruby-dev default-jre graphviz \
+    postgresql postgresql-contrib \
     systemtap systemtap-sdt-dev \
     && apt-get clean
 
-# Additional Ruby packages
-RUN gem install asciidoctor-pdf asciidoctor-diagram asciidoctor-diagram-ditaamini \
-  asciidoctor-diagram-plantuml asciidoctor-epub3 rouge
-
+# --- Ruby gems via Bundler -------------------------------------
+# Copy Gemfile first so Docker layer cache works
+COPY ../Gemfile /tmp/Gemfile
+WORKDIR /tmp
+RUN gem install --no-document bundler && \
+    bundle install
+    
 # Install rebar3
 RUN git clone https://github.com/erlang/rebar3.git && \
     cd rebar3 && \

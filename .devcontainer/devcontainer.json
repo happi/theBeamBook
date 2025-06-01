@@ -1,6 +1,7 @@
 {
   "name": "BeamBook Dev Container",
   "dockerFile": "Dockerfile",
+  "context": "..", 
   "customizations": {
     "vscode": {
       "extensions": [
