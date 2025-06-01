@@ -1,6 +1,8 @@
 ![Pages Build](https://github.com/happi/theBeamBook/actions/workflows/gh-pages.yml/badge.svg) 
 ![PDF Build](https://github.com/happi/theBeamBook/actions/workflows/build-pdf.yml/badge.svg)
 
+[Download latest PDF](https://github.com/happi/theBeamBook/releases/latest/download/beam-book-a4.pdf)
+
 # The BEAM Book
 
 **1.0 — First Edition now *in print***
