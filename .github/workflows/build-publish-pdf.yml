@@ -1,0 +1,43 @@
+name: Build Publish PDF
+
+on:
+  # Rebuild the book on every commit pushed to, or merged into, the canonical branch.
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # 1 ▸ Fetch repository content
+      - uses: actions/checkout@v4
+
+      # 2 ▸ Spin up the repo’s devcontainer and run the build inside it
+      #    This action honours devcontainer.json / .devcontainer/Dockerfile
+      - uses: devcontainers/ci@v0.3
+        with:
+          # Needed so the post‑job cleanup doesn’t try to push an image
+          push: never
+          runCmd: |
+            make beam-book-publish.pdf
+
+      # 3 ▸ Upload the generated PDF as a workflow artefact so PR reviewers can dl it
+      - name: Upload PDF artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beam-book-publish-pdf
+          path: beam-book-publish.pdf
+          if-no-files-found: error
+
+      # 4 ▸ publish the PDF to the release page on a tagged commit         
+      - name: Attach PDF to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: beam-book-publish.pdf
+          tag: ${{ github.ref_name }}
