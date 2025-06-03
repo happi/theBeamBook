@@ -510,30 +510,6 @@ the execution to the emulator.
 Looking at it that way, the scheduler loop looks like this:
 
 . Update reduction counters.
-. Check timers
-. If needed check balance
-. If needed migrate processes and ports
-. Do auxiliary scheduler work
-. If needed check IO and update time
-. While needed pick a port task to execute
-. Pick a process to execute
-
-=== The Scheduler Loop
-
-Conceptually you can look at the scheduler as the driver of program
-execution in the Erlang VM. In reality, that is, the way the C code
-is structured, it is the emulator (`process_main` in beam_emu.c) that
-drives the execution and it calls the scheduler as a subroutine to find
-the next process to execute.
-
-Still, we will pretend that it is the other way around, since it makes
-a nice conceptual model for the scheduler loop. That is, we see it
-as the scheduler picking a process to execute and then handing over
-the execution to the emulator.
-
-Looking at it that way, the scheduler loop looks like this:
-
-. Update reduction counters.
 +
 Each process is allotted a number of reductions (small units of execution).
 When the reduction count is exceeded, the process is preempted and another is scheduled.
