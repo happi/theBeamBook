@@ -33,7 +33,7 @@ beam-book-a4.pdf: style/pdf-online-theme.yml style/pdf-theme.yml chapters/opcode
 	-a source-highlighter=rouge \
 	-a rouge-style=pastie \
 	-a rouge-linenums-mode=table \
- 	online-book.asciidoc -o $@
+ 	online-book.asciidoc -o /tmp/$@ && cp /tmp/$@ $@ || true
 
 # Print-ready 6×9 for PoD
 pub: beam-book-publish.pdf

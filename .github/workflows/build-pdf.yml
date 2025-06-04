@@ -28,7 +28,9 @@ jobs:
           # Needed so the post‑job cleanup doesn’t try to push an image
           push: never
           runCmd: |
-            sudo chown -R builder:builder /workspaces/theBeamBook
+            export GEM_HOME="/home/builder/.gem"
+            export PATH="$GEM_HOME/bin:$PATH"
+            cd /workspaces/theBeamBook
             make
 
       # 3 ▸ Upload the generated PDF as a workflow artefact so PR reviewers can dl it
