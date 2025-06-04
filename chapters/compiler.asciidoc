@@ -1024,7 +1024,7 @@ You can view the DFA graph (xref:fig_json_DFA[]) using for example dotty:
 
 [[fig_json_DFA]]
 .DFA graph for JSON tokens
-image::../code/compiler_chapter/json_tokens.png[]
+image::../code/compiler_chapter/json_tokens.png[DFA (Deterministic Finite Automaton) graph diagram showing the state transitions for JSON token recognition with states and transitions for parsing strings, numbers, booleans, and structural characters]
 
 We can try our tokenizer on an example json file (`test.json`).
 

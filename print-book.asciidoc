@@ -3,3 +3,7 @@
 
 // include the real content
 include::book.asciidoc[]
+
+[[bibliography]]
+[break-before=recto,leveloffset=+1,include-title=true]
+include::chapters/references.asciidoc[]
