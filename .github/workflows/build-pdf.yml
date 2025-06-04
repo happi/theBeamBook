@@ -16,10 +16,6 @@ jobs:
       # 1 ▸ Fetch repository content
       - uses: actions/checkout@v4
 
-      # 1.5 ▸ Fix permissions for devcontainer
-      - name: Fix permissions before build
-        run: |
-          sudo chown -R 1000:1000 ${{ github.workspace }}
 
       # 2 ▸ Spin up the repo’s devcontainer and run the build inside it
       #    This action honours devcontainer.json / .devcontainer/Dockerfile
