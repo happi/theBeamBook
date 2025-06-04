@@ -1,6 +1,6 @@
 ASSET_CHAPTERS = $(shell find chapters -type f)
 
-.PHONY: all pdf pdf-a4 pdf-publish html docker docker-build clean serve
+.PHONY: all pdf pdf-a4 pdf-publish epub html docker docker-build clean serve
 
 all: pdf-a4 html
 
@@ -36,6 +36,8 @@ beam-book-a4.pdf: style/pdf-online-theme.yml style/pdf-theme.yml chapters/opcode
  	online-book.asciidoc -o $@
 
 # Print-ready 6×9 for PoD
+pub: beam-book-publish.pdf
+
 beam-book-publish.pdf: style/custom-print-highlight-theme.yml style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc print-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
 	bundle exec asciidoctor-pdf -r asciidoctor-diagram \
 	-r ./style/custom-pdf-converter.rb \
@@ -46,6 +48,17 @@ beam-book-publish.pdf: style/custom-print-highlight-theme.yml style/pdf-publish-
 	-a rouge-style=pastie \
 	-a rouge-linenums-mode=table \
  	print-book.asciidoc -o $@ --trace
+
+# EPUB version
+epub: beam-book.epub
+
+beam-book.epub: chapters/opcodes_doc.asciidoc epub-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
+	bundle exec asciidoctor-epub3 -r asciidoctor-diagram \
+	-r ./style/custom-admonition-block.rb \
+	-a config=./style/ditaa.cfg \
+	-a source-highlighter=rouge \
+	-a rouge-style=pastie \
+	epub-book.asciidoc -o $@ --trace
 
 
 html: chapters/contributors.txt $(ASSET_CHAPTERS)
@@ -70,7 +83,7 @@ genop.tab:
 
 clean:
 	find site -type f -name '.[^gitignore]*' -delete
-	rm -f beam-book-*.pdf site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml images/diag-*.png
+	rm -f beam-book-*.pdf beam-book*.epub site/index.html site/*.png site/*.md5 xml/*.png xml/*.md5 xml/beam-book-from-ab.xml images/diag-*.png
 	rm -rf site/code site/images .asciidoctor site/.asciidoctor
 
 serve: all

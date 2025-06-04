@@ -1,5 +1,4 @@
 :media: screen
-// A4 / screen theme
 :pdf-theme: style/pdf-online-theme.yml
 :pdf-fontsdir: style/fonts
 :source-highlighter: rouge
