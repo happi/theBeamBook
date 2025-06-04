@@ -406,7 +406,7 @@ waiting state.
 
 When a message is delivered to an inbox the sending process will check
 whether the receiver is _sleeping_ in the waiting state, and in that
-case it will _wake_ the process, change its state to runable, and put
+case it will _wake_ the process, change its state to runnable, and put
 it at the end of the appropriate ready queue.
 
 If the receive statement has a `timeout` clause a timer will be
