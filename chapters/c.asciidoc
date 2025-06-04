@@ -805,7 +805,7 @@ The first step was to ensure that schedulers remained alert, even during periods
 
 These adjustments breathed new life into the schedulers, making them resilient to lulls in activity.
 
-See xref:CH-Scheduling[] and xref:CH-Tweak[] for detials on tweaking your scheduler settings.
+See xref:CH-Scheduling[] for details on tweaking your scheduler settings.
 
 Fix 2: Rewriting 'term_to_binary'
 

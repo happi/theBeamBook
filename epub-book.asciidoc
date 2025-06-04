@@ -1,0 +1,51 @@
+:media: prepress
+:epub-version: 3.0
+:toc: left
+:toclevels: 2
+:author: Erik Stenman
+:title: The BEAM Book: Understanding the Erlang Runtime System
+:doctype: book
+:encoding: utf-8
+:lang: en
+:icons: font
+:partnums:
+:sectnums:
+:sectlinks:
+:!compat-mode:
+:source-highlighter: rouge
+:imagesdir: images
+:ditaa-shadows: false
+:ditaa-transparent: true
+:attribute-missing: warn
+:xrefstyle: short
+
+= The BEAM Book: Understanding the Erlang Runtime System
+Erik Stenman
+
+[discrete]
+Written by Erik Stenman and contributors.
+
+This work is licensed under a Creative Commons Attribution 4.0 International License (CC BY 4.0).
+
+*Contributors:* Special thanks to Richard Carlsson, Yoshihiro Tanaka, Roberto Aloi and Dmytro Lytovchenko.
+
+For full attribution details, visit:
+
+link:https://github.com/happi/theBeamBook/graphs/contributors[].
+
+*Free Digital Version Available.*
+This book is freely available online at
+link:https://github.com/happi/theBeamBook/[]
+
+First Edition, 2025
+
+ISBN: 978-91-531-4253-9
+
+© 2025 Erik Stenman.
+
+// Include the rest of the book content without the front matter
+include::book.asciidoc[lines=67..-1]
+
+[[bibliography]]
+[break-before=recto,leveloffset=+1,include-title=true]
+include::chapters/references.asciidoc[]

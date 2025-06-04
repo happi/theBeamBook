@@ -1142,7 +1142,7 @@ in the xref:copied_message[section on message passing] further below.
 If you have nested shared tuples, this duplication upon deep copying will
 grow exponentially with the level of nesting.
 You can quickly bring down your Erlang node by expanding a highly shared term,
-see <<listing-share,share.erl>>.
+see share.erl in the online appendix for the full code example.
 
 [source,erlang]
 ----
@@ -1206,7 +1206,7 @@ process P1 first calculates the flat size of M. Then it allocates a
 new message buffer of that size by doing a heap_alloc of a heap_frag in
 the local scheduler context.
 
-Given the code in <<listing-send,send.erl>> the state of the system could
+Given the code in send.erl (see the online appendix) the state of the system could
 look like this just before the send in p1/1:
 
 
@@ -1417,7 +1417,7 @@ for example that you have a load balancer that receives work items
 and dispatches them to workers.
 
 In <<load_balancer,this code>> there is an example of a loop which
-doesn't need to do GC. (See <<listing-lb,listing lb>> for a full example.)
+doesn't need to do GC. (See the online appendix for a full example.)
 
 [[load_balancer]]
 ----

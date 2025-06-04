@@ -22,7 +22,7 @@ This is the instruction set which we will cover in this chapter.
 The other instruction set, the specific, is an optimized instruction
 set used by the Beam to implement the external instruction set. To
 give you an understanding of how the Beam works we will cover this
-instruction set in xref:CH-Internal_instructions[]. The internal
+instruction set in the online appendix. The internal
 instruction set can change without warning between minor version or
 even in patch releases. Basing any tool on the internal instruction
 set is risky.
@@ -448,7 +448,7 @@ To remedy this there is a hack in ERTS to recognize this pattern and
 avoid scanning the whole message queue for the return message.
 
 The compiler recognizes code that uses a newly created reference (ref)
-in a receive (see xref:ref_trick_code[]), and emits code to avoid the
+in a receive, and emits code to avoid the
 long inbox scan since the new ref can not already be in the inbox.
 
 [source,erlang]
@@ -460,8 +460,7 @@ long inbox scan since the new ref can not already be in the inbox.
   end.
 ----
 
-This gives us the following skeleton for a complete receive, see
-xref:ref_receive[].
+This gives us the following skeleton for a complete receive.
 
 [source,erlang]
 ----

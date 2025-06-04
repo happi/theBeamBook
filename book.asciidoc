@@ -47,24 +47,22 @@ For full attribution details, visit:
 link:https://github.com/happi/theBeamBook/graphs/contributors[].
 
 *Free Digital Version Available.*
-
 This book is freely available online at
 link:https://github.com/happi/theBeamBook/[]
 under the Creative Commons license. This printed edition is provided for convenience.
 
 For more information on the Creative Commons license, visit:
-
 link:https://creativecommons.org/licenses/by/4.0/[].
 
 First Edition, 2025
-
 ISBN: 978-91-531-4253-9
-
 [.text-center]
 © 2025 Erik Stenman.
 
+// tag::toc[]
 [break-before=recto, include-title=true]
 toc::[]
+// end::toc[]
 
 [break-before=recto,include-title=true]
 include::chapters/preface.asciidoc[]

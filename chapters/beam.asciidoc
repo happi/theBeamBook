@@ -349,7 +349,7 @@ integer(I) ->
 -------------------------------------------
 
 Now lets write a simple ((virtual machine)) and ((bytecode interpreter))
-in C. (The full code can be found in xref:AP-listings[].)
+in C. (The full code can be found in the online appendix.)
 
 [[bytecode_interpreter_example]]
 [source, C]
@@ -580,7 +580,7 @@ Compiled to BEAM code this will look as follows (or would, before the
     return.
 -------------------------------------------
 
-(See add.erl and add.S in xref:AP-listings[] for the full code.)
+(See add.erl and add.S in the online appendix for the full code.)
 
 Now if we zoom in on the three instructions between the function calls
 in this code:
