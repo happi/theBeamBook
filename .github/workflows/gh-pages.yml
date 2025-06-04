@@ -25,27 +25,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
+      - name: Build site in devcontainer
+        uses: devcontainers/ci@v0.3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Fix permissions before build
-        run: |
-          sudo chown -R 1000:1000 ${{ github.workspace }}
-
-      - name: Run build in devcontainer
-        uses: addnab/docker-run-action@v3
-        with:
-          image: ghcr.io/happi/thebeambook-devcontainer:latest
-          options: |
-            --user builder
-            -v ${{ github.workspace }}:/workspaces/theBeamBook
-            -w /workspaces/theBeamBook
-          run: |
-            make && mv site _site && ls -al
+          push: never
+          runCmd: |
+            make html
+            mv site _site
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

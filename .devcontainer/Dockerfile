@@ -14,6 +14,14 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # --- Ruby gems via Bundler -------------------------------------
+# Set up gem environment for user installation
+ENV GEM_HOME="/home/builder/.gem"
+ENV PATH="$GEM_HOME/bin:$PATH"
+
+# Create gem directory with proper permissions
+RUN mkdir -p /home/builder/.gem && \
+    chown -R builder:builder /home/builder/.gem
+
 # Copy Gemfile first so Docker layer cache works
 COPY ../Gemfile /tmp/Gemfile
 WORKDIR /tmp
@@ -33,6 +41,10 @@ RUN /etc/init.d/postgresql start && \
     createdb -O myuser mydb
 
 USER builder
+
+# Set gem environment for builder user
+RUN echo 'export GEM_HOME="/home/builder/.gem"' >> ~/.bashrc && \
+    echo 'export PATH="$GEM_HOME/bin:$PATH"' >> ~/.bashrc
 
 # stop git from complaining
 RUN git config --global --add safe.directory /workspaces/theBeamBook

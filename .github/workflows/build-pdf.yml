@@ -16,14 +16,14 @@ jobs:
       # 1 ▸ Fetch repository content
       - uses: actions/checkout@v4
 
+
       # 2 ▸ Spin up the repo’s devcontainer and run the build inside it
       #    This action honours devcontainer.json / .devcontainer/Dockerfile
       - uses: devcontainers/ci@v0.3
         with:
           # Needed so the post‑job cleanup doesn’t try to push an image
           push: never
-          runCmd: |
-            make
+          runCmd: make
 
       # 3 ▸ Upload the generated PDF as a workflow artefact so PR reviewers can dl it
       - name: Upload PDF artefact

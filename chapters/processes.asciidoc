@@ -365,7 +365,7 @@ $ erl -hidden -sname observer -run observer
 When Observer is started it will show you a system overview,
 see the following screen shot:
 
-image::../images/observer_system.png[]
+image::../images/observer_system.png[Observer system information window showing system statistics including memory usage, atom count, process count, and scheduler information]
 
 We will go over some of this information in detail later in
 this and the next chapter. For now we will just use Observer to look
@@ -373,7 +373,7 @@ at the running processes. First we take a look at the
 `Applications` tab which shows the ((supervision
 tree)) of the running system:
 
-image::../images/observer_applications.png[]
+image::../images/observer_applications.png[Observer applications tab showing running applications in a tree structure with supervision hierarchy]
 
 Here we get a graphical view of how the processes are linked. This is
 a very nice way to get an overview of how a system is structured.
@@ -383,7 +383,7 @@ floating in space connected to each other through links.
 To actually get some useful information about the processes
 we switch to the `Processes` tab:
 
-image::../images/observer_processes.png[]
+image::../images/observer_processes.png[Observer processes tab displaying a table of running processes with columns for PID, name, memory usage, message queue length, and reductions]
 
 In this view we get basically the same information as with
 `i/0` in the shell. We see the pid, the registered name,
@@ -394,7 +394,7 @@ We can also look into a process by double clicking on its
 row, for example on the code server, to get the kind of
 information you can get with `process_info/2`:
 
-image::../images/observer_code_server.png[]
+image::../images/observer_code_server.png[Observer process information window showing detailed statistics for the code_server process including state, memory usage, message queue, and stack trace]
 
 We will not go through what all this information means
 right now, but if you keep on reading all will eventually
@@ -786,7 +786,8 @@ The field `id` contains the process ID (or PID).
 The process ID is an Erlang term and hence tagged (See xref:CH-TypeSystem[]). This means
 that the 4 least significant bits are a tag (0011). In the
 code section there is a module for inspecting Erlang terms
-(see xref:listing-show[show.erl]) which we will cover in
+(see show.erl in the online appendix)
+which we will cover in
 the chapter on types. We can use it now to to examine the
 type of a tagged word though.
 
