@@ -33,7 +33,12 @@ jobs:
             # Copy source to writable location
             cp -r /workspaces/theBeamBook /tmp/build
             cd /tmp/build
-            make
+            # Remove any existing files that might have wrong permissions
+            rm -f genop.tab beam-book-a4.pdf
+            # Check permissions
+            ls -la . | head -10
+            whoami
+            make pdf-a4
             # Copy results back
             cp beam-book-a4.pdf /workspaces/theBeamBook/ || true
 
