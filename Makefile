@@ -78,7 +78,8 @@ chapters/opcodes_doc.asciidoc: genop.tab code/book/ebin/generate_op_doc.beam
 	erl -pa code/book/ebin/ -noshell -s generate_op_doc from_shell genop.tab chapters/opcodes_doc.asciidoc
 
 genop.tab:
-	wget -O genop.tab https://raw.githubusercontent.com/erlang/otp/master/lib/compiler/src/genop.tab || curl -o genop.tab https://raw.githubusercontent.com/erlang/otp/master/lib/compiler/src/genop.tab
+	wget -O /tmp/genop.tab https://raw.githubusercontent.com/erlang/otp/master/lib/compiler/src/genop.tab && cp /tmp/genop.tab genop.tab || \
+	(curl -o /tmp/genop.tab https://raw.githubusercontent.com/erlang/otp/master/lib/compiler/src/genop.tab && cp /tmp/genop.tab genop.tab)
 	touch $@
 
 clean:
