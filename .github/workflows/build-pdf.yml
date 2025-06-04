@@ -30,8 +30,12 @@ jobs:
           runCmd: |
             export GEM_HOME="/home/builder/.gem"
             export PATH="$GEM_HOME/bin:$PATH"
-            cd /workspaces/theBeamBook
+            # Copy source to writable location
+            cp -r /workspaces/theBeamBook /tmp/build
+            cd /tmp/build
             make
+            # Copy results back
+            cp beam-book-a4.pdf /workspaces/theBeamBook/ || true
 
       # 3 ▸ Upload the generated PDF as a workflow artefact so PR reviewers can dl it
       - name: Upload PDF artefact
