@@ -14,9 +14,17 @@ chapters/contributors.txt:
 	{ \
 	echo '[cols="3*",frame=none,grid=none]'; \
 	echo '|==='; \
+	{ \
 	git --no-pager log | git --no-pager shortlog -s -n \
 	| awk '{$$1=""; sub(/^ /, ""); print}' \
-	| grep -Ev "happi|Erik Stenman|Your Name" \
+	| grep -Ev "happi|Erik Stenman|Your Name"; \
+	if command -v gh >/dev/null 2>&1; then \
+		{ \
+		gh issue list --state all --json author 2>/dev/null | grep -o '"login":"[^"]*"' | cut -d'"' -f4; \
+		gh pr list --state all --json author 2>/dev/null | grep -o '"login":"[^"]*"' | cut -d'"' -f4; \
+		} | sort -u | grep -v happi; \
+	fi; \
+	} | sort -u \
 	| paste - - - | sed 's/^\(.*\)\t\(.*\)\t\(.*\)$$/| \1 | \2 | \3/' \
 	| sed 's/\t/|/g' \
 	| sed 's/| */| /g'; \
