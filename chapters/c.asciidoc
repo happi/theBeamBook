@@ -287,7 +287,7 @@ DRIVER_INIT(double_drv) {
 }
 ```
 
-Step 2 wrtte the Erlang module.
+Step 2 write the Erlang module.
 
 ```erlang
 -module(double).
