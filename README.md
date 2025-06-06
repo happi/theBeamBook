@@ -118,9 +118,37 @@ make
 
 #### macOS + Homebrew
 
+Build on macOS prior version 15
+
 ```shell
 brew install asciidoctor graphviz wget ditaa
 sudo gem install asciidoctor-pdf asciidoctor-diagram rouge
+make
+```
+
+macOS 15 ships with ruby 2.6+ while rouge 4.5+ requires ruby 2.7+. Use following
+to install required tools and libraries
+
+```shell
+brew install asciidoctor graphviz wget ditaa ruby
+```
+
+This will install ruby 3.3+, but to avoid errors new ruby not added to PATH. To fix this
+add ruby to PATH manually in command shell (or add to shell's rc file):
+
+```shell
+export PATH=$(brew --prefix ruby)/bin:$PATH
+```
+
+Install required ruby libraries:
+
+```shell
+bundle install
+```
+
+and then run build pdf file with
+
+```shell
 make
 ```
 
