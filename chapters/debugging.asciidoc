@@ -336,7 +336,7 @@ erl +hms 512
 This ensures that **all new processes** start with a heap of at least **512 words**, reducing the need for frequent heap expansions.
 
 
-`min_bin_vheap_size` (Minimum Binary Virtual Heap Size)**
+`min_bin_vheap_size` (Minimum Binary Virtual Heap Size)
 
 - Controls the **virtual heap size** for reference-counted binaries (binaries > 64 bytes).
 - Helps **optimize memory allocation** for processes dealing with large binary data.
