@@ -178,7 +178,7 @@ needs saving will be in Y registers at that time.
 The ((Frame Pointer)) (FP) is not necessarily a "`real`" BEAM register --
 it can be calculated from the stack top given that we know the current size
 of the stack frame. Tracking it separately might however make other things
-easier in the implementation, and We will treat it here as if it exists,
+easier in the implementation, and we will treat it here as if it exists,
 since it simplifies the presentation.
 
 The ((Continuation Pointer)) (CP) gets set to the return address when the
