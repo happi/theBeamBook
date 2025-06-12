@@ -564,6 +564,7 @@ counting binaries will never run into the problem of circular references.
 * subtag `1000` marks a reference-counted binary (ProcBin).
 
 Following the header:
+
 * For *heap binaries*, the binary payload bytes follow immediately.
 * For *refc binaries*, the header is followed by a ProcBin struct.
 
@@ -574,6 +575,7 @@ machine words. This avoids copying payload data when slicing or matching parts o
 *Match contexts* (subtag `0001`, `BINARY_AGGREGATE`) are used by the
 binary pattern-matching engine. They reference segments of one or more
 enclosing binaries without allocating new payload space:
+
 * They contain a header word with the total number of segments.
 * They include an array of `{pointer, length}` tuples pointing into the
   original binaries.
@@ -624,7 +626,7 @@ heap.
 The reference number is `(Data2 bsl 50) + (Data1 bsl 18) + Data0`.
 
 ==== Floats  
-Erlang floats are boxed heap terms tagged with the `FLONUM` subtag. Each float occupies two machine words: a header word (primary tag `00`, subtag `0110`) and a 64-bit IEEE 754 payload word. The emulator treats floats as opaque “boxed” values for garbage‐collection and comparison, using native CPU instructions for arithmetic when available, and falling back to software routines otherwise.  
+Erlang floats are boxed heap terms tagged with the `FLONUM` subtag. Each float occupies two machine words: a header word (primary tag `00`, subtag `0110`) and a 64-bit IEEE 754 payload word. The emulator treats floats as opaque “boxed” values for garbage-collection and comparison, using native CPU instructions for arithmetic when available, and falling back to software routines otherwise.
 
 ==== Records  
 Records are a compile-time convenience built on tuples: a record of arity N is simply an N-element tuple with the first element an atom naming the record. Access and update macros translate into fixed-index tuple lookups or `setelement/3` calls. Because the tuple header (primary tag `00`, subtag `0000`) encodes the arity, record size and field offsets are known at runtime without extra metadata.  
