@@ -777,7 +777,7 @@ $2 = {common =
 
 If you want to dig even deeper than we will go in this chapter you can
 look at the C source code. The ((PCB)) is implemented as a C struct called `process` in the file
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h[`erl_process.h` OTP19].
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h[`erl_process.h`] for OTP19
 or https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_process.h[`erl_process.h`]
 for the latest version.
 
