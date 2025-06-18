@@ -185,7 +185,7 @@ then the process will crash since L refers to a purged version of the module.
 
 === Conclusion
 
-Function call efficiency in Erlang follows a clear hierarchy, as outlined in the [Efficiency Guide](https://www.erlang.org/doc/system/eff_guide_functions.html#function-calls):
+Function call efficiency in Erlang follows a clear hierarchy, as outlined in the link:https://www.erlang.org/doc/system/eff_guide_functions.html#function-calls[Efficiency Guide]:
 
 Explicit calls, both local and remote (`foo()`, `m:foo()`) are the most efficient.
 I would like to add that the most efficient call is a local call to a function in the same module. This is because the call can be resolved at compile time and the function can be inlined. This is not possible for a remote call since the module can be changed at runtime.
