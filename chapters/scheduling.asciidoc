@@ -613,8 +613,8 @@ letting schedulers execute on that plan until a new plan is set up.
 Every 2000*CONTEXT_REDS reductions a scheduler calculates
 a migration path per priority per scheduler by looking at the workload
 of all schedulers. The migration path can have three different types of
-values: 1) cleared 2) migrate to scheduler # 3) immigrate from
-scheduler #
+values: 1) cleared 2) migrate to scheduler 3) #immigrate from
+scheduler#.
 
 When a process becomes ready (for example by receiving a message or
 triggering a timeout) it will normally be scheduled on the last
