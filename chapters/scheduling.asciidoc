@@ -680,6 +680,7 @@ and fix decreased till they both pass the balance point. If one index
 reaches the balance point first it wraps.
 
 In the example:
+
  * Iteration 1: S2.emigrate_to = S3 and S3.immigrate_from = S2
  * Iteration 2: S1.emigrate_to = S4 and S4.immigrate_from = S1
 
