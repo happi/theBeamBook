@@ -8,7 +8,7 @@
 
 === Transforming from Generic to Specific instructions
 
-The BEAM loader does not just take the external beam format and writes
+The BEAM loader does not just take the external beam format and write
 it to memory. It also does a number of transformations on the code
 and translates from the external (generic) format to the internal
 (specific) format.
