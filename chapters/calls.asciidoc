@@ -197,5 +197,5 @@ Applying a function () (`Mod:Name()`, `apply(Mod, Name, [])`) with a known numbe
 
 Applying an exported function with an unknown number of arguments (`apply(Mod, Name, Args)`)  is the least efficient.
 
-The Erlang runtime system is optimized for local calls and remote calls to the current version of a module. Hot code loading is a powerful feature that enables live updates to running systems, but it comes with performance trade-offs. It is also imoprtant to understand that reloading a module two times will purge the old version of the module and any references to it will crash the process holding the reference.
+The Erlang runtime system is optimized for local calls and remote calls to the current version of a module. Hot code loading is a powerful feature that enables live updates to running systems, but it comes with performance trade-offs. It is also important to understand that reloading a module two times will purge the old version of the module and any references to it will crash the process holding the reference.
 
