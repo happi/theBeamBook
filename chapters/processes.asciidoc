@@ -678,7 +678,7 @@ and list the processes:
 (gdb) 
 ----
 
-We see the adress of the '<0.101.0>' process in the `Pointer` field.
+We see the address of the '<0.101.0>' process in the `Pointer` field.
 We can use the `etp-stackdump` and `etp-heapdump` commands to
 inspect the stack and heap of the process. The `etp-stackdump`
 command takes a process pointer as an argument. 
