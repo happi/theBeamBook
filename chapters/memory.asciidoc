@@ -69,7 +69,7 @@ A program's memory layout looks something like this:
 Even though this picture might look daunting it is still a
 simplification. (For a full understanding of the memory subsystem read
 a book like "Understanding the Linux Kernel" or "Linux System
-Programming") What I want you to take away from this is that there are
+Programming".) What I want you to take away from this is that there are
 two types of dynamically allocatable memory: the heap and memory
 mapped segments. I will try to call this heap the _C-heap_ from now
 on, to distinguish it from an Erlang process heap. I will call a
