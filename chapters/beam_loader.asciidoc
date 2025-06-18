@@ -352,5 +352,5 @@ When a literal is loaded and used as an argument to any of the bifs or instructi
 that need a hashed value of the literal, instead of hashing the literal value
 every time, the hash is created by the loader and used by the instructions.
 
-Examples of code using this technique is maps instructions and also the process
+Examples of code using this technique are maps instructions and the process
 dictionary bifs.
