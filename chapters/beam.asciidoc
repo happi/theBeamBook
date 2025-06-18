@@ -284,7 +284,7 @@ Y0, and then X1 to X0.
 Now we have the second argument `B` in X0, and we can call the `id/1`
 function again by `{call,1,{f,4}}`. After this, X0 contains `id(B)` and Y0
 contains `id(A)`. We can perform the addition by calling the built-in
-function `\+/2`: `{gc_bif,'`+',{f,0},1,[{y,0},{x,0}],{x,0}}`. (We will go
+function `\+/2`: `{gc_bif,'+',{f,0},1,[{y,0},{x,0}],{x,0}}`. (We will go
 into the details of BIF calls and GC later.) The result is again in X0,
 which is where it needs to be for returning from `add/2`. All that is
 needed before the return is to move the stack pointer back again with
