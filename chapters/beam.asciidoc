@@ -142,7 +142,7 @@ registers must to be saved on the stack in Y registers across a function
 call, using a "`caller saves`" convention.)
 
 The X registers are stored in a C array in the BEAM emulator (separate for
-each scheduler) and they are globally accessible from all functions The X0
+each scheduler) and they are globally accessible from all functions. The X0
 register is cached in a local variable, which gets kept in a physical
 machine register on most architectures. Since X0 is heavily used, this is
 an important optimization.
