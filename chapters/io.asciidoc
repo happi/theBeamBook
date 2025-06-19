@@ -324,7 +324,7 @@ Ports can be used to replace standard IO and polling. This is useful when you ne
 
 ===== Ports to file descriptors =====
 
-File descriptor ports in Erlang provide an interface to interact with already opened file descriptors. Although they are not commonly used due to efficiency concerns, they can provide an easi interface to external resources.
+File descriptor ports in Erlang provide an interface to interact with already opened file descriptors. Although they are not commonly used due to efficiency concerns, they can provide an easy interface to external resources.
 
 To create a file descriptor port, you use the `open_port/2` function with the `{fd, In, Out}` tuple as the `PortName`. Here, `In` and `Out` are the file descriptors for input and output, respectively.
 
