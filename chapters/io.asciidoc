@@ -352,7 +352,7 @@ The primary commands for interacting with a port include:
 * `{control, Operation, Data}`: Sends a control command to the external program.
 * `{exit_status, Status}`: Receives the exit status of the external program.
 
-See xref:CH-C[] for examples of how to spawn a and externa program as a port,
+See xref:CH-C[] for examples of how to spawn an external program as a port,
 you can also look at the official documentation: link:https://www.erlang.org/doc/system/c_port.html#content[erlang.org:c_port].
 
 ===== Ports to Linked in Drivers =====
