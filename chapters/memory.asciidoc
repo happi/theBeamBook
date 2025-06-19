@@ -1376,7 +1376,7 @@ needed.
 
 ===== Reference Counting
 
-The fourth type.  large binaries or _refc binaries_ on the other hand
+The fourth type, large binaries or _refc binaries_, on the other hand,
 are partially stored outside of the process heap and they are
 reference counted.
 
