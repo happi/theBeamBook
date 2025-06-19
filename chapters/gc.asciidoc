@@ -426,7 +426,7 @@ The third thing to note is that sharing is preserved which is really
 important otherwise we might end up using more space after a GC than
 before.
 
-Here's an expanded explanation about generations, using the additional information from your document:
+Here's an expanded explanation about generations:
 
 === Generations in Erlang's Garbage Collection
 
