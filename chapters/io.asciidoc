@@ -408,9 +408,9 @@ the busy port status if the id of the message is below 14 and the call is to the
 include::../code/io_chapter/pg_example/src/busy_port.c[]
 ----
 
-Now we can call this function from Erlang syncrounusly, or send
+Now we can call this function from Erlang syncronously, or send
 asyncronus messages. In our port handler we have also added
-some tests that sends 10 messages to the port and then recives
+some tests that sends 10 messages to the port and then receives
 the results both syncronously and asyncronously.
 
 [source,erlang]
@@ -418,7 +418,7 @@ the results both syncronously and asyncronously.
 include::../code/io_chapter/pg_example/src/busy_port.erl[]
 ----
 
-Lets try this in the shell:
+Let's try this in the shell:
 
 ```erlang
 1> c(busy_port).
@@ -448,8 +448,8 @@ Call: {foo,10}
 Received data: 11
 [2,3,4,5,6,7,8,9,10,11]
 ```
-That worked as expected; we did a syncrouns call and immediatley
-got a response. Now lets try the asyncronous call:
+That worked as expected; we did a syncronous call and immediately
+got a response. Now let's try the asyncronous call:
 
 ```erlang
 4> busy_port:test_async_foo().
