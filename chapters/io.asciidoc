@@ -389,7 +389,7 @@ By scheduling signals to/from the port asynchronously, Erlang ensures that proce
 
 Now this means that the erlang send operation is not always asyncronous. If the port is busy the send operation will block until the port is not busy anymore. This is a problem if you have a lot of processes sending data to the same port. The solution is to use a port server that can handle the backpressure and make sure that the send operation is always asyncronous.
 
-Lets do an example based on the offical port driver example:
+Let's do an example based on the offical port driver example:
 link:https://www.erlang.org/doc/system/c_portdriver.html#c-driver[erlang.org:c-driver].
 
 Let us use the original complex c function, adding 1 or multiplying by 2.
