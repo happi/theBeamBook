@@ -52,7 +52,7 @@ you can just ignore the meta text about how to inspect the system and
 just look at the diagrams and the explanations of how the GC works.
 In xref:Using-GDB[] we will go through how to use gdb to inspect the
 system in detail. Here we use some of our own helper scripts that
-unfortunately has been lost in time. 
+unfortunately have been lost to time. 
 
 [source,erlang]
 ----
