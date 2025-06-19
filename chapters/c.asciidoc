@@ -80,7 +80,7 @@ The most common and easiest way is to use a REST-like interface over HTTP or HTT
 
 The next level is to use pure socket communication, which can be more efficient than HTTP/HTTPS but requires you to come up with a protocol yourself or use some other low-level protocol. This method allows for custom data exchange formats and can optimize performance by reducing the overhead associated with higher-level protocols.
 
-See chapter xref:CH-IO[] for details on how sockets works.
+See chapter xref:CH-IO[] for details on how sockets work.
 
 === Linked-in Drivers
 Linked-in drivers in Erlang allow for the integration of C code directly into the Erlang runtime system, enabling high-performance operations and seamless interaction with external resources.
@@ -93,7 +93,7 @@ For applications with stringent timing constraints, such as hardware interfacing
 However, linked-in drivers come with a higher risk of destabilizing the Erlang VM due to direct memory access and potential programming errors.
 
 ==== How to Implement a Linked-In Driver
-Lets look at how to implement a linked-in driver in Erlang on three levels, first int the abstract what need to be done, then in some genarl psuedo code and finally in a full example.
+Let's look at how to implement a linked-in driver in Erlang on three levels: first in the abstract what need to be done, then in some general pseudo code, and finally in a full example.
 
 To implement a linked-in driver in Erlang, follow these steps:
 
@@ -114,7 +114,7 @@ Step 2. Integrate with Erlang
    * Load the driver using `erl_ddll:load_driver/2`.
    * Create a port in Erlang to communicate with the driver.
 
-Let os look at some psuedo code for a linked in driver going into a bit more detail of the steps above.
+Let us look at some pseudo code for a linked in driver going into a bit more detail of the steps above.
 
 Step 1. Write the C code for the driver:
 
@@ -209,7 +209,7 @@ Step 2. **Integration with Erlang:**
         ```
 
 **Example Implementation**
-Now lets look at a full example of a linked in driver that doubles an integer.
+Now let's look at a full example of a linked in driver that doubles an integer.
 
 
 Step 1. write the C Driver.
@@ -370,7 +370,7 @@ Call the Functionality:
 42
 ```
 
-Stop the driver
+Stop the driver:
 ```erlang
 4> double:stop().
 stop
@@ -384,25 +384,25 @@ Built-in functions (BIFs) are a set of predefined, native functions integrated i
 It is good to have a clear understanding of the differences between beam instructions, BIFs, Operators, and Library Functions.
 
 Beam instructions are the instructions that the BEAM virtual machine executes.
-The code for beam instructuins is usually kept small and can in later Erlang versions be inlined by the JIT loader. (More on this in the chapter on JIT).
+The code for beam instructions are usually kept small and can in later Erlang versions be inlined by the JIT loader. (More on this in the chapter on JIT).
 
 BIFs are implemented in C and are part of the BEAM virtual machine. They are
 usually either operators such as bignum '+' that are quite big compared to a beam instruction, or they are library functions that are implemented in C for performance reasons such as 'lists:reverse/1'. Some BIFs provide essential low-level functionality that would be *challenging* to implement purely in Erlang. Like for example 'erlang:send/2' that is used to send messages between processes.
 
 Operators are syntactic language constructs that are mapped to a library
-function. For example the oprator '+' is mapped by the compiler
+function. For example the operator '+' is mapped by the compiler
 to 'erlang:+/2'. These functions can in term be implemented as
-either beam instructions or BIFs, depending on thier complexity.
+either beam instructions or BIFs, depending on their complexity.
 
 Library functions are basic Erlang functions such as 'lists:length/1' that are part of the Erlang language. They could be implemented as BEAM instructions,
-BIFS or in Erlang.
+BIFS, or in Erlang.
 
-BIFs are efficienct as they are writeen in C and optimized for performance within the BEAM.
-The dissadvantages with BIFs are thet long-running BIFs can block BEAM schedulers, affecting system responsiveness. They have limited extensibility as they are fixed within the runtime system.
+BIFs are efficient as they are writen in C and optimized for performance within the BEAM.
+The disadvantages with BIFs are that long-running BIFs can block BEAM schedulers, affecting system responsiveness. They have limited extensibility as they are fixed within the runtime system.
 
 Most Erlang users will never need to write a BIF, but it is good to know what they are and how they work. Also if you are writing an EEP (Erlang Enhancement Proposal) you might need to write a BIF to implement the new functionality.
 
-The following sections will go through some of the detalils of how to implement a BIF.
+The following sections will go through some of the details of how to implement a BIF.
 
 ==== Implementation Steps
 
@@ -420,6 +420,7 @@ The following sections will go through some of the detalils of how to implement 
 
 ==== Example Implementation
 Imagine implementing a simple BIF to calculate the factorial of a number. The BIF would:
+
 1. Parse the input arguments to ensure validity.
 2. Perform the computation efficiently in C.
 3. Return the result to the Erlang environment.
@@ -428,7 +429,7 @@ Find the code in erts where bifs are defined:
 https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.c
 or in this case perhaps in https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_math.c
 
-A BIF has a special signature it is defined as:
+A BIF has a special signature, defined as:
 
 ```c
 BIF_RETTYPE [NAME]_[ARITY](BIF_ALIST_[ARITY])
@@ -448,7 +449,7 @@ BIF_RETTYPE math_factorial_1(BIF_ALIST_1)
     long factorial = 1;
     Eterm result;
 
-    /* Check the arguemnt and return an error if it is not a positiv integer.
+    /* Check the arguemnt and return an error if it is not a positive integer.
        When defining a BIF with BIF_ALIST_X the arguments are named
        BIF_ARG_1, BIF_ARG_2 etc.
        To signal ann error use BIF_ERROR(BIF_P, BADARG);
@@ -479,7 +480,7 @@ BIF_RETTYPE math_factorial_1(BIF_ALIST_1)
 
 ```
 
-Note that this toy example does not handle large numbers well, factorial(66),
+Note that this toy example does not handle large numbers well: factorial(66)
 will overflow a 64 bit integer ('long'). A real implementation would use the bignum library. We will show how to do this in the next section.
 
 
@@ -511,10 +512,10 @@ Now you should be able to recompile the BEAM and run the new BIF in Erlang.
 5040
 ```
 
-If you want to add functionallity to the kernel modules you need to handle
+If you want to add functionality to the kernel modules you need to handle
 the preloaded modules in the `erl_prim_loader.c` file. See xref:CH-Beam_loader[] for details.
 
-If you try it out wirth some larger numbers that are bigger than what your machines small integer can handle you will get the wrong result.
+If you try it out with some larger numbers that are bigger than what your machine's small integer can handle you will get the wrong result.
 Let us move on to a more complex example that uses bignums.
 
 ```c
@@ -540,9 +541,9 @@ BIF_RETTYPE math_factorial_1(BIF_ALIST_1)
         BIF_ERROR(BIF_P, BADARG);
     }
 
-    /* We do not want to use heap space for intermediate resultst sine we are
+    /* We do not want to use heap space for intermediate results since we are
        going to do a lot of them. So we use a temporary buffer.
-       We create two buffers one to keep (n-1)! and one to keep n!.
+       We create two buffers, one to keep (n-1)! and one to keep n!.
 
     */
 
@@ -606,20 +607,20 @@ done:
 }
 ```
 
-Now we can calcualte really large factorials. like 1000!
+Now we can calculate really large factorials like 1000!:
 
 ```erlang
 1> math:factorial(1000).
 402387260077093773543702433923003985719374864210714632543799910429938512398629020592044208486969404800479988610197196058631666872994808558901323829669944590997424504087073759918823627727188732519779505950995276120874975462497043601418278094646496291056393887437886487337119181045825783647849977012476632889835955735432513185323958463075557409114262417474349347553428646576611667797396668820291207379143853719588249808126867838374559731746136085379534524221586593201928090878297308431392844403281231558611036976801357304216168747609675871348312025478589320767169132448426236131412508780208000261683151027341827977704784635868170164365024153691398281264810213092761244896359928705114964975419909342221566832572080821333186116811553615836546984046708975602900950537616475847728421889679646244945160765353408198901385442487984959953319101723355556602139450399736280750137837615307127761926849034352625200015888535147331611702103968175921510907788019393178114194545257223865541461062892187960223838971476088506276862967146674697562911234082439208160153780889893964518263243671616762179168909779911903754031274622289988005195444414282012187361745992642956581746628302955570299024324153181617210465832036786906117260158783520751516284225540265170483304226143974286933061690897968482590125458327168226458066526769958652682272807075781391858178889652208164348344825993266043367660176999612831860788386150279465955131156552036093988180612138558600301435694527224206344631797460594682573103790084024432438465657245014402821885252470935190620929023136493273497565513958720559654228749774011413346962715422845862377387538230483865688976461927383814900140767310446640259899490222221765904339901886018566526485061799702356193897017860040811889729918311021171229845901641921068884387121855646124960798722908519296819372388642614839657382291123125024186649353143970137428531926649875337218940694281434118520158014123344828015051399694290153483077644569099073152433278288269864602789864321139083506217095002597389863554277196742822248757586765752344220207573630569498825087968928162753848863396909959826280956121450994871701244516461260379029309120889086942028510640182154399457156805941872748998094254742173582401063677404595741785160829230135358081840096996372524230560855903700624271243416909004153690105933983835777939410970027753472000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 ```
 
-We can even calcualte 100000! but it will take some time. In order to not block the BEAM scheduler we should yield every now and then.
+We can even calculate 100000! but it will take some time. In order to not block the BEAM scheduler we should yield every now and then.
 
 We can do this by calling `BIF_TRAP1` with the state we want to save and the function we want to return to. In this case we want to return to the `math_factorial_trap_1` function.
 
 We need to define a structure to hold the state we want to save and the function we want to return to in math_factorial_trap_export.
 We also need to initialize this export structure. We do this in the `math_factorial_trap_init` function by calling `erts_init_trap_export`.
-Then we need to ad a call to `math_factorial_trap_init` in the erl_init
+Then we need to add a call to `math_factorial_trap_init` in the erl_init
 function in erl_init.c. We also need to add the new atom  'am_math_factorial_trap' to atom.names.
 
 When we yield we store the state in a tuple with the current i, the current factorial and the original n. So the argument to the trap function is a tuple with these values. In the original BIF 'math_factorial_1' we create this
