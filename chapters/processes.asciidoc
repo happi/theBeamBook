@@ -788,7 +788,7 @@ that the 4 least significant bits are a tag (0011). In the
 code section there is a module for inspecting Erlang terms
 (see show.erl in the online appendix)
 which we will cover in
-the chapter on types. We can use it now to to examine the
+the chapter on types. We can use it now to examine the
 type of a tagged word though.
 
 [source,erlang]
@@ -1335,7 +1335,7 @@ xref:erlang_process_memory_5[]:
 The process dictionary is a very straighforward ((hash table))
 implementation. In fact the PD memory area is just the plain bucket array,
 and each slot is either ((`NIL`)) (the empty list) if the bucket is empty,
-or otherwise it's a tagged pointer to to data on the heap -- a simple tuple
+or otherwise it's a tagged pointer to data on the heap -- a simple tuple
 `{Key, Value}` if there is only one entry in the bucket, or a
 `NIL`-terminated list `[{Key1, Value1}, ..., {KeyN, ValueN}]` if the bucket
 has N entries. You can find the implementation in the file
