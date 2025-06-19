@@ -659,7 +659,7 @@ end up here. Key points to keep in mind:
   usage helps catch these drips.
 
 Though developers rarely manipulate `driver_alloc` directly, it's wise to
-monitor this allocator in production environments, especially if your 
+monitor this allocator in production environments, especially if you 
 are using NIFs.
 
 ==== The short lived allocator: sl_alloc
