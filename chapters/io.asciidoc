@@ -84,7 +84,7 @@ We will discuss group leaders later, but lets look at the actual I/O protocol fi
 ===== Unimplemented Request Handling
 
 If an I/O server encounters an unrecognized request, it should respond with:
-- `{error, request}`.
+`{error, request}`.
 
 ===== Example of a Custom I/O Server
 
