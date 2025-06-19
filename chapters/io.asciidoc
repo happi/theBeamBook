@@ -211,7 +211,7 @@ a process and redirect I/O through that server.
 
 === Ports ===
 
-A port is the process like interface between Erlang processes and
+A port is the process-like interface between Erlang processes and
 everything that is not Erlang processes. The programmer can to
 a large extent pretend that everything in the world behaves like
 an Erlang process and communicate through message passing.
