@@ -285,14 +285,14 @@ connect to all nodes. This growth can lead to a surge in network traffic and can
 
 In a distributed system, data has to travel across the network. The time taken for data to travel from one node to another, known as network latency, can impact the performance of the system, especially when nodes are geographically dispersed.
 
-Even though Erlang's asynchronous message-passing model allows it to handle network latency effectively. A process does not need to wait for a response after sending a message, allowing it to continue executing other tasks.
+Even though Erlang's asynchronous message-passing model allows it to handle network latency effectively, a process does not need to wait for a response after sending a message, allowing it to continue executing other tasks.
 It is still discouraged to use Erlang distribution in a geographically
 distributed system. The Erlang distribution was designed for communication within a data center or preferably within the same rack in a data center.
 For geographically distributed systems other asynchronous communication patterns are suggested.
 
 In large-scale systems, failures are inevitable. Nodes can crash, network connections can be lost, and data can become corrupted. The system must be able to detect and recover from these failures without significant downtime.
 
-This can be battles with the built-in mechanisms for fault detection and recovery. Supervision trees allow the system to detect process failures and restart failed processes automatically.
+This can be battled with the built-in mechanisms for fault detection and recovery. Supervision trees allow the system to detect process failures and restart failed processes automatically.
 
 Maintaining data consistency across multiple nodes is a significant challenge. When data is updated on one node, the changes need to be propagated to all other nodes that have a copy of that data.
 One way of dealing with this is to avoid state that needs to be

@@ -13,9 +13,9 @@ change and to minimize the impact of bugs.
 
 The impact of bugs is minimized by compartmentalization. This is done
 from the lowest level where each data structure is separate and
-immutable to the highest level where running systems are dived into
+immutable to the highest level where running systems are divided into
 separate nodes. Change is facilitated by making it easy to upgrade code
-and interacting and examining a running system.
+and interacting with and examining a running system.
 
 === Connecting to the System
 
