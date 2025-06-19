@@ -1392,7 +1392,7 @@ reference count of the binary by one. All ProcBin objects on a
 process heap are linked together in a linked list. After a
 GC pass this linked list is traversed and the reference count
 of the binary is decreased with one for each ProcBin that
-has deceased. If the reference count of the refc binary
+has died. If the reference count of the refc binary
 reaches zero that binary is deallocated.
 
 Having large binaries reference counted and not copied by send or
