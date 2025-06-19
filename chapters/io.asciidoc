@@ -398,9 +398,9 @@ Let us use the original complex c function, adding 1 or multiplying by 2.
 include::../code/io_chapter/pg_example/src/example.c[]
 ----
 
-And a slighly modified port driver. We have added an id to each message
+And a slightly modified port driver. We have added an id to each message
 and return the id with the result. We also have a function
-that simulats a busy port by sleeping for a while and setting
+that simulates a busy port by sleeping for a while and setting
 the busy port status if the id of the message is below 14 and the call is to the `bar` function.
 
 [source, c]
