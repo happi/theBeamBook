@@ -207,7 +207,7 @@ Implementing alternative distribution in Erlang involves several steps:
 
 The Erlang documentation has a chapter on link:https://www.erlang.org/doc/apps/erts/alt_dist.html[how to implement an alternative carrier].
 
-It also has a chapter on link:https://www.erlang.org/doc/apps/erts/alt_disco.html[how to implement an alternative node discovery]
+It also has a chapter on link:https://www.erlang.org/doc/apps/erts/alt_disco.html[how to implement an alternative node discovery].
 
 === Processes in distributed Erlang
 

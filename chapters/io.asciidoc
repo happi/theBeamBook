@@ -475,7 +475,8 @@ Received data: 10
 Received data: 11
 [2,3,4,5,6,7,8,9,10,11]
 ```
-That also worked as expected we sent 10 messages and got the results back in the same order also immediately.  Now lets try the busy port:
+
+That also worked as expected: we sent 10 messages and got the results back in the same order also immediately.  Now let's try the busy port:
 
 ```erlang
 5> busy_port:test_async_bar().
