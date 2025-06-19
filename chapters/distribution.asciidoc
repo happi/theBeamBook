@@ -237,8 +237,8 @@ For distributed Erlang, the handling of PIDs is a bit more complex. When a messa
    In OTP 23 and later: `{29, ReqId, From, GroupLeader, {Module, Function, Arity}, OptList}` followed by `ArgList``.
 4. This message is received by ERTS on Node 2.
 5. ERTS on Node 2 then initiates a spawn_request on Erlang Node 2.
-6. Node 2 creates a new process calling `Module:Function(ArgList)`
-7. ERTS on Node 2 sends a SPAWN_REPLY message back via the Distribution Protocol. `{31, ReqId, To, Flags, Result}`
+6. Node 2 creates a new process calling `Module:Function(ArgList)`.
+7. ERTS on Node 2 sends a SPAWN_REPLY message back via the Distribution Protocol. `{31, ReqId, To, Flags, Result}`.
    The Flags parameter is a binary field where each bit represents a specific flag. These flags are combined using a bitwise OR operation. Currently, the following flags are defined:
     - Flag 1: This flag is set if a link has been established between the originating process (To) and the newly spawned process (Result). This link is set up on the node where the new process resides.
     - Flag 2: This flag is set if a monitor has been established from the originating process (To) to the newly spawned process (Result). This monitor is set up on the node where the new process resides.
