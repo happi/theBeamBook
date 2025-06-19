@@ -387,7 +387,7 @@ Once the port processes enough data to fall below a specified low-water mark, it
 
 By scheduling signals to/from the port asynchronously, Erlang ensures that processes sending data can continue executing without being blocked, improving system parallelism and responsiveness.
 
-Now this means that the erlang send operation is not always asyncronous. If the port is busy the send operation will block until the port is not busy anymore. This is a problem if you have a lot of processes sending data to the same port. The solution is to use a port server that can handle the backpressure and make sure that the send operation is always asyncronous.
+Now this means that the erlang send operation is not always asynchronous. If the port is busy the send operation will block until the port is not busy anymore. This is a problem if you have a lot of processes sending data to the same port. The solution is to use a port server that can handle the backpressure and make sure that the send operation is always asynchronous.
 
 Let's do an example based on the offical port driver example:
 link:https://www.erlang.org/doc/system/c_portdriver.html#c-driver[erlang.org:c-driver].
@@ -408,10 +408,10 @@ the busy port status if the id of the message is below 14 and the call is to the
 include::../code/io_chapter/pg_example/src/busy_port.c[]
 ----
 
-Now we can call this function from Erlang syncronously, or send
+Now we can call this function from Erlang synchronously, or send
 asyncronus messages. In our port handler we have also added
 some tests that sends 10 messages to the port and then receives
-the results both syncronously and asyncronously.
+the results both synchronously and asynchronously.
 
 [source,erlang]
 ----
@@ -448,8 +448,8 @@ Call: {foo,10}
 Received data: 11
 [2,3,4,5,6,7,8,9,10,11]
 ```
-That worked as expected; we did a syncronous call and immediately
-got a response. Now let's try the asyncronous call:
+That worked as expected; we did a synchronous call and immediately
+got a response. Now let's try the asynchronous call:
 
 ```erlang
 4> busy_port:test_async_foo().
@@ -506,7 +506,7 @@ Received data: 18
 Received data: 20
 [timeout,2,4,6,8,10,12,14,16,18]
 ```
-We see that the first 5 messages are not asyncronous, but the last 5 are. This is because the port is busy and the send operation is blocking. The port is busy because the id of the message is below 14 and the call is to the `bar` function. The port is busy for 5 seconds and then the last 5 messages are sent asyncronously.
+We see that the first 5 messages are not asynchronous, but the last 5 are. This is because the port is busy and the send operation is blocking. The port is busy because the id of the message is below 14 and the call is to the `bar` function. The port is busy for 5 seconds and then the last 5 messages are sent asynchronously.
 
 ==== Port Scheduling ====
 
