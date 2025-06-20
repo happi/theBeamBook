@@ -600,7 +600,7 @@ The allocator has a few interesting characteristics:
   sometimes annoyingly longer than you'd prefer.
 
 * **Sub-Binaries (Slices):**  
-  When you match binaries like `<<X:32, Rest/binary>>`, the smaller binary
+  When you match binaries like `\<<X:32, Rest/binary>>`, the smaller binary
   (`Rest`) still references the original larger binary, avoiding copying is
   great, until you realize you've accidentally kept a giant binary alive just to
   reference a tiny bit. In these cases, calling `binary:copy/1` is your friend.
