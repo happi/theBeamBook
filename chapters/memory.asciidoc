@@ -132,7 +132,7 @@ The Erlang run-time system is trying its best to handle memory
 in all situations and under all types of loads, but there are
 always corner cases. In this chapter we will look at the details
 of how memory is allocated and how the different allocators work.
-With this knoweledge and some tools that we will look at later
+With this knowledge and some tools that we will look at later
 you should be able to detect and fix problems if your system
 ends up in one of these corner cases.
 
