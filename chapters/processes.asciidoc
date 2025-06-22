@@ -587,7 +587,7 @@ Eshell V12.3.2.17  (abort with ^G)
 1>
 ----
 
-Let us start a process with some dynaic data on the heap:
+Let us start a process with some dynamic data on the heap:
 
 [source,erlang]
 ----
