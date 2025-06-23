@@ -86,12 +86,10 @@ at the heart of Erlang, and to be able to understand how an Erlang
 system works you need to understand the concurrency model of Erlang.
 
 First of all, we need to make a distinction between _concurrency_ and
-_parallelism_. In this book, _concurrency_ is the concept of having
-two or more processes that *can* execute independently of each other,
-this can be done by first executing one process then the other or by
-interleaving the execution, or by executing the processes in
-parallel. With _parallel_ executions, we mean that the processes
-actually execute at the exact same time by using several physical
+_parallelism_. In this book, _concurrency_ is the act of breaking down a
+broad high level sequence of steps, into one or more independently
+executable substeps. With _parallel_ executions, we mean that the
+processes actually execute at the exact same time by using several physical
 execution units. Parallelism can be achieved on different levels.
 Through multiple execution units in the execution pipeline in one core,
 in several cores on one CPU, by several CPUs in one machine, or through
