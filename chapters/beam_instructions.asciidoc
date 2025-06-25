@@ -158,8 +158,8 @@ the instruction set `0`.
 Then we get a list of exported functions `id/1`, `module_info/0`,
 `module_info/1`. As we can see the compiler has added two auto
 generated functions to the code. These two functions are just
-dispatchers to the generic module info BIFs (`erlang:module_info/1` and
-`erlang:module_info/2`) with the name of the module added as the first
+dispatchers to the generic module info BIFs (`erlang:get_module_info/1` and
+`erlang:get_module_info/2`) with the name of the module added as the first
 argument.
 
 The line `+{attributes, []}+` list all defined compiler attributes, none in
