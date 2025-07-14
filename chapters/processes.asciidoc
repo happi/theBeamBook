@@ -1332,7 +1332,7 @@ xref:erlang_process_memory_5[]:
  +-------+  +-------+  +-------+  +-------+
 ----
 
-The process dictionary is a very straighforward ((hash table))
+The process dictionary is a very straightforward ((hash table))
 implementation. In fact the PD memory area is just the plain bucket array,
 and each slot is either ((`NIL`)) (the empty list) if the bucket is empty,
 or otherwise it's a tagged pointer to data on the heap -- a simple tuple
