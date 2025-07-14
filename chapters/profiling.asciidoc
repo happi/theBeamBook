@@ -184,7 +184,7 @@ Takeaway: Although each call to factorial/1 is extremely fast, its high call cou
 ===== cprof example
 
 The cprof tool uses breakpoints to count calls, a lightweight approach
-that doesn't requre recompilation or any trace messages.
+that doesn't require recompilation or any trace messages.
 But you do not get a full call graph, nor do you get timing information.
 
 [source,erlang]

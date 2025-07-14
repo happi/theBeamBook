@@ -94,7 +94,7 @@ loop(Port, Ids, Id) ->
             io:format("Send: ~p~n", [Message]),
             Port ! {self(), {command, encode(Message, Id)}},
             T2 = os:system_time(millisecond),
-            if (T2 - T1) > 500 -> io:format("Shouldnt ! be async...~n", []);
+            if (T2 - T1) > 500 -> io:format("Shouldn't ! be async...~n", []);
                true -> ok
             end,
             loop(Port, [{Id, From} | Ids], Id + 1);

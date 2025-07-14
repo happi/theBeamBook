@@ -397,7 +397,7 @@ either beam instructions or BIFs, depending on their complexity.
 Library functions are basic Erlang functions such as 'lists:length/1' that are part of the Erlang language. They could be implemented as BEAM instructions,
 BIFS, or in Erlang.
 
-BIFs are efficient as they are writen in C and optimized for performance within the BEAM.
+BIFs are efficient as they are written in C and optimized for performance within the BEAM.
 The disadvantages with BIFs are that long-running BIFs can block BEAM schedulers, affecting system responsiveness. They have limited extensibility as they are fixed within the runtime system.
 
 Most Erlang users will never need to write a BIF, but it is good to know what they are and how they work. Also if you are writing an EEP (Erlang Enhancement Proposal) you might need to write a BIF to implement the new functionality.
@@ -449,7 +449,7 @@ BIF_RETTYPE math_factorial_1(BIF_ALIST_1)
     long factorial = 1;
     Eterm result;
 
-    /* Check the arguemnt and return an error if it is not a positive integer.
+    /* Check the argument and return an error if it is not a positive integer.
        When defining a BIF with BIF_ALIST_X the arguments are named
        BIF_ARG_1, BIF_ARG_2 etc.
        To signal ann error use BIF_ERROR(BIF_P, BADARG);
@@ -629,7 +629,7 @@ tuple and call 'math_factorial_trap_1'.
 Now when we come back from a yield we might already have a bignum so we
 restructure the code a bit to handle this case.
 
-We check our iterator and every 1000 interations we save the state and yield. We also save the state and yield when we have a bignum.
+We check our iterator and every 1000 iterations we save the state and yield. We also save the state and yield when we have a bignum.
 
 ```c
 static Export math_factorial_trap_export;
@@ -719,7 +719,7 @@ bignum_loop:
             // Increment i so we don't get stuck in a loop. with i % 1000 == 0.
             // Save state: {(i+1), i!, n} and yield.
 
-            // Store the tuple with the sate on the heap
+            // Store the tuple with the state on the heap
             big_size = BIG_SIZE(big_val(big_factorial));
             hp = HAlloc(BIF_P, 4 + big_size + 1);
             big_hp = hp + 4;
@@ -790,7 +790,7 @@ It was a calm night, one of those rare occasions where everything in the system 
 
 In the aftermath, the investigation revealed a peculiar sequence of events. The BEAM schedulers, designed to gracefully balance work and sleep, had been too eager to shut down when the workload diminished. Only a single scheduler remained active, handling the entirety of the system's operations.
 
-As fate would have it, this lone scheduler stumbled upon a task: converting a 4MB term into a binary for logging purposes. This seemingly routine operation invoked the term_to_binary function—a built-in function (BIF). Instead of breaking its workload into manageable chunks, it perfomed all the work until done and then reported it had used only 20 reductions.
+As fate would have it, this lone scheduler stumbled upon a task: converting a 4MB term into a binary for logging purposes. This seemingly routine operation invoked the term_to_binary function—a built-in function (BIF). Instead of breaking its workload into manageable chunks, it performed all the work until done and then reported it had used only 20 reductions.
 
 This non-yielding nature proved to be a fatal flaw. The single scheduler became entirely consumed, unable to handle other tasks or respond to the system's needs. Erlang's HEART mechanism, ever vigilant, detected the unresponsiveness and concluded that the node was beyond saving. With grim efficiency, it killed the node.
 

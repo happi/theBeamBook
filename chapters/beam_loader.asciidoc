@@ -175,7 +175,7 @@ OpCase(move_return_x):
     }
 -----------------------------
 
-All the implementor has to do is to define the `MoveReturn` macro in `beam_emu.c` and
+All the implementer has to do is to define the `MoveReturn` macro in `beam_emu.c` and
 the instruction is complete.
 
 [[macro_arguments]]
