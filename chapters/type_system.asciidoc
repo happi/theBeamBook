@@ -358,7 +358,7 @@ Note however that for longer term representation of large amounts of data,
 lists can use a lot of memory. Suppose you have a million small integers,
 each of which could be represented in 2 bytes. On a 64-bit Erlang system,
 representing this as a list `[1234, 2001, ...]` would use one million cons
-cells each holding a 64-bit immedate integer and a 64-bit pointer to the
+cells each holding a 64-bit immediate integer and a 64-bit pointer to the
 next cell in the list, i.e., 16 bytes per cell. That's 16 megabytes instead
 of 2. It would be more space-efficient to pack this data into a binary, but
 it all depends on how you need to access these numbers.

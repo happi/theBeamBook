@@ -270,7 +270,7 @@ PortSettings)`.
 A file descriptor port is opened with `{fd, In, Out}` as the
 `PortName`. This class of ports is used by some internal ERTS servers
 like the old shell. They are considered to not be very efficient and
-hence seldom used. Also the filedescriptors are non negative intgers
+hence seldom used. Also the filedescriptors are non negative integers
 representing open file descriptors in the OS. The file descriptor can
 not be an erlang I/O server.
 
@@ -389,7 +389,7 @@ By scheduling signals to/from the port asynchronously, Erlang ensures that proce
 
 Now this means that the erlang send operation is not always asynchronous. If the port is busy the send operation will block until the port is not busy anymore. This is a problem if you have a lot of processes sending data to the same port. The solution is to use a port server that can handle the backpressure and make sure that the send operation is always asynchronous.
 
-Let's do an example based on the offical port driver example:
+Let's do an example based on the official port driver example:
 link:https://www.erlang.org/doc/system/c_portdriver.html#c-driver[erlang.org:c-driver].
 
 Let us use the original complex c function, adding 1 or multiplying by 2.
@@ -481,15 +481,15 @@ That also worked as expected: we sent 10 messages and got the results back in th
 ```erlang
 5> busy_port:test_async_bar().
 Send: {bar,1}
-Shouldnt ! be async...
+Shouldn't ! be async...
 Send: {bar,2}
-Shouldnt ! be async...
+Shouldn't ! be async...
 Send: {bar,3}
-Shouldnt ! be async...
+Shouldn't ! be async...
 Send: {bar,4}
-Shouldnt ! be async...
+Shouldn't ! be async...
 Send: {bar,5}
-Shouldnt ! be async...
+Shouldn't ! be async...
 Send: {bar,6}
 Send: {bar,7}
 Send: {bar,8}

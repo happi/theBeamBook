@@ -7,7 +7,7 @@
 In this chapter we will look at how to run a live system in a
 production environment and how to release your code for that system.
 
-In order to have reliable 24/7 server we need to beable to release new
+In order to have reliable 24/7 server we need to be able to release new
 features and bugfixes with as little disruption as possible to the
 running system. In this chapter we will learn about the tools provided
 by the runtime to handle releases.

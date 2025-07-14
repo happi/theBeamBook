@@ -71,10 +71,10 @@ format_opcode(Opcode, Deprecated) ->
 
 
 strip(S) ->
- [ esacpe(Char)
+ [ escape(Char)
   || Char <- string:strip(S, right, 10)].
 
-esacpe(Char) ->
+escape(Char) ->
     case Char of
         $| -> "\|";
         $\n -> " ";

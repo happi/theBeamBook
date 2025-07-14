@@ -38,7 +38,7 @@ parse_json({cons, Line, Head, Tail})   -> {cons, Line, parse_json(Head),
 parse_json({nil, Line})                -> {nil, Line};
 %% Json String -> <<String>>
 parse_json({string, Line, String})     -> str_to_bin(String, Line);
-%% Json Integer -> Intger
+%% Json Integer -> Integer
 parse_json({integer, Line, Integer})   -> {integer, Line, Integer};
 %% Json Float -> Float
 parse_json({float, Line, Float})       -> {float, Line, Float};
