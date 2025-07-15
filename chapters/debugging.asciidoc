@@ -778,10 +778,10 @@ those you own. How to reconfigure this is out of scope for this book.
 
 GDB macros can automate repetitive tasks and provide shortcuts for complex
 commands, enhancing the efficiency of your debugging sessions. The Erlang
-runtime includes a set of predefined GDB macros, known as the Erlang
-Pathologist Toolkit (ETP), which facilitate the inspection of various
-aspects of the BEAM, such as internal BEAM structures, process states,
-memory allocation, and scheduling information.
+runtime includes a set of predefined GDB macros, known as the Emulator Toolbox
+for Pathologists (ETP), which facilitate the inspection of various aspects of
+the BEAM, such as internal BEAM structures, process states, memory allocation,
+and scheduling information.
 
 The ETP macros can be found in `erts/etc/unix/etp-commands`. They are
 automatically loaded into your GDB session when you launch it via the
