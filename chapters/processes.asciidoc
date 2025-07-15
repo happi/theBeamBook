@@ -469,7 +469,7 @@ The shell helper `c:bt(Pid)` is just a convenience wrapper around `erlang:proces
 Combined with `process_info` items such as `memory` or `reductions`,
 these queries give a view of a process’s stack, heap, and PCB-like fields.
 
-For a deeper, byte-level view the runtime ships with the **Erlang Toolkit for Pathologist (EPT)**—a collection of GDB macros (`etp-stackdump`, `etp-heapdump`, `etp-process-info`, and friends) that walk live BEAM data structures in a paused VM or core dump. 
+For a deeper, byte-level view the runtime ships with the **Emulator Toolbox for Pathologists (ETP)**—a collection of GDB macros (`etp-stackdump`, `etp-heapdump`, `etp-process-info`, and friends) that walk live BEAM data structures in a paused VM or core dump. 
 
 See xref:AP-BuildingERTS[] for more information on how to build the a debug version of the
 Erlang runtime system with ETP support. 
