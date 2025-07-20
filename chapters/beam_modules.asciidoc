@@ -210,7 +210,7 @@ The chunk named `Code` contains the beam code for the module and is mandatory. T
 
 [source,erlang]
 ----
-ImportChunk = <<
+CodeChunk = <<
   ChunkName:4/unit:8 = "Code",
   ChunkSize:32/big,
   SubSize:32/big,
