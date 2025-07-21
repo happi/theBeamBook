@@ -426,7 +426,7 @@ We can parse the chunk like this:
 [source,erlang]
 ----
 parse_chunks([{"LitT", _ChunkSize,
-              <<_CompressedTableSize:32, Compressed/binary>>}
+              <<_UnCompressedTableSize:32, Compressed/binary>>}
              | Rest], Acc) ->
     <<_NumLiterals:32,Table/binary>> = zlib:uncompress(Compressed),
     Literals = parse_literals(Table),
