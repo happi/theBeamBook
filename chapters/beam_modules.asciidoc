@@ -540,7 +540,7 @@ Parsing example:
 parse_chunks([{"Meta", Size, Chunk} | Rest], Acc) ->
     <<MetaInfo:Size/binary, _Pad/binary>> = Chunk,
     Meta = binary_to_term(MetaInfo),
-    parse_chunks(Rest, [{meta, MetaInfo}|Acc]);
+    parse_chunks(Rest, [{meta, Meta}|Acc]);
 ```
 
 
