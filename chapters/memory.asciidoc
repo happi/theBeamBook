@@ -1166,7 +1166,7 @@ size() ->
  2> share:share(10,[a,b,c]), ok.
  ok
 
- 3> byte_size(list_to_binary(test:share(10,[a,b,c]))), ok.
+ 3> byte_size(term_to_binary(share:share(10,[a,b,c]))), ok.
  HUGE size (13695500364)
  Abort trap: 6
 
