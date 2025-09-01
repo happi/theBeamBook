@@ -273,9 +273,9 @@ optimizes the code down to BEAM bytecode (xref:fig_compiler_passes_2[]).
 [ditaa]
 ----
                                                    :                           [] ⇒ Compiler options
-                                                   |                           () ⇒ files           
-                                           +---------------+                   {} ⇒ erlang terms    
-                                           |     Core      |                   boxes ⇒ passes       
+                                                   |                           () ⇒ files
+                                           +---------------+                   {} ⇒ erlang terms
+                                           |     Core      |                   boxes ⇒ passes
                                            |    Erlang     |
                                            +---------------+
                                                    |
@@ -1111,8 +1111,8 @@ Erlang.org site: link:http://erlang.org/doc/apps/syntax_tools/chapter.html[http:
 
 === Compiling Elixir
 
-Another approach to writing your own language on top of the Beam is to use
-the macro programming facilities in Elixir. Elixir compiles to Beam code through
+Another approach to writing your own language on top of the BEAM is to use
+the macro programming facilities in Elixir. Elixir compiles to BEAM code through
 the Erlang abstract syntax tree.
 
 With Elixir's defmacro you can define your own Domain Specific Language,
