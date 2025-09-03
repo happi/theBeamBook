@@ -39,7 +39,7 @@ version will become old and the third version will be loaded as the
 current version.
 
 === Hot Code Loading
-As we saw there is not only a syntactic difference but 
+As we saw there is not only a syntactic difference but
 also a semantic difference between a local function call and a remote function call.
 A remote call, or a "fully quallified call", that is a call to a
 function in a named module, is guaranteed to go to the latest loaded
@@ -157,7 +157,7 @@ Result = M:F(fun(X) -> X * 2 end, [1,2,3]).
 ```
 
 This dynamic invocation technique is less efficient than direct calls but provides flexibility in selecting execution paths at runtime.
-This can be used to implement a callback system where the a module that exports a specific set of functions and you just pass the module name around.
+This can be used to implement a callback system where the module that exports a specific set of functions and you just pass the module name around.
 This technique makes it much harder for analytic tools like Dialyzer to find errors in the code since the call graph is not known at compile time.
 
 
@@ -189,13 +189,12 @@ Function call efficiency in Erlang follows a clear hierarchy, as outlined in the
 
 Explicit calls, both local and remote (`foo()`, `m:foo()`) are the most efficient.
 I would like to add that the most efficient call is a local call to a function in the same module. This is because the call can be resolved at compile time and the function can be inlined. This is not possible for a remote call since the module can be changed at runtime.
-Even though the JIT compiler can do a good job with remote calls it does not inline them as of OTP 27. 
+Even though the JIT compiler can do a good job with remote calls it does not inline them as of OTP 27.
 
 Calling a closure (`Fun()`, `apply(Fun, [])`) is slightly slower but still efficient.
 
-Applying a function () (`Mod:Name()`, `apply(Mod, Name, [])`) with a known number of arguments at compile time is next in efficiency. (You can not apply a function that is not exported from a module.) 
+Applying a function () (`Mod:Name()`, `apply(Mod, Name, [])`) with a known number of arguments at compile time is next in efficiency. (You can not apply a function that is not exported from a module.)
 
 Applying an exported function with an unknown number of arguments (`apply(Mod, Name, Args)`)  is the least efficient.
 
 The Erlang runtime system is optimized for local calls and remote calls to the current version of a module. Hot code loading is a powerful feature that enables live updates to running systems, but it comes with performance trade-offs. It is also important to understand that reloading a module two times will purge the old version of the module and any references to it will crash the process holding the reference.
-
