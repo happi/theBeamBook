@@ -191,7 +191,7 @@ The examples below assume that there is a specific instructions looking like thi
 move_call x f
 ....
 
-without any flags to the `%macro` we the following code will be generated:
+without any flags to the `%macro` the following code will be generated:
 
 [source, C]
 BeamInstr* next;
