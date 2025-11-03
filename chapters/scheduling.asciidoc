@@ -91,9 +91,9 @@ with the function `erlang:process_info/2`.
 We will look closer at the different statuses that a process
 can have later in this chapter, but for now all we need
 to know is that a process that is _running_ or _garbage_collecting_
-is actually running in on a scheduler.
+is actually running in a scheduler.
 Since the machine in the example has four cores and four schedulers
-there are four process running in parallel (the shell process and
+there are four processes running in parallel (the shell process and
 three of the _busy processes_). There are also five busy processes
 waiting to run in the state _runnable_.
 
@@ -182,7 +182,7 @@ has to save its internal state somehow before it returns and then set
 up the state again on re-entry. This can be very costly, especially
 for a function that sometimes only does little work and sometimes lot.
 The reason for writing a function in C instead of Erlang is usually to
-achieve performance and to not do unnecessary book keeping work.
+improve performance and to not do unnecessary book keeping work.
 Since there is no clear definition of what one reduction is, other
 than a function call on the Erlang level, there is a risk that a
 function implemented in C takes many more clock cycles per reduction
@@ -234,7 +234,7 @@ The field `status` in the PCB contains the process state. It can be one
 of _free_, _runnable_, _waiting_, _running_, _exiting_, _garbing_,
 and _suspended_. When a process exits it is marked as
 free---you should never be able to see a process in this state,
-it is a short lived state where the process no longer exist as
+it is a short lived state where the process no longer exists as
 far as the rest of the system is concerned but there is still
 some clean up to be done (freeing memory and other resources).
 
@@ -412,7 +412,7 @@ it at the end of the appropriate ready queue.
 If the receive statement has a `timeout` clause a timer will be
 created for the process which will trigger after the specified timeout
 time. The only guarantee the runtime system gives on a timeout is that
-it will not trigger before the set time, it might be some time after
+it will not trigger before the set time. It might be some time after
 the intended time before the process is scheduled and gets to execute.
 
 Timers are handled in the VM by a _timing wheel_. That is, an array of
@@ -560,7 +560,7 @@ it is up to the OS to allocated scheduler threads to cores, but you
 can also choose to bind schedulers to cores.
 
 The load balancer assumes that there is one scheduler running on each
-core so that moving a process from a overloaded scheduler to an under
+core so that moving a process from an overloaded scheduler to an under
 utilized scheduler will give you more parallel processing power. If
 you have changed how schedulers are allocated to cores, or if your OS
 is overloaded or bad at assigning threads to cores, the load balancing
@@ -568,7 +568,7 @@ might actually work against you.
 
 The load balancer uses two techniques to balance the load, _task
 stealing_ and _migration_. Task stealing is used every time a
-scheduler runs out of work, this technique will result in the work
+scheduler runs out of work. This technique will result in the work
 becoming more spread out between schedulers. Migration is more
 complicated and tries to compact the load to the right number of
 schedulers.
@@ -674,7 +674,7 @@ than average (S3, S4) will be targeted for immigration.
 
 This is done by looping over the ordered set of schedulers with two
 indices (immigrate from (`fix`)) and (emigrate to (`tix`)). In each
-iteration of the a loop the immigration path of S[tix] is set to S[fix]
+iteration of the loop the immigration path of S[tix] is set to S[fix]
 and the emigration path of S[fix] is set to S[tix]. Then tix is increased
 and fix decreased till they both pass the balance point. If one index
 reaches the balance point first it wraps.
