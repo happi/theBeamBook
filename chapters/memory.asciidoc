@@ -1405,7 +1405,7 @@ object is freed. In the ERTS mixed environment a reference to a
 reference-counted object does not die until a garbage collection
 detects that the reference is dead.
 
-This means that binaries, which hava a tendency to be large or even
+This means that binaries, which have a tendency to be large or even
 huge, can hang around for a long time after all references to the
 binary are dead. Note that since binaries are allocated globally,
 all references from all processes need to be dead, that is all
