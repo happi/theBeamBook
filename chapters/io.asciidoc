@@ -154,7 +154,7 @@ The 'group_leader/2' function uses the 'group_leader' signal to set the group le
 true
 ```
 
-Understanding group leaders and the difference between the bif `display` and the function `io:format` will help you manage basic I/O in Erlang.
+Understanding group leaders and the difference between the BIF `display` and the function `io:format` will help you manage basic I/O in Erlang.
 
 * `erlang:display/1`: A BIF that writes directly to the standard output, bypassing the Erlang I/O system.
 
@@ -217,7 +217,7 @@ a large extent pretend that everything in the world behaves like
 an Erlang process and communicate through message passing.
 
 Each port has an owner, more on this later, but all processes
-who know about the port can send messages to the port.
+that know about the port can send messages to the port.
 In the figure below we see how a process can communicate with the
 port and how the port is communicating to the world outside the
 Erlang node.
@@ -255,7 +255,7 @@ When a port terminates all external resources should also be cleaned
 up. This is true for all ports that come with Erlang and if you
 implement your own port you should make sure it does this cleanup.
 
-==== Different types of Ports ====
+==== Different Types of Ports ====
 
 There are three different classes of ports: file descriptors, external
 programs and drivers. A file descriptor port makes it possible for a
@@ -270,7 +270,7 @@ PortSettings)`.
 A file descriptor port is opened with `{fd, In, Out}` as the
 `PortName`. This class of ports is used by some internal ERTS servers
 like the old shell. They are considered to not be very efficient and
-hence seldom used. Also the filedescriptors are non negative integers
+hence seldom used. Also the file descriptors are non-negative integers
 representing open file descriptors in the OS. The file descriptor can
 not be an erlang I/O server.
 
@@ -298,7 +298,7 @@ Erlang/OTP comes with a number port drivers implementing the
 predefined port types. There are the common drivers available on all
 platforms: `tcp_inet`, `udp_inet`, `sctp_inet`, `efile`, `zlib_drv`,
 `ram_file_drv`, `binary_filer`, `tty_sl`. These drivers are used to
-implement e.g. file handling and sockets in Erlang. On Windows there
+implement, e.g., file handling and sockets in Erlang. On Windows there
 is also a driver to access the registry: `registry_drv`. And on most
 platforms there are example drivers to use when implementing your own
 driver like: `multi_drv` and `sig_drv`.
@@ -322,7 +322,7 @@ Data sent to and from a port are byte streams. The packet size can be specified 
 
 Ports can be used to replace standard IO and polling. This is useful when you need to interact with external programs or devices. By opening a port to a file descriptor, you can read and write data to the file. Similarly, you can open a port to an external program and communicate with it using the port interface.
 
-===== Ports to file descriptors =====
+===== Ports to File Descriptors =====
 
 File descriptor ports in Erlang provide an interface to interact with already opened file descriptors. Although they are not commonly used due to efficiency concerns, they can provide an easy interface to external resources.
 
@@ -352,10 +352,9 @@ The primary commands for interacting with a port include:
 * `{control, Operation, Data}`: Sends a control command to the external program.
 * `{exit_status, Status}`: Receives the exit status of the external program.
 
-See xref:CH-C[] for examples of how to spawn an external program as a port,
-you can also look at the official documentation: link:https://www.erlang.org/doc/system/c_port.html#content[erlang.org:c_port].
+See xref:CH-C[] for examples of how to spawn an external program as a port. You can also look at the official documentation: link:https://www.erlang.org/doc/system/c_port.html#content[erlang.org:c_port].
 
-===== Ports to Linked in Drivers =====
+===== Ports to Linked-in Drivers =====
 
 Linked-in drivers in Erlang are created using the `open_port/2` function with the `{spawn_driver, Command}` tuple as the `PortName`. This method requires the first token of the command to be the name of a loaded driver.
 
@@ -373,7 +372,7 @@ Example:
 Port ! {self(), {command, <<"Hello, Driver!\n">>}}.
 ```
 
-See xref:CH-C[] for examples of how to implement and spawn a linked in driver as a port, you can also look at the official documentation: link:https://www.erlang.org/doc/system/c_portdriver.html#content[erlang.org:c_portdriver].
+See xref:CH-C[] for examples of how to implement and spawn a linked in driver as a port. You can also look at the official documentation: link:https://www.erlang.org/doc/system/c_portdriver.html#content[erlang.org:c_portdriver].
 
 ==== Flow Control in Erlang Ports
 
@@ -532,7 +531,7 @@ distribution layer.
 === Sockets, UDP and TCP ===
 Sockets are a fundamental aspect of network communication in Erlang. They allow processes to communicate over a network using protocols such as TCP and UDP. Here, we will explore how to work with sockets, retrieve information about sockets, and tweak socket behavior.
 
-Erlang provides a robust set of functions for creating and managing sockets. The gen_tcp and gen_udp modules facilitate the use of TCP and UDP protocols, respectively. Here is a basic example of opening a TCP socket:
+Erlang provides a robust set of functions for creating and managing sockets. The `gen_tcp` and `gen_udp` modules facilitate the use of TCP and UDP protocols, respectively. Here is a basic example of opening a TCP socket:
 
 ```erlang
 % Open a listening socket on port 1234
@@ -546,7 +545,7 @@ ok = gen_tcp:send(Socket, <<"Hello, World!">>),
 {ok, Data} = gen_tcp:recv(Socket, 0).
 ```
 
-For UDP, the process is similar but uses the 'gen_udp' module:
+For UDP, the process is similar but uses the `gen_udp` module:
 
 ```erlang
 % Open a UDP socket on port 1234
@@ -570,7 +569,7 @@ Erlang provides several functions to retrieve information about sockets. For ins
 % Set options on a socket
 ok = inet:setopts(Socket, [{recbuf, 4096}, {sndbuf, 4096}, {nodelay, true}]).
 ```
-Additionally, you can use inet:peername/1 and inet:sockname/1 to get the remote and local addresses of a socket:
+Additionally, you can use `inet:peername/1` and `inet:sockname/1` to get the remote and local addresses of a socket:
 
 ```erlang
 % Get the remote address of a connected socket
