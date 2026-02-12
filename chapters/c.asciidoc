@@ -1,5 +1,5 @@
 [[CH-C]]
-== Chapter: Interfacing other languages and extending BEAM and ERTS
+== Interfacing Other Languages and Extending BEAM and ERTS
 
 === Introduction
 Interfacing C, C++, Rust, or assembler provides an opportunity to extend the capabilities of the BEAM. In this chapter, we will use C for most examples, but the methods described can be used to interface almost any other programming language. We will give some examples of Rust and Java in this chapter. In most cases, you can replace C with any other language in the rest of this chapter, but we will just use C for brevity.
@@ -425,7 +425,7 @@ Imagine implementing a simple BIF to calculate the factorial of a number. The BI
 2. Perform the computation efficiently in C.
 3. Return the result to the Erlang environment.
 
-Find the code in erts where bifs are defined:
+Find the code in erts where BIFs are defined:
 https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.c
 or in this case perhaps in https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_math.c
 
@@ -830,8 +830,8 @@ NIFs are functions implemented in C or C++ (or other languages) that are called 
 They provide a way to dynamically extend Erlang with native code for performance-critical operations or interfacing with external libraries.
 Improper use can still destabilize the VM, so they should be used cautiously.
 
-How to use Nifs is nowadays well documented in the link:https://www.erlang.org/doc/tutorial/introduction[Interoperability Tutorial] in the
-link:https://www.erlang.org/doc/system/nif.html[Nif section], but we will go through the basics here. 
+How to use NIFs is nowadays well documented in the link:https://www.erlang.org/doc/tutorial/introduction[Interoperability Tutorial] in the
+link:https://www.erlang.org/doc/system/nif.html[NIF section], but we will go through the basics here.
 
 ==== Implementing a Simple NIF
 A simple C-based NIF for fast integer addition:
@@ -884,4 +884,3 @@ Then in Erlang:
 Keep NIF execution **short** to avoid blocking the BEAM scheduler. Use NIFs for **performance-critical** operations and **interfacing with external libraries**.
 **Use dirty schedulers** for long-running operations.
 Always **validate inputs** to prevent crashes.
-
