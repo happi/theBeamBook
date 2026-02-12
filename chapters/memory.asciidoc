@@ -79,7 +79,7 @@ this picture for the _C-stack_.
 The C-heap is allocated through malloc and a segment is allocated with
 mmap.
 
-=== The memory subsystem
+=== The Memory Subsystem
 
 Now that we dive into the memory subsystem it will once again
 be apparent that ERTS is more like an operating system than just a
@@ -91,7 +91,7 @@ allocation strategies.
 For an overview of memory allocators see the erts_alloc documentation
 at: http://www.erlang.org/doc/man/erts_alloc.html
 
-All these allocators also comes with a number of parameters that
+All these allocators also come with a number of parameters that
 can be used to tweak their behavior, and this is probably one
 of the most important areas from an operational point of view.
 This is where we can configure the system behavior to fit anything
@@ -127,7 +127,7 @@ works.
 
 
 [[SS-Memory_Allocators]]
-=== Different type of memory allocators
+=== Different Types of Memory Allocators
 The Erlang run-time system is trying its best to handle memory
 in all situations and under all types of loads, but there are
 always corner cases. In this chapter we will look at the details
@@ -157,7 +157,7 @@ fragmentation, by grouping allocations of the same size,
 and to increase performance, by making frequent allocations
 cheap.
 
-There are two special, fundamental or generic, memory allocator types
+There are two special, fundamental or generic, memory allocator types,
 _sys_alloc_ and _mseg_alloc_, and nine specific allocators implemented
 through the _alloc_util_ framework.
 
@@ -194,7 +194,7 @@ parameters of that allocator when starting Erlang.
 
 
 
-==== The basic allocator: sys_alloc
+==== The Basic Allocator: sys_alloc
 
 The allocator sys_alloc can not be disabled, and is basically a
 straight mapping to the underlying OS malloc implementation in
@@ -202,10 +202,10 @@ libc.
 
 If a specific allocator is disabled then sys_alloc is used instead.
 
-All specific allocators uses either sys_alloc or mseg_alloc to
+All specific allocators use either sys_alloc or mseg_alloc to
 allocate memory from the operating system as needed.
 
-When memory is allocated from the OS sys_alloc can add (pad) a fixed
+When memory is allocated from the OS, sys_alloc can add (pad) a fixed
 number of kilobytes to the requested number. This can reduce the
 number of system calls by over allocating memory. The default padding
 is zero.
@@ -221,7 +221,7 @@ memory back to the OS directly as memory is freed up.
 Memory areas allocated by sys_alloc are stored in the C-heap of the
 beam process which will grow as needed through system calls to brk.
 
-==== The memory segment allocator: mseg_alloc
+==== The Memory Segment Allocator: mseg_alloc
 
 If the underlying operating system supports mmap a specific memory
 allocator can use mseg_alloc instead of sys_alloc to allocate
@@ -232,13 +232,13 @@ segment is freed it is not immediately returned to the OS, instead it
 is kept in a segment cache.
 
 When a new segment is allocated a cached segment is reused if
-possible, i.e. if it is the same size or larger than the requested
+possible, i.e., if it is the same size or larger than the requested
 size but not too large. The value of _absolute max cache bad fit_
 determines the number of kilobytes of extra size which is considered
 not too large. The default is 4096 kilobytes.
 
 In order not to reuse a 4096 kilobyte segment for really small
-allocations there is also a _relative_max_cache_bad_fit_ value which
+allocations there is also a _relative max cache bad fit_ value which
 states that a cached segment may not be used if it is more than
 that many percent larger. The default value is 20 percent. That
 is a 12 KB segment may be used when asked for a 10 KB segment.
@@ -246,7 +246,7 @@ is a 12 KB segment may be used when asked for a 10 KB segment.
 The number of entries in the cache defaults to 10 but can be
 set to any value from zero to thirty.
 
-==== The memory allocator framework: alloc_util
+==== The Memory Allocator Framework: alloc_util
 
 Building on top of the two generic allocators (sys_alloc and mseg_alloc)
 is a framework called _alloc_util_ which is used to implement specific
@@ -256,7 +256,7 @@ The framework is implemented in _erl_alloc_util.[ch]_ and the different
 allocators used by ERTS are defined in erl_alloc.types in
 the directory "erts/emulator/beam/".
 
-In a SMP system there is usually one allocator of each type per
+In an SMP system there is usually one allocator of each type per
 scheduler thread.
 
 The smallest unit of memory that an allocator can work with is called a
@@ -268,12 +268,12 @@ The allocator does not allocate blocks from the operating system
 directly though. Instead the allocator allocates a _carrier_ from the
 operating system, either through sys_alloc or through mseg_alloc,
 which in turn uses malloc or mmap. If sys_alloc is used the carrier
-is placed on the C-heap and if mseg_alloc is used the carrier
+is placed on the C-heap, and if mseg_alloc is used the carrier
 is placed in a segment.
 
 Small blocks are placed in a multiblock carrier. A multiblock carrier
 can as the name suggests contain many blocks. Larger blocks are placed
-in a singleblock carrier, which as the name implies on contains one
+in a singleblock carrier, which as the name implies contains one
 block.
 
 What's considered a small and a large block is determined by the
@@ -333,7 +333,7 @@ carrier is allocated either through:
 
  - `sys_alloc` (using standard C library functions like `malloc()`), placing
  memory on the process heap, or
- 
+
  - `mseg_alloc` (using `mmap()`), placing memory outside the typical C-heap
  area.
 
@@ -344,13 +344,13 @@ primary carrier types:
  - **Multiblock Carrier**: These hold multiple smaller blocks, suitable for
  frequent, smaller allocations. By default, allocators typically request
  multiblock carriers in approximately 8 MB chunks (tunable via system flags),
- efficiently handling common Erlang memory patterns. 
- 
+ efficiently handling common Erlang memory patterns.
+
  - **Singleblock Carrier**: Dedicated to exactly one large block. Allocations
  exceeding the single block carrier threshold are placed in
  single-block carriers directly allocated from the OS.
 
-===== Carrier Threshold (`sbct`) and its Impact
+===== Carrier Threshold (`sbct`) and Its Impact
 
 The parameter known as _singleblock carrier threshold_ (`sbct`) determines the
 size boundary between what's considered a "small" and "large" allocation.
@@ -367,7 +367,7 @@ allocation patterns. Adjusting it affects how the runtime system balances
 between fragmentation (caused by large allocations in multiblock carriers) and
 overhead (due to many single-block carriers).
 
-===== Why Most Allocations are Preferably Small (Multiblock Carriers)
+===== Why Most Allocations Are Preferably Small (Multiblock Carriers)
 
 Multiblock carriers are favored for their efficiency with typical Erlang
 workloads—many small, short-lived allocations. Research by the HiPE team has
@@ -378,7 +378,7 @@ A typical ERTS allocator usually maintains:
 
  - **One main multiblock carrier** per allocator to handle frequent, small-sized
  allocations. It rarely releases this carrier, reusing freed blocks internally
- to reduce fragmentation. 
+ to reduce fragmentation.
  - **Multiple singleblock carriers**, each allocated
  individually for large objects or binaries. Once these blocks are deallocated,
  the singleblock carriers are returned to the OS immediately.
@@ -406,7 +406,7 @@ heap ->  +----+    +----+ old_heap
 +-------------------------------+  OS allocated
 |  Singleblock Carrier (> sbct) |
 +-------------------------------+
-|                               |  
+|                               |
 |    Large Allocation (1 block) |
 |                               |
 |-------------------------------|
@@ -448,7 +448,7 @@ In practice, the default `sbct` setting is suitable for most Erlang
 applications. Only fine-tune this parameter if profiling indicates specific
 problems with fragmentation, memory overhead, or unusual allocation patterns.
 
-===== Memory allocation strategies
+===== Memory Allocation Strategies
 
 To find a free block of memory in a multi block carrier an
 allocation strategy is used. Each type of allocator has
@@ -473,17 +473,17 @@ _Address order first fit_: Find the block with the lowest address that
 satisfies the requested block size.
 (aoff)
 
-_Address order first fit carrier best fit_ : 
+_Address order first fit carrier best fit_:
 Find the carrier with the lowest address that can satisfy the
 requested block size, then find a block within that carrier using the
-"best fit" strategy.  (aoffcbf)
+"best fit" strategy.
+(aoffcbf)
 
 _Address order first fit carrier address order best fit_: Find the
 carrier with the lowest address that can satisfy the requested block
 size, then find a block within that carrier using the "address order
 best fit" strategy.
- aoffcaobf (address order first fit carrier address order best fit)
-
+(aoffcaobf)
 
 _Good fit_: Try to find the best fit, but settle for the best fit found
 during a limited search.
@@ -508,11 +508,11 @@ Selecting a different strategy can mitigate memory fragmentation at the expense
 of higher CPU overhead during allocation searches.
 
 
-==== The temporary allocator: temp_alloc
+==== The Temporary Allocator: temp_alloc
 
-The allocator _temp_alloc_, is used for temporary
-allocations. That is very short lived allocations. Memory allocated
-by temp_alloc may not be allocated over a Erlang process context
+The allocator _temp_alloc_ is used for temporary
+allocations, that is, very short lived allocations. Memory allocated
+by temp_alloc may not be allocated over an Erlang process context
 switch.
 
 You can use temp_alloc as a small scratch or working area while doing
@@ -528,7 +528,7 @@ allocator may start executing Erlang code before the block is freed.
 This means that you can not use a temporary allocation over a BIF
 or NIF trap (yield).
 
-In a default R16 SMP system there is N+1 temp_alloc allocators where N
+In a default R16 SMP system there are N+1 temp_alloc allocators where N
 is the number of schedulers. The temp_alloc uses the "A fit" (`af`)
 strategy. Since the allocation pattern of the temp_alloc basically is
 that of a stack (mostly of size 0 or 1), this strategy works fine.
@@ -541,14 +541,14 @@ ENVIRONMENT, CON_VPRINT_BUF.
 
 For an up to date list of allocation types allocated with each
 allocator, see erl_alloc.types
-(e.g. `+grep TEMPORARY erts/emulator/beam/erl_alloc.types+`).
+(e.g., `+grep TEMPORARY erts/emulator/beam/erl_alloc.types+`).
 
 I will not go through each of these different types, but in
 general as you can guess by their names, they are temporary
 buffers or work stacks.
 
 
-==== The heap allocator: eheap_alloc
+==== The Heap Allocator: eheap_alloc
 
 The heap allocator manages memory blocks for a process’s private data: Erlang
 terms stored on the process heap (new and old generations), plus related
@@ -565,7 +565,7 @@ tuples, lists, maps, integers, and any small binaries (<= 64 bytes).
 * Heap Fragments: If a process briefly needs more memory but cannot immediately GC
 (e.g., constructing a large message), the VM may allocate a “heap fragment” from
 eheap_alloc. On the next garbage collection, these fragments are merged or
-freed. 
+freed.
 
 * Register Arrays: Some runtime-implementation details (e.g., the
 “beam_registers” data structure) also use eheap_alloc. As an Erlang developer,
@@ -575,7 +575,7 @@ Good practice includes carefully sizing process heaps if they frequently handle
 big data, rather than allowing many minor GCs.
 
 
-==== The binary allocator: binary_alloc
+==== The Binary Allocator: binary_alloc
 
 The binary allocator handles memory for (yes, you guessed it) binaries.
 Specifically, it manages binaries larger than 64 bytes (called refc binaries),
@@ -589,17 +589,17 @@ external data from networks).
 
 The allocator has a few interesting characteristics:
 
-* **Best-Fit Strategy:**  
+* **Best-Fit Strategy:**
   It chooses the smallest suitable free block to store a new binary, which
   reduces fragmentation, think of it as a meticulous Tetris player fitting
   binaries neatly into memory.
 
-* **Reference Counting:**  
+* **Reference Counting:**
   Off-heap binaries stick around until the very last process stops referencing
   them. If just one forgetful process clings to a huge binary, it stays alive,
   sometimes annoyingly longer than you'd prefer.
 
-* **Sub-Binaries (Slices):**  
+* **Sub-Binaries (Slices):**
   When you match binaries like `\<<X:32, Rest/binary>>`, the smaller binary
   (`Rest`) still references the original larger binary, avoiding copying is
   great, until you realize you've accidentally kept a giant binary alive just to
@@ -610,25 +610,25 @@ references lingering in processes. Occasionally, you might need to gently remind
 the garbage collector (via `erlang:garbage_collect/1`) or let processes
 hibernate to reclaim the memory faster.
 
-==== The ETS allocator: ets_alloc
+==== The ETS Allocator: ets_alloc
 
 The allocator `ets_alloc` manages memory for your beloved ETS (Erlang Term
 Storage) tables. By default, ETS tables aren't tied to individual processes,
 meaning they hang around even when your processes take their garbage out. Keep
 in mind a few key details:
 
-* **Long-Lived Data:**  
+* **Long-Lived Data:**
   Once you place data into an ETS table, it moves out of process heaps and
   settles into its own cozy allocator. Standard process garbage collection won't
   tidy up this space. If you want memory back, you must explicitly remove data
   or delete the table.
 
-* **Diverse Use Cases:**  
+* **Diverse Use Cases:**
   This allocator deals with everything ETS-related—from classic hash tables to
   fancy `ordered_set` structures and internal metadata. Popular or large tables
   can easily become memory-hungry beasts, so watch out.
 
-* **Short-Lived ETS Data:**  
+* **Short-Lived ETS Data:**
   Sometimes ETS might borrow other allocators temporarily, for quick tasks like
   matching or intermediate results, but the main data lives in `ets_alloc`.
 
@@ -636,33 +636,33 @@ Because ETS tables can grow surprisingly large, occasionally check their
 size with functions like `ets:info(Tab, memory)` or keep an eye on overall
 `ets_alloc` usage through your system metrics.
 
-==== The driver allocator: driver_alloc
+==== The Driver Allocator: driver_alloc
 
 The driver allocator handles memory for ports, linked-in drivers, and NIF
 resources. In simpler terms, if you're reaching beyond Erlang's safety
 net—interacting with I/O drivers, external libraries, or file descriptors—you'll
 end up here. Key points to keep in mind:
 
-* **Port & Driver Data:**  
+* **Port & Driver Data:**
   Allocations here include structures for network sockets, open file
   descriptors, and buffers specific to your linked-in drivers.
 
-* **NIF-Allocated Data:**  
+* **NIF-Allocated Data:**
   When a NIF reaches out with `enif_alloc`, the memory ultimately comes from
   this allocator. The VM politely waits until you call `enif_free`, or your NIF
   object gracefully exits the stage, to reclaim this space.
 
-* **Potential For External Leaks:**  
+* **Potential For External Leaks:**
   Because NIFs and drivers bypass Erlang’s usual memory-safety rules, a
   misbehaving driver might unintentionally hold onto memory, creating the
   digital equivalent of a leaky faucet. Keeping an eye on your `driver_alloc`
   usage helps catch these drips.
 
 Though developers rarely manipulate `driver_alloc` directly, it's wise to
-monitor this allocator in production environments, especially if you 
+monitor this allocator in production environments, especially if you
 are using NIFs.
 
-==== The short lived allocator: sl_alloc
+==== The Short-Lived Allocator: sl_alloc
 
 The short-lived allocator (`sl_alloc`) handles memory for data structures with
 lifespans that surpass the blink-and-you-miss-it nature of temporary
@@ -670,11 +670,11 @@ allocations, but not by much. Think of it as memory that's sticking around just
 long enough to say hello and have a quick coffee before heading out. Typical
 examples include:
 
-* **Intermediate Buffers:**  
+* **Intermediate Buffers:**
   Small buffers needed for short operations that linger briefly across
   scheduling points—but definitely don't plan on staying overnight.
 
-* **Ephemeral Lists:**  
+* **Ephemeral Lists:**
   Temporary runtime structures—such as quick-fire system message buffers or
   short-lived scheduling metadata—that disappear almost as soon as you notice
   them.
@@ -686,10 +686,10 @@ swiftly, leaving minimal footprints behind.
 
 If your application is particularly chatty—generating numerous short-lived
 allocations (such as frequent small driver calls or brief
-computations) `sl_alloc` might heat up significantly. Checking usage with tools
+computations)—`sl_alloc` might heat up significantly. Checking usage with tools
 like `recon_alloc:usage()` can tell you whether `sl_alloc` is overused.
 
-==== The long lived allocator: ll_alloc
+==== The Long-Lived Allocator: ll_alloc
 
 The long lived allocator handles data intended to stay alive for extended
 periods, often as long as the Erlang node itself. Typical examples include:
@@ -719,12 +719,12 @@ occasionally glance at `recon_alloc:usage(ll_alloc)` to detect unexpected spikes
 or fragmentation—especially if your application dynamically manages modules or
 extensive long-term data.
 
-==== The fixed size allocator: fix_alloc
+==== The Fixed-Size Allocator: fix_alloc
 
 The fixed allocator, `fix_alloc`, specializes in allocating fixed-size
 objects—typically small C structs whose size never changes (e.g., message
 references, driver event data, monitors). Since these objects come in uniform
-sizes, the allocator can efficiently handle them:
+sizes, the allocator can efficiently handle them.
 
 By default, fix_alloc uses "Address Order Best Fit",
 returning freed objects neatly into lists of same-sized blocks, effectively
@@ -740,7 +740,7 @@ down managing tiny, fragmented allocations, helping Erlang keep its reputation
 for handling concurrency gracefully.
 
 
-==== The standard allocator: std_alloc
+==== The Standard Allocator: std_alloc
 
 When memory doesn't neatly fit into Erlang's specialized allocator buckets, it
 finds a home in `std_alloc`—the runtime's versatile catch-all allocator. Think
@@ -765,7 +765,7 @@ normal for it to accumulate significant usage on busy nodes. If you see this
 allocator consistently growing, it's usually a sign to double-check application
 behavior or revisit your assumptions about what's "normal."
 
-==== The literal allocator: literal_alloc
+==== The Literal Allocator: literal_alloc
 
 The `literal_alloc` stores compile-time constants, often called the _literal
 pool_, in loaded Erlang modules. Think of it as the VM's "read-only memory
@@ -815,18 +815,18 @@ Memory allocator system flags follow this syntax:
 
 **Allocator identifiers (`<S>`):**
 
-- `B`: binary_alloc  
-- `D`: std_alloc  
-- `E`: ets_alloc  
-- `F`: fix_alloc  
-- `H`: eheap_alloc  
-- `I`: literal_alloc  
-- `L`: ll_alloc  
-- `M`: mseg_alloc  
-- `R`: driver_alloc  
-- `S`: sl_alloc  
-- `T`: temp_alloc  
-- `Y`: sys_alloc  
+- `B`: binary_alloc
+- `D`: std_alloc
+- `E`: ets_alloc
+- `F`: fix_alloc
+- `H`: eheap_alloc
+- `I`: literal_alloc
+- `L`: ll_alloc
+- `M`: mseg_alloc
+- `R`: driver_alloc
+- `S`: sl_alloc
+- `T`: temp_alloc
+- `Y`: sys_alloc
 - `u`: alloc_util (affects all alloc_util-based allocators)
 
 === Commonly Used Flags
@@ -849,7 +849,7 @@ Example:
 ```
 _(Binary allocator uses best-fit strategy.)_
 
-**Singleblock Carrier Threshold (`sbct`):**  
+**Singleblock Carrier Threshold (`sbct`):**
 Defines the threshold in KB above which allocations use singleblock carriers.
 
 Example:
@@ -860,9 +860,9 @@ _(Binary allocations above 1024 KB use singleblock carriers.)_
 
 **Multiblock Carrier Settings:**
 
-- **Smallest (`smbcs`) and Largest (`lmbcs`) Multiblock Carrier Size:**  
+- **Smallest (`smbcs`) and Largest (`lmbcs`) Multiblock Carrier Size:**
   Control minimum/maximum sizes for multiblock carriers (KB).
-- **Carrier Growth Stages (`mbcgs`):**  
+- **Carrier Growth Stages (`mbcgs`):**
   Defines carrier size growth between minimum and maximum.
 
 Example:
@@ -871,7 +871,7 @@ Example:
 ```
 _(Binary allocator multiblock carriers range from 512 KB to 8 MB.)_
 
-**Abandon Carrier Utilization Limit (`acul`):**  
+**Abandon Carrier Utilization Limit (`acul`):**
 Percentage threshold below which carriers are abandoned and reused.
 
 Example:
@@ -880,7 +880,7 @@ Example:
 ```
 _(Binary carriers with utilization below 50% are marked abandoned.)_
 
-**Abandon Carrier Free Utilization Limit (`acful`):**  
+**Abandon Carrier Free Utilization Limit (`acful`):**
 Below this utilization, the VM informs the OS that unused memory can be reclaimed.
 
 Example:
@@ -889,7 +889,7 @@ Example:
 ```
 _(std_alloc marks memory as reclaimable by OS if utilization is below 10%.)_
 
-**Multiple Thread-specific Instances (`t`):**  
+**Multiple Thread-specific Instances (`t`):**
 Controls if allocators use multiple instances (one per scheduler).
 
 Example:
@@ -898,7 +898,7 @@ Example:
 ```
 _(eheap_alloc uses separate allocator instances per scheduler thread.)_
 
-**Allocation Tagging (`atags`):**  
+**Allocation Tagging (`atags`):**
 Adds tags to allocations, useful for debugging with instrumentation.
 
 Example:
@@ -939,14 +939,14 @@ _(Enable tagging for driver_alloc.)_
 
 `sys_alloc` interfaces with the system’s malloc:
 
-- **Trim Threshold (`tt`):**  
+- **Trim Threshold (`tt`):**
   Releases memory back to the OS when the free heap exceeds threshold.
   ```
   +MYtt 256
   ```
   _(Set trim threshold to 256 KB.)_
 
-- **Top Pad (`tp`):**  
+- **Top Pad (`tp`):**
   Extra memory malloc requests from OS to reduce subsequent calls.
   ```
   +MYtp 512
@@ -987,17 +987,17 @@ Stores literals (compile-time constants):
 
 === Practical Examples
 
-**Reduce fragmentation with address-order best fit across all allocators:**  
+**Reduce fragmentation with address-order best fit across all allocators:**
 ```
 +Muas aobf
 ```
 
-**Limit maximum memory for ETS allocator (e.g., 2 GB):**  
+**Limit maximum memory for ETS allocator (e.g., 2 GB):**
 ```
 +MEamax 2097152
 ```
 
-**Enable allocation tagging for debugging across all allocators:**  
+**Enable allocation tagging for debugging across all allocators:**
 ```
 +Muatags true
 ```
@@ -1022,7 +1022,7 @@ validate settings with actual system metrics and testing.
 
 === Process Memory
 
-As we saw in xref:CH-Processes[] a process is really just a number
+As we saw in xref:CH-Processes[], a process is really just a number
 of memory areas, in this chapter we will look a bit closer at how
 the stack, the heap and the mailbox are managed.
 
@@ -1036,7 +1036,7 @@ they are stored on the heap they are either cons cells or boxed
 objects.
 
 
-==== Term sharing
+==== Term Sharing
 
 Objects on the heap are passed by references within the context of one
 process. If you call one function with a tuple as an argument, then
@@ -1199,7 +1199,7 @@ regularly. See xref:AP-BuildingERTS[] for how to build Erlang from source.
 
 Let us look in more detail how message passing works.
 
-==== Message passing
+==== Message Passing
 
 When a process P1 sends a message M to another (local) process P2, the
 process P1 first calculates the flat size of M. Then it allocates a
@@ -1257,7 +1257,7 @@ Then P1 starts sending the message M to P2. The code in
 `erl_message.c` first calculates the flat size of M (which in our example is
 23 words)footnote:[We ignore tracing here which will add a trace token
 to the size of the message, and always use a heap fragment.].
-Then (in a SMP system) if it can take a lock on P2 and there is enough
+Then (in an SMP system) if it can take a lock on P2 and there is enough
 room on the heap of P2 it will copy the message to the heap of P2.
 
 If P2 is running (or exiting) or there isn't enough space on the heap,
@@ -1360,16 +1360,16 @@ In either case a new mbox (`ErlMessage`) is allocated, a lock
 Then the mbox is linked into the in message queue (`msg_inq`) of the
 receiver, and the lock is released. Note that `msg_inq.last` points to
 the `next` field of the last message in the queue. When a new mbox is
-linked in this next pointer is updated to point to the new mbox, and
+linked in, this next pointer is updated to point to the new mbox, and
 the last pointer is updated to point to the next field of the new
 mbox.
 
 [[SS-Binaries]]
 ==== Binaries
 
-As we saw in xref:CH-TypeSystem[] there are four types of binaries
-internally. Three of these types, _heap binaries_, _sub binaries_ and
-_match contexts_ are stored on the local heap and handled by the
+As we saw in xref:CH-TypeSystem[], there are four types of binaries
+internally. Three of these types—_heap binaries_, _sub binaries_ and
+_match contexts_—are stored on the local heap and handled by the
 garbage collector and message passing as any other object, copied as
 needed.
 
@@ -1377,7 +1377,7 @@ needed.
 ===== Reference Counting
 
 The fourth type, large binaries or _refc binaries_, on the other hand,
-are partially stored outside of the process heap and they are
+are partially stored outside of the process heap, and they are
 reference counted.
 
 The payload of a refc binary is stored in memory allocated by the
@@ -1402,14 +1402,14 @@ reference counting. In a pure reference counted implementation
 the reference count would be reduced as soon as a reference to
 the object dies, and when the reference count reaches zero the
 object is freed. In the ERTS mixed environment a reference to a
-reference counted object does not die until a garbage collection
+reference-counted object does not die until a garbage collection
 detects that the reference is dead.
 
-This means that binaries, which has a tendency to be large or even
+This means that binaries, which have a tendency to be large or even
 huge, can hang around for a long time after all references to the
 binary are dead. Note that since binaries are allocated globally,
 all references from all processes need to be dead, that is all
-processes that has seen a binary need to do a GC.
+processes that have seen a binary need to do a GC.
 
 Unfortunately it is not always easy, as a developer, to see which
 processes have seen a binary in the GC sense of the word seen. Imagine
@@ -1426,7 +1426,7 @@ loop(Workers, N) ->
     WorkItem ->
        Worker = lists:nth(N+1, Workers),
        Worker ! WorkItem,
-       loop(Workers, (N+1) rem length(Workers)) 
+       loop(Workers, (N+1) rem length(Workers))
   end.
 ----
 
@@ -1447,10 +1447,10 @@ count for the binary but uses very little extra space.
 
 If a match would create a new copy of the matched part of the binary
 it would cost both space and time. So in most cases just doing a
-pattern match on a binary and getting a sub binary to work on is just
+pattern match on a binary and getting a sub binary to work on is
 what you want.
 
-There are some degenerate cases, imagine for example that you load
+There are some degenerate cases, imagine for example that you load a
 huge file like a book into memory and then you match out a small part
 like a chapter to work on. The problem is then that the whole of the
 rest of the book is still kept in memory until you are done with
@@ -1472,9 +1472,9 @@ and matching is done in the Erlang documentation:
 link:http://www.erlang.org/doc/efficiency_guide/binaryhandling.html[].
 
 
-=== Other interesting memory areas
+=== Other Interesting Memory Areas
 
-==== The atom table.
+==== The Atom Table.
 
 Atoms in Erlang are unique identifiers represented as integers internally. All atoms are stored in a global structure known as the **atom table**. The atom table is a fixed-size structure, meaning there’s an upper limit to how many atoms can exist in a running Erlang system (by default, 1,048,576 atoms). While this might sound like a large number, careless usage (especially dynamically creating atoms from external data) can lead to atom exhaustion, which in turn crashes the entire BEAM VM—an event that's roughly as pleasant as unexpectedly stepping on a LEGO brick in the middle of the night.
 
@@ -1492,11 +1492,11 @@ Problems often arise when atoms are created carelessly or dynamically, such as w
 
 To avoid this:
 
-* Always validate or whitelist user input before converting to atoms.
+* Always validate or allow-list user input before converting to atoms.
 * Use existing atoms wherever possible or, if dynamic identifiers are required, prefer binaries or strings.
-* Monitor the atom table usage regularly using tools like the Observer or built-in functions like 
+* Monitor the atom table usage regularly using tools like the Observer or built-in functions like:
     - Atom Count (`erlang:system_info(atom_count)`): Number of unique atoms currently loaded.
-    - Atom Memory (`erlang:memory(atom)`): Total bytes used by atoms including overhead. 
+    - Atom Memory (`erlang:memory(atom)`): Total bytes used by atoms including overhead.
     - Atom Used Memory (`erlang:memory(atom_used)`): Only the bytes used by the actual atom strings.
 
 A simple check from the Erlang shell can give you a quick indication:
@@ -1545,9 +1545,9 @@ Another significant memory area is the code area, where compiled Erlang modules 
 
 When you load or reload modules using functions such as `l(Module)` or `code:load_file(Module)`, the old code is not immediately removed but kept as the "old" version until no processes reference it. Erlang maintains two versions of each module simultaneously. This allows for safe upgrades without disrupting running processes.
 
-Constants defined in the Erlang code, such as numbers, atoms, and binaries, are stored in a constant pool within the module’s code segment. These constants are efficient in terms of memory usage within a single module, as they are stored only once. However, when constants are used outside of their module—such as during message passing or insertion into ETS tables—they are copied onto the receiving process's heap, potentially increasing overall memory usage significantly.
+Constants defined in the Erlang code—such as numbers, atoms, and binaries—are stored in a constant pool within the module’s code segment. These constants are efficient in terms of memory usage within a single module, as they are stored only once. However, when constants are used outside of their module—such as during message passing or insertion into ETS tables—they are copied onto the receiving process's heap, potentially increasing overall memory usage significantly.
 
-Monitoring and managing code memory usage is essential, particularly in long-running systems that frequently perform hot-code upgrades. You can inspect loaded modules and their statuses using built-in functions such as `code:all_loaded/0`, and `erlang:memory(code)` to monitor the total memory usage by loaded modules and their constants. 
+Monitoring and managing code memory usage is essential, particularly in long-running systems that frequently perform hot-code upgrades. You can inspect loaded modules and their statuses using built-in functions such as `code:all_loaded/0`, and `erlang:memory(code)` to monitor the total memory usage by loaded modules and their constants.
 
 
 [source,erlang]
@@ -1555,4 +1555,3 @@ Monitoring and managing code memory usage is essential, particularly in long-run
 1> erlang:memory(code).
 6378630
 ------------------------------------------
-
