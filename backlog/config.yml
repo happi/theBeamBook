@@ -1,0 +1,15 @@
+project_name: "The BEAM Book"
+default_status: "To Do"
+statuses: ["To Do", "In Progress", "Done"]
+labels: []
+milestones: []
+date_format: yyyy-mm-dd
+max_column_width: 80
+auto_open_browser: true
+default_port: 6420
+remote_operations: true
+auto_commit: false
+bypass_git_hooks: false
+check_active_branches: true
+active_branch_days: 30
+task_prefix: "bb"
