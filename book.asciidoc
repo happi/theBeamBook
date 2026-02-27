@@ -54,10 +54,10 @@ under the Creative Commons license. This printed edition is provided for conveni
 For more information on the Creative Commons license, visit:
 link:https://creativecommons.org/licenses/by/4.0/[].
 
-First Edition, 2025 — Version {version}
+First Edition, 2025 — Version {version} +
 ISBN: 978-91-531-4253-9
 [.text-center]
-© 2025 Erik Stenman.
+© 2025-2026 Erik Stenman.
 
 // tag::toc[]
 [break-before=recto, include-title=true]
