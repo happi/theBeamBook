@@ -389,25 +389,25 @@ defaults to the Latin-1 range when detecting strings, so for example:
 
 [source,erlang]
 ----
-2> [128526, 128526, 128526].
-[128526, 128526, 128526]
+2> [955, 960, 963].
+[955,960,963]
 ----
 
-just shows the result as a list of numbers. However, if we start Erlang
+just shows the result as a list of numbers, even though 955, 960, and 963
+are the Greek letters lambda, pi, and sigma. However, if we start Erlang
 with the option `+pc unicode`, the Erlang shell will be much more generous
 with what it considers printable:
 
 [source,shell]
 ----
-Eshell V15.2.2 (press Ctrl+G to abort, type help(). for help)
 $ erl +pc unicode
 Erlang/OTP 27 [erts-15.2.2] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:1] [jit:ns]
 
 Eshell V15.2.2 (press Ctrl+G to abort, type help(). for help)
-1> [128526, 128526, 128526].
-"😎😎😎"
-2> 
+1> [955, 960, 963].
+"λπσ"
 ----
+
 Just note that it depends on your console, what encoding it is set to
 expect, and its available fonts, whether it will be able to actually
 display those characters.
