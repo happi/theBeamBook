@@ -485,19 +485,27 @@ The format for the new chunks is:
 TypeChunk = <<
   ChunkName:4/unit:8 = "Type",
   ChunkSize:32/big,
-  TypeInfo:ChunkSize/binary,
+  Version:32/big,
+  Count:32/big,
+  TypeData:(Count * 16)/binary,
   Padding4:0..3/unit:8
 >>
 ----
 
+The Type chunk holds simplified type information used by the JIT compiler
+for optimization. Each type entry is a fixed 16-byte record. The data is
+not in Erlang external term format, so it cannot be decoded with
+`binary_to_term`. See `beam_types.erl` in the compiler for the encoding.
+
 Parsing:
 
-```erlang
-parse_chunks([{"Type", Size, Chunk} | Rest], Acc) ->
-    <<TypeInfo:Size/binary, _Pad/binary>> = Chunk,
-    Types = binary_to_term(TypeInfo),
-    parse_chunks(Rest, [{types, Types}|Acc]);
-```
+[source,erlang]
+----
+parse_chunks([{"Type", _Size, Chunk} | Rest], Acc) ->
+    <<_Version:32/big, Count:32/big, TypeData/binary>> = Chunk,
+    Types = parse_types(Count, TypeData, []),
+    parse_chunks(Rest, [{type_info, Types}|Acc]);
+----
 
 - **UTF-8 Atom Chunk (`AtU8`)**: Same format as Atom chunk, used when UTF-8 encoding is required:
 
