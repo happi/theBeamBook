@@ -369,12 +369,12 @@ matches.
 
 In this case we do a pattern match for Nil after the loop_rec
 instruction if there was a message in the mailbox. If the message
-doesn't match we end up at L3 where the instruction `loop_rec_end`
+doesn't match we end up at L2 where the instruction `loop_rec_end`
 advances the save pointer to the next message (`+p->msg.save =
-&(*p->msg.save)->next+`) and jumps back to L2.
+&(*p->msg.save)->next+`) and jumps back to L1.
 
 If there are no more messages in the message queue the process is
-suspended by the `wait` instruction at L4 with the save pointer pointing
+suspended by the `wait` instruction at L3 with the save pointer pointing
 to the end of the message queue. When the processes is rescheduled
 it will only look at new messages in the message queue (after the save
 point).
