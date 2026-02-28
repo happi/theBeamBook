@@ -29,3 +29,6 @@ site
 .DS_Store
 /VERSION
 /images/cover.jpg
+/vendor/
+/.bundle/
+/Gemfile.lock
