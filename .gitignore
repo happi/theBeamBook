@@ -27,3 +27,4 @@ images/diag-*.png
 site
 .asciidoctor
 .DS_Store
+/VERSION
