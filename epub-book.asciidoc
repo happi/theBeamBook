@@ -37,11 +37,11 @@ link:https://github.com/happi/theBeamBook/graphs/contributors[].
 This book is freely available online at
 link:https://github.com/happi/theBeamBook/[]
 
-First Edition, 2025
+Second Edition, 2026
 
-ISBN: 978-91-531-4253-9
+ISBN: TBD
 
-© 2025 Erik Stenman.
+© 2025-2026 Erik Stenman.
 
 // Include the rest of the book content without the front matter
 include::book.asciidoc[lines=67..-1]

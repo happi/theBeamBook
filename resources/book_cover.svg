@@ -23,15 +23,14 @@
          preserveAspectRatio="xMidYMid slice"/>
 
   <!-- Title Block (upper 40%) - centered at 20% -->
-  <text text-anchor="middle"
-        filter="url(#dropShadow)"
+  <text filter="url(#dropShadow)"
         style="font-family: 'Ubuntu', 'Lato', 'DejaVu Sans', sans-serif;
                font-weight: 400;
                font-size: 260px;
                fill: white;">
-    <tspan x="900" y="540">The</tspan>
-    <tspan x="900" y="864">BEAM</tspan>
-    <tspan x="900" y="1188">Book</tspan>
+    <tspan x="900" y="540" text-anchor="middle">The</tspan>
+    <tspan x="900" y="864" text-anchor="middle">BEAM</tspan>
+    <tspan x="900" y="1188" text-anchor="middle">Book</tspan>
   </text>
 
   <!-- Horizontal Rule (50% height) -->
@@ -41,13 +40,12 @@
         opacity="0.4"/>
 
   <!-- Subtitle (59% height) -->
-  <text text-anchor="middle"
-        style="font-family: 'Ubuntu', 'Lato', 'DejaVu Sans', sans-serif;
+  <text style="font-family: 'Ubuntu', 'Lato', 'DejaVu Sans', sans-serif;
                font-weight: 400;
                font-size: 120px;
                fill: white;">
-    <tspan x="900" y="1590">Understanding the Erlang</tspan>
-    <tspan x="900" y="1730">Runtime System</tspan>
+    <tspan x="900" y="1590" text-anchor="middle">Understanding the Erlang</tspan>
+    <tspan x="900" y="1730" text-anchor="middle">Runtime System</tspan>
   </text>
 
   <!-- Edition (between subtitle and author) -->

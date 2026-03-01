@@ -54,8 +54,8 @@ under the Creative Commons license. This printed edition is provided for conveni
 For more information on the Creative Commons license, visit:
 link:https://creativecommons.org/licenses/by/4.0/[].
 
-First Edition, 2025 — Version {version} +
-ISBN: 978-91-531-4253-9
+Second Edition, 2026 — Version {version} +
+ISBN: TBD
 [.text-center]
 © 2025-2026 Erik Stenman.
 

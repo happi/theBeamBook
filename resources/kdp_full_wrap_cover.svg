@@ -117,15 +117,14 @@
   <!-- Front panel center: x = 2045 + 900 = 2945 -->
   <g id="front-cover">
     <!-- Title Block (upper portion) -->
-    <text text-anchor="middle"
-          filter="url(#dropShadow)"
+    <text filter="url(#dropShadow)"
           style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
                  font-weight: 400;
                  font-size: 260px;
                  fill: white;">
-      <tspan x="2945" y="578">The</tspan>
-      <tspan x="2945" y="902">BEAM</tspan>
-      <tspan x="2945" y="1226">Book</tspan>
+      <tspan x="2945" y="578" text-anchor="middle">The</tspan>
+      <tspan x="2945" y="902" text-anchor="middle">BEAM</tspan>
+      <tspan x="2945" y="1226" text-anchor="middle">Book</tspan>
     </text>
 
     <!-- Horizontal Rule -->
@@ -135,13 +134,12 @@
           opacity="0.4"/>
 
     <!-- Subtitle -->
-    <text text-anchor="middle"
-          style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+    <text style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
                  font-weight: 400;
                  font-size: 120px;
                  fill: white;">
-      <tspan x="2945" y="1628">Understanding the Erlang</tspan>
-      <tspan x="2945" y="1768">Runtime System</tspan>
+      <tspan x="2945" y="1628" text-anchor="middle">Understanding the Erlang</tspan>
+      <tspan x="2945" y="1768" text-anchor="middle">Runtime System</tspan>
     </text>
 
     <!-- Author -->
