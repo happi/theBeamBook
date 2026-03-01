@@ -293,10 +293,10 @@ a deallocate instruction, and the function is done.
 
 === The BEAM Interpreter
 
-NOTE: This section is not about the ((JIT)) compiler, which is the newer
-way of executing BEAM code but which only runs on supported platforms, but
-about the BEAM instruction interpreter which has been around for much
-longer and works on all platforms.
+NOTE: This section is not about the ((JIT)) compiler (see xref:CH-JIT[]),
+which is the newer way of executing BEAM code but which only runs on
+supported platforms, but about the BEAM instruction interpreter which
+has been around for much longer and works on all platforms.
 
 The BEAM ((interpreter)) is implemented with a technique called _((direct
 threaded code))_(((threaded code))). In this context the word _threaded_

@@ -9,12 +9,12 @@ Status: Published (1st edition). Uses AsciiDoc, not Markdown.
 
 ## Build
 
-This project uses AsciiDoc (not the standard Markdown pipeline). See the repository's build instructions.
+This project uses AsciiDoc with Asciidoctor. Requires Ruby and Bundler.
 
-## Backlog
-
-Task tracking uses **Backlog.md** with prefix `bb`. The backlog lives in `backlog/` with config in `backlog/config.yml`.
-
-- **ID server**: `http://backlog.lan.stenmans.org` — generates unique, monotonic task IDs
-- **CLI**: `backlog task create "Title" --priority medium` (note: `-p` is `--parent`, use `--priority` for priority)
-- **MCP**: The backlog MCP server exposes task tools automatically via `.mcp.json`
+```bash
+bundle install              # Install dependencies (one-time)
+bundle exec make pdf-a4     # Build A4 PDF
+bundle exec make epub       # Build EPUB
+bundle exec make html       # Build HTML (GitHub Pages)
+bundle exec make clean      # Remove generated files
+```

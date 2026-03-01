@@ -493,9 +493,11 @@ TypeChunk = <<
 ----
 
 The Type chunk holds simplified type information used by the JIT compiler
-for optimization. Each type entry is a fixed 16-byte record. The data is
-not in Erlang external term format, so it cannot be decoded with
-`binary_to_term`. See `beam_types.erl` in the compiler for the encoding.
+for optimization (see xref:CH-JIT[] for how BeamAsm uses this information
+to specialize generated code). Each type entry is a fixed 16-byte record.
+The data is not in Erlang external term format, so it cannot be decoded
+with `binary_to_term`. See `beam_types.erl` in the compiler for the
+encoding.
 
 Parsing:
 

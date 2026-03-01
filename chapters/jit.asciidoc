@@ -1,0 +1,1642 @@
+[[CH-JIT]]
+== The JIT Compiler
+
+For most of its history, the BEAM virtual machine executed Erlang code
+through an interpreter based on ((direct threaded code))
+(see xref:CH-BEAM[]). Each BEAM instruction was a label in a large C
+switch, and the emulator jumped from one instruction to the next by
+following pointers stored in the loaded code. This design was portable,
+straightforward to extend, and served Erlang well for over two decades.
+
+Starting with OTP 24, the default execution engine on x86-64 and AArch64
+is ((BeamAsm)), a just-in-time compiler that translates BEAM instructions
+into native machine code at load time. The interpreter still exists as a
+fallback for platforms without JIT support, and you can select it
+explicitly with the `emu` emulator flavor (see xref:CH-Ops[]). But on
+supported hardware, BeamAsm is what runs your code.
+
+This chapter explains how BeamAsm works: why it was built, how it
+generates native code, and what optimizations it applies. We start with
+the motivation for replacing the interpreter, then walk through the
+architecture of the code generator, and finish with the specific
+optimization passes that make the JIT effective.
+
+
+=== From Interpreter to Native Code
+
+The direct threaded code interpreter was fast by interpreter standards,
+but it carried inherent costs. Each BEAM instruction ended with an
+indirect branch to the next instruction's address. Modern CPUs predict
+branch targets to keep their pipelines full, and indirect branches are
+notoriously difficult to predict. A function with twenty instructions
+meant twenty indirect branches, each one a potential pipeline stall.
+
+The interpreter also had no opportunity to optimize across instruction
+boundaries. Each instruction was a self-contained block of C code that
+loaded its arguments, did its work, and dispatched to the next. If two
+consecutive instructions both checked the same type, the interpreter
+performed both checks even when the second was redundant. The instruction
+boundary was a hard wall that no amount of C compiler optimization could
+see through.
+
+These limitations motivated several attempts at native code compilation
+for Erlang, spanning more than two decades before BeamAsm arrived.
+
+==== JERICO: The First Native Code Compiler
+
+The first native code compiler for Erlang was ((JERICO)), a Master's
+thesis project from 1995-1996. Written in C, JERICO translated
+JAM bytecode (the predecessor to BEAM) into native SPARC V9 code. The
+compiler could selectively compile individual functions, mixing native
+and emulated code within the same application. On small benchmarks,
+JERICO frequently achieved a factor of 10 speedup over the JAM
+interpreter.
+
+JERICO already had a form of just-in-time compilation. You could set a
+trigger level on the call count of emulated functions, and when a
+function exceeded that threshold it would be automatically compiled to
+native code. Since the compiler was implemented in C and integrated into
+the runtime, compilation happened inline with execution. JERICO also
+introduced ((backpatching)) for hot-code loading: when a function was
+recompiled, all call sites pointing to it were patched in place to
+redirect to the new native code.
+
+JERICO had problems scaling to large programs (tens of thousands of
+lines of code), and adding new optimizations to the C codebase was
+slow. These limitations led to a complete rewrite.
+
+==== HiPE: High Performance Erlang
+
+((HiPE)) (High Performance Erlang) grew out of JERICO. The compiler was
+rewritten from scratch in Erlang rather than C, which made it far easier
+to experiment with new optimizations. Where JERICO used a single
+intermediate format, HiPE introduced a layered architecture with
+multiple intermediate representations: BEAM or JAM bytecode was first
+translated to a functional intermediate code called Icode, then lowered
+to RTL (register transfer language), and finally to native SPARC or x86
+machine code. The project was developed at Uppsala University and
+described in the dissertation _Efficient Implementation of Concurrent
+Programming Languages_ (Stenman, 2002).
+
+Like JERICO, HiPE could compile individual functions at runtime. The
+compiler ran in a separate Erlang process, so compilation happened
+concurrently with application execution. Profiling tools measured call
+counts to identify hot spots, and those functions could then be compiled
+to native code on demand. HiPE could also produce pre-compiled native
+code stored in `.beam` files, sometimes called fat binaries.
+
+A key challenge was the interface between native and emulated code. HiPE
+used a separate native code stack alongside the BEAM emulator's stack,
+with ((mode switching)) to transfer control between the two worlds.
+Calls from native code to an emulated function (or vice versa) required
+saving state, switching stacks, and resuming in the other mode. This
+dual-world design added complexity to the runtime system. The garbage
+collector had to scan both stacks, exception handling had to bridge
+the two modes, and every new BEAM runtime feature had to be made
+compatible with native code execution.
+
+HiPE was included in Open Source Erlang from OTP R8 onward and remained
+a supported component for nearly two decades. It achieved speedups of
+2-3x on sequential micro-benchmarks and computation-heavy code, though
+large industrial applications saw little benefit because their
+performance was dominated by message passing, ETS, and garbage
+collection rather than sequential computation. It was eventually
+removed in OTP 24, replaced by BeamAsm.
+
+==== BeamAsm: A Different Trade-Off
+
+BeamAsm took a fundamentally different approach from both JERICO and
+HiPE. Rather than compiling from Erlang source or from a separate
+intermediate representation, BeamAsm translates already-loaded BEAM
+instructions to native code during module loading. It operates on the
+same instruction set as the interpreter and reuses the same loader
+infrastructure (see xref:CH-Beam_loader[]). There is no separate
+compilation step, no separate stack, and no mode switching. The
+generated native code uses the same calling conventions, the same stack
+layout, and the same term representation as the rest of the runtime.
+
+This design keeps the integration surface small. Every BEAM instruction
+has a corresponding native code emitter, and the translation is
+one-to-one. There is no dual-world problem: all code is native on
+supported platforms, so there are no mode switch boundaries to cross.
+The trade-off is that BeamAsm does less optimization than HiPE did.
+It does not perform global register allocation, does not build a
+control flow graph, and does not do inter-procedural analysis. The
+speedups come primarily from eliminating the interpreter dispatch
+overhead and from type-guided specialization using information from the
+compiler (see <<Type-Guided Optimizations>>).
+
+The following table summarizes the key differences between the
+interpreter and BeamAsm for each aspect of executing a BEAM instruction
+sequence. The interpreter column describes the direct threaded code
+engine used before OTP 24 (and still available as the `emu` flavor).
+The BeamAsm column describes the native code generated on x86-64 and
+AArch64.
+
+.Interpreter dispatch vs. BeamAsm native execution
+[cols="2,3,3", options="header"]
+|===
+| Aspect
+| Interpreter (direct threaded code)
+| BeamAsm (native code)
+
+| Instruction dispatch
+| Each instruction ends with an indirect branch (`goto *I`) to the
+  address of the next handler. The CPU must predict the target of
+  every such branch, and mispredictions stall the pipeline.
+| No dispatch. Instructions compile to a contiguous stream of native
+  code. Control flows from one operation to the next through ordinary
+  fall-through or direct jumps with known targets.
+
+| Type checking
+| Every instruction that operates on a value performs its own type
+  check. Two consecutive instructions that both need an integer
+  check will each execute a separate test, because each handler
+  is a self-contained block of C code.
+| The JIT reads the Type chunk from the `.beam` file and eliminates
+  checks that the compiler has proven redundant. When a value is
+  known to be an integer at a given point, the generated code omits
+  the type test entirely.
+
+| Argument access
+| BEAM x-registers are elements in a C array
+  (`ErtsSchedulerRegisters`). Each instruction loads its operands
+  from memory via the array base pointer, unpacks argument encoding,
+  and stores the result back.
+| The `ErtsSchedulerRegisters` struct pointer is pinned in a
+  callee-save CPU register (`rbx` on x86-64). Operands are still
+  loaded from this struct, but the base address is always in a
+  register, and the JIT can specialize the load for each argument
+  type, avoiding the generic argument-unpacking path.
+
+| Process state access
+| The process pointer (`c_p`), heap top, and reduction counter are
+  loaded from C variables or struct fields on each access.
+| These values are pinned in dedicated CPU registers (`r13` for the
+  process pointer, `r15` for the heap pointer, `r14` for the
+  reduction counter on x86-64). Access is a single register read
+  with no memory load.
+
+| Function calls
+| A call instruction stores the return address in a stack slot, sets
+  the instruction pointer `I` to the callee's first instruction, and
+  re-enters the emulator dispatch loop.
+| A call emits a native x86 `call` instruction (or equivalent on
+  AArch64). The return address is pushed onto the native stack by the
+  hardware. No dispatch loop is involved.
+
+| Code size and I-cache
+| The implementation of each instruction handler exists once in the
+  emulator binary. Loaded code contains only instruction addresses
+  and arguments, so the code footprint is small.
+| Each loaded function gets its own block of native instructions.
+  Total code size is roughly 10% larger than the interpreter
+  representation. Common sequences (garbage collection, context
+  switching, error handling) are shared as global code fragments
+  to limit the increase.
+|===
+
+
+=== BeamAsm Architecture
+
+BeamAsm is not a traditional optimizing compiler with multiple
+intermediate representations and a backend code generator. It is closer
+to a macro assembler: each BEAM instruction has a corresponding code
+generation routine that emits native instructions for that operation.
+The translation is direct, one BEAM instruction at a time, with some
+peephole-style optimizations between adjacent instructions.
+
+The code generator uses the ((asmjit)) library on both x86-64 and
+AArch64. Both backends produce position-independent code that can be
+placed anywhere in memory and relocated as needed.
+
+[[fig_beamasm_architecture]]
+.BeamAsm code generation architecture
+[ditaa]
+----
+      BUILD TIME                                    LOAD TIME
+
+ +-----------+   +---------------+            +----------------+
+ |  ops.tab  |-->| beam_makeops  |            |  .beam file    |
+ | (instr    |   | (Perl script) |            | (BEAM bytecode)|
+ |  specs)   |   +-------+-------+            +-------+--------+
+ +-----------+           |                            |
+                         v                            v
+              +--------------------+          +----------------+
+              | beamasm_emit.h     |          |  BEAM Loader   |
+              | beamasm_protos.h   |          | (ops.tab rules)|
+              | (generated switch  |          +-------+--------+
+              |  and prototypes)   |                  |
+              +---------+----------+     Specific BEAM instructions
+                        |                             |
+                        v                             v
+               +------------------------------------------+
+               | BeamModuleAssembler                      |
+               |                                          |
+               |  beamasm_emit(op) dispatches to:         |
+               |                                          |
+               |  +------------------------------------+  |
+               |  | Emitter functions                  |  |
+               |  | (jit/x86/*.cpp or jit/arm/*.cpp)   |  |
+               |  +------------------+-----------------+  |
+               |                     |                    |
+               |                     v                    |
+               |  +------------------------------------+  |
+               |  | asmjit                             |  |
+               |  | x86::Assembler or a64::Assembler   |  |
+               |  +------------------+-----------------+  |
+               |                     |                    |
+               +------------------------------------------+
+                                     |
+                                     v
+                        +-----------------------+
+                        | Executable Memory     |
+                        |                       |
+                        | +-----+-----+-------+ |
+                        | |foo/1|bar/2| stubs | |
+                        | +-----+-----+-------+ |
+                        +-----------------------+
+----
+
+The left side of <<fig_beamasm_architecture>> shows what happens at build
+time, when OTP itself is compiled. The `beam_makeops` Perl script reads
+`ops.tab` and generates C++ header files that define a switch statement
+dispatching each BEAM opcode to its emitter function. The right side shows
+what happens at module load time: the BEAM loader parses the `.beam` file
+and applies transformation rules, then the `BeamModuleAssembler` walks
+the resulting instruction sequence, calling the appropriate emitter for
+each one. The emitters use asmjit to produce native machine instructions,
+which are written into a block of executable memory.
+
+
+==== Translation Units and Code Stubs
+
+When BeamAsm loads a module, it generates native code for every function
+in that module. The generated code for a function is a contiguous block
+of native instructions, called a ((translation unit)). Unlike the
+interpreter, where the emulator loop sits between instructions, the
+native code flows directly from one operation to the next within a
+translation unit.
+
+Not all operations are inlined into translation units. Certain common
+sequences, like garbage collection entry points, stack growing, and
+exception handling, are generated once as ((code stubs)) (also called
+((global code fragments))). Translation units call into these stubs when
+needed, keeping the per-function code compact and reducing pressure on
+the instruction cache.
+
+The full list of global fragments is generated at build time from a
+table in the BeamAsm source (see `beam_asm_global.hpp.pl` in the OTP
+tree). The following are among the most important.
+
+`process_main`::
+  The outer scheduler loop. It picks the next process to run,
+  restores its registers from the process control block, and
+  jumps to the saved instruction pointer. When a process yields
+  or exits, control returns here.
+
+`garbage_collect`::
+  The shared garbage collection entry point. When an allocation
+  check in a translation unit fails, the code jumps here with the
+  number of words needed and the number of live registers. This
+  fragment calls `erts_garbage_collect_nobump` and, on return,
+  reloads the heap pointer and stack pointer from the process
+  control block.
+
+`export_trampoline`::
+  Dispatches remote calls through export entries. It inspects the
+  trampoline field of the `Export` struct and branches to the
+  correct handler: a BIF call, the error handler for undefined
+  functions, or a generic breakpoint handler for tracing.
+
+`dispatch_return`::
+  Handles context switching on function return. When reduction
+  credits have been exhausted at a return instruction, the code
+  jumps here to save the process state and re-enter the scheduler.
+
+`i_test_yield_shared`::
+  Handles context switching at function entry. Each function
+  prologue decrements the reduction counter and, if it reaches
+  zero, branches to this fragment, which saves the current MFA
+  and arity and yields to the scheduler.
+
+`call_nif_shared`::
+  Enters a NIF. It switches from the Erlang stack to the C runtime
+  stack, calls the NIF function pointer, and on return checks
+  whether the NIF yielded, raised an exception, or produced a
+  normal result.
+
+`call_bif_shared`::
+  Calls a BIF through the standard entry path. It saves state,
+  switches stacks, invokes the BIF function, and handles the
+  result, including the case where the BIF traps to Erlang code.
+
+`raise_exception` / `raise_exception_shared`::
+  Builds and raises an exception. Module code that detects an error
+  condition jumps here with the error term in a register. The
+  fragment calls the runtime's `handle_error` function, which
+  constructs the stack trace, and then either jumps to a catch
+  handler or re-enters the scheduler if the process should exit.
+
+`generic_bp_global` / `generic_bp_local`::
+  Handle breakpoints for tracing and debugging. When a breakpoint
+  is active on a function, the prologue trampoline calls one of
+  these fragments, which inspects the breakpoint flags and
+  dispatches to the trace handler, NIF loader, or both.
+
+`i_loop_rec_shared`::
+  Implements the inner loop of a `receive` expression. It walks
+  the process message queue, decodes distribution messages on
+  demand, and returns the next candidate message to the generated
+  code for pattern matching.
+
+`unloaded_fun`::
+  Handles calls to funs whose defining module has been purged. When
+  a fun's dispatch entry points here, the fragment looks up the
+  replacement export and redirects the call, or raises a `badfun`
+  error if no replacement exists.
+
+
+==== Code Generation Pipeline
+
+The path from a `.beam` file on disk to executable native code has
+several stages. The first stages, parsing the BEAM file and applying
+the transformation rules in `ops.tab`, are shared with the interpreter
+and handled by the loader (see xref:CH-Beam_loader[]). The loader
+produces a sequence of specific BEAM instructions with resolved
+arguments.
+
+At this point, control passes to BeamAsm. The JIT walks the instruction
+sequence and, for each instruction, calls the corresponding emitter
+function. These emitter functions are defined in the BeamAsm source
+files under `erts/emulator/beam/jit/`. The x86-64 backend lives in the
+`x86/` subdirectory and the AArch64 backend in `arm/`.
+
+The emitter functions are largely generated from `ops.tab` by the
+`beam_makeops` script, the same tool that generates the interpreter's
+dispatch tables (see xref:CH-Instructions[]). For BeamAsm, `beam_makeops`
+produces the files `beamasm_emit.h` and `beamasm_protos.h`, which define
+the emitter function signatures and the dispatch logic that routes each
+instruction to its emitter.
+
+==== Example: The `move` Instruction
+
+To see how the code generation pipeline works in practice, we will trace the
+path of a single BEAM instruction from its loaded form through the C++ emitter
+to the native x86-64 instructions that execute at runtime.
+
+The `move` instruction copies a value from a source to a destination register.
+In generic BEAM, it looks like this:
+
+[source, erlang]
+----
+{move, {x,0}, {y,1}}
+----
+
+This moves the contents of X register 0 into Y register 1. The source can
+also be a literal, an atom, or an integer constant. After the loader applies
+the transformation rules in `ops.tab`, the generic `move` is mapped to one
+of several specific forms. The most common is the two-argument form
+`move Src Dst`, where `Src` is a constant, X register, or Y register, and
+`Dst` is an X or Y register. The `beam_makeops` script generates a dispatch
+entry that routes this specific instruction to the emitter function
+`emit_i_move` in the x86-64 backend.
+
+===== The emitter function
+
+The emitter for `move` is defined in
+`erts/emulator/beam/jit/x86/instr_common.cpp`. It is short:
+
+[source, C++]
+----
+void BeamModuleAssembler::emit_i_move(const ArgSource &Src,
+                                      const ArgRegister &Dst) {
+    x86::Gp spill = alloc_temp_reg();
+    mov_arg(Dst, Src, spill);
+}
+----
+
+The function allocates a temporary CPU register from the register cache and
+delegates to `mov_arg`, a family of overloaded helper functions that handle
+the actual code emission. The temporary register is needed because x86-64
+cannot move directly from one memory location to another. When both the source
+and destination are BEAM registers (which live in memory), the value must pass
+through a CPU register as an intermediary.
+
+===== How `mov_arg` resolves the move
+
+The `mov_arg` helper in `beam_asm.hpp` dispatches based on the argument types.
+When the destination is a BEAM register and the source is also a BEAM register,
+the logic proceeds in two steps.
+
+First, it loads the source. The helper checks the register cache to see if
+the source value already happens to be in a CPU register from a recent
+operation. If so, it reuses that register and skips the load. Otherwise, it
+emits a `mov` instruction that loads from the source register's memory
+location into the spill register:
+
+[source, C++]
+----
+// Load source: mov_arg(x86::Gp to, const ArgVal &from, ...)
+auto mem = getArgRef(from);   // Memory address of the source register
+load_cached(to, mem);         // Load into CPU register (or reuse cache)
+----
+
+Then, it stores to the destination. The helper emits a `mov` instruction
+from the CPU register to the destination register's memory location:
+
+[source, C++]
+----
+// Store to destination: mov_arg(const ArgRegister &to, x86::Gp from, ...)
+auto mem = getArgRef(to);     // Memory address of the destination register
+store_cache(from, mem);       // Store and record in register cache
+----
+
+The `store_cache` function both emits the store instruction and records that
+the destination register's value is now cached in the CPU register. If a
+subsequent instruction reads this destination register, it can skip the
+memory load entirely.
+
+===== BEAM register layout in memory
+
+To understand the generated instructions, we need to know where BEAM registers
+live in memory. The x86-64 backend dedicates certain CPU registers to runtime
+state that persists across instructions:
+
+[cols="1,1,3"]
+|===
+| CPU register | Name | Purpose
+
+| `rbx`
+| `registers`
+| Base pointer to the scheduler's register array (`ErtsSchedulerRegisters`)
+
+| `rsp`
+| `E`
+| Erlang stack pointer (top of Y register area)
+
+| `r13`
+| `c_p`
+| Pointer to the current process control block
+
+| `r15`
+| `HTOP`
+| Heap top pointer (next free heap word)
+|===
+
+X registers are stored in a contiguous array within the
+`ErtsSchedulerRegisters` structure, addressed as offsets from `rbx`. The
+`getXRef` function computes the memory operand:
+
+[source, C++]
+----
+x86::Mem getXRef(int index) {
+    int base = offsetof(ErtsSchedulerRegisters, x_reg_array.d);
+    int offset = index * sizeof(Eterm);
+    return x86::Mem(registers, base + offset - x_reg_offset);
+}
+----
+
+Because the `registers` base pointer (`rbx`) is biased so that `x_reg_array`
+falls near offset zero, X register 0 is at a small positive offset from
+`rbx`, and successive X registers follow at 8-byte intervals. Y registers,
+by contrast, live on the Erlang stack and are addressed as offsets from `E`
+(`rsp`).
+
+===== Generated native code
+
+With this layout, we can now see what the JIT produces for three
+representative `move` variants.
+
+**Register to register: `{move, {x,0}, {x,1}}`**
+
+This moves X register 0 to X register 1. Both are memory locations relative
+to `rbx`, so the move goes through a temporary CPU register. Assuming no
+cache hits and X(0) is at offset `0x0` from the biased base:
+
+[source, asm]
+----
+mov    rdi, qword [rbx]       ; load X(0) into temp register
+mov    qword [rbx+0x8], rdi   ; store to X(1)
+----
+
+Two instructions, two memory accesses. This is the minimum possible on
+x86-64, which has no memory-to-memory move. If the register cache already
+holds the value of X(0) in a CPU register from a previous instruction, the
+first `mov` is omitted entirely, leaving a single store instruction.
+
+**X register to Y register: `{move, {x,0}, {y,1}}`**
+
+Y register 1 lives on the Erlang stack at an offset from `rsp`:
+
+[source, asm]
+----
+mov    rdi, qword [rbx]       ; load X(0)
+mov    qword [rsp+0x8], rdi   ; store to Y(1) on the stack
+----
+
+The structure is the same, but the destination uses `rsp` as its base
+rather than `rbx`.
+
+**Immediate to register: `{move, {integer,42}, {x,0}}`**
+
+Small integers are encoded as immediate values in the tagged pointer format.
+The integer 42 has the tagged representation `0x2AF` (42 shifted left by four
+bits, with the small integer tag `0xF` in the low nibble). Because this value
+fits in 32 bits, the JIT can encode it directly in the instruction:
+
+[source, asm]
+----
+mov    qword [rbx], 0x2AF     ; store tagged integer 42 to X(0)
+----
+
+A single instruction with no intermediate register. If the immediate value
+were larger than 32 bits (which can happen with tagged pointers to literals),
+the JIT would load the immediate into a register first and then store it,
+requiring two instructions.
+
+===== The register cache
+
+The register cache is a small bookkeeping structure maintained by the JIT
+during code generation. It tracks which BEAM register values are currently
+held in CPU registers. When `mov_arg` stores a value, `store_cache` records
+the association. When a later `mov_arg` tries to load the same BEAM register,
+`find_cache` returns the CPU register that already holds the value, and the
+load instruction is eliminated.
+
+This optimization is local to a single basic block. At labels and branches,
+the cache is invalidated, because the JIT does not track register state
+across control flow edges. Within straight-line code, however, the cache
+frequently eliminates redundant loads. A function that uses X(0) repeatedly
+in a sequence of instructions will load it from memory once and reuse the
+cached CPU register for the rest.
+
+
+=== Type-Guided Optimizations
+
+The Erlang compiler performs type analysis during compilation and records
+the results in the ((Type chunk)) of the `.beam` file
+(see xref:CH-beam_modules[]). This chunk contains, for each register at
+each instruction boundary, a conservative approximation of the value's
+type: whether it is an integer, a tuple of known arity, an atom, and
+so on.
+
+BeamAsm reads the Type chunk during loading and uses the type information
+to specialize the generated code. When the type analysis proves that a
+value is always an integer, for example, the JIT can skip the type check
+that would normally precede an arithmetic operation. When a tuple's arity
+is known, element access can be compiled to a direct memory load without
+a bounds check.
+
+This cooperation between the compiler and the JIT is one of the primary
+sources of performance improvement over the interpreter. The interpreter
+cannot easily skip type checks because it processes each instruction
+independently. BeamAsm, by contrast, has access to the type information
+for the entire function and can thread that knowledge through the code
+it generates.
+
+==== Example: Addition With and Without Type Information
+
+To see type-guided specialization in action, consider a minimal module
+with a function that adds two values:
+
+[source, erlang]
+----
+-module(arith).
+-export([add/2]).
+
+add(X, Y) -> X + Y.
+----
+
+The compiler compiles `add/2` to a BEAM `plus` instruction that takes
+two source operands and a destination register. The interesting question
+is what native code BeamAsm generates for that single instruction on
+x86-64. The answer depends on what the Type chunk says about the
+operands.
+
+===== The Untyped Case
+
+When the compiler cannot determine the types of `X` and `Y` (for
+example, because `add/2` is exported and could be called with any
+arguments), the Type chunk carries no useful constraints. BeamAsm must
+generate code that handles every possible combination: two small
+integers, a small integer and a bignum, two bignums, floats, or
+entirely non-numeric terms.
+
+On x86-64, the generated native code for the `plus` instruction in
+this untyped case looks approximately like this (using Intel syntax,
+with `rbx` pointing to the X register array as described in
+<<Translation Units and Code Stubs>>):
+
+[source, asm]
+----
+# i_plus_ssjd — no type information available
+# Load operands from X registers (x0, x1).
+    mov     rsi, qword [rbx]         ; rsi <- x0
+    mov     rdx, qword [rbx+0x8]    ; rdx <- x1
+# Test: are both operands small integers?
+# Small integers have tag 0xF (all four low bits set).
+# ANDing two tagged words preserves 0xF only if both have it.
+    mov     eax, esi
+    and     eax, edx
+    and     al, 0x0F
+    cmp     al, 0x0F
+    jne     L_mixed                  ; one or both are not small ints
+# Both are small. Strip the tag from one operand and add.
+    mov     rax, rsi
+    mov     rcx, rdx
+    and     rcx, -16                 ; clear the 4 tag bits of rdx
+    add     rax, rcx
+    jo      L_overflow               ; result does not fit in 60 bits
+# Store the correctly tagged result.
+    mov     qword [rbx], rax
+    jmp     L_next
+L_mixed:
+    ; Fall through to generic routine: handles bignum, float,
+    ; and raises badarith for non-numeric terms.
+    ...
+L_overflow:
+    ; Promote to bignum addition on the process heap.
+    ...
+L_next:
+----
+
+This sequence requires roughly 14 native instructions. It must test
+the tags on both operands, attempt the addition with an overflow
+check, and provide two fallback paths: one for non-small operands and
+one for overflow into bignum territory.
+
+The `is_both_small` test (the `and`/`and`/`cmp` sequence) exploits the
+fact that small integers have all four low bits set to 1
+(see xref:CH-TypeSystem[]). ANDing the two words and checking the low
+nibble against `0x0F` covers both arguments in a single test. Any other
+term type has at least one low bit clear, causing the `jne` to fire.
+
+The `and rcx, -16` instruction masks off the four tag bits of one
+operand before addition. Because the tag bits of a small integer are
+all ones, the sum of two tagged values would double-count the tag.
+Clearing the tag from one operand produces the correctly tagged result
+directly.
+
+===== The Typed Case
+
+Now suppose the compiler can prove that both arguments are small
+integers in a bounded range. This happens when the call site provides
+enough information for the type analysis pass. Consider a local
+(non-exported) helper called only through a function that has already
+checked the types:
+
+[source, erlang]
+----
+-module(arith_typed).
+-export([sum_pair/1]).
+
+sum_pair({A, B}) when is_integer(A), is_integer(B) ->
+    add(A, B).
+
+add(X, Y) -> X + Y.
+----
+
+Here the compiler knows that `add/2` is called only from `sum_pair/1`,
+where both arguments have passed `is_integer` guards. The type analysis
+records in the Type chunk that `X` and `Y` are integers. If the
+compiler can further determine that they are small enough that overflow
+is impossible (for instance, because they come from a range-limited
+source or from prior arithmetic whose result range is known), the Type
+chunk records a bounded integer range.
+
+With this information, BeamAsm generates a much shorter sequence for
+the same `plus` instruction:
+
+[source, asm]
+----
+# i_plus_ssjd — both operands known small, overflow impossible
+    mov     rax, qword [rbx]         ; rax <- x0
+    mov     rsi, qword [rbx+0x8]    ; rsi <- x1
+    and     rax, -16                 ; strip tag bits from x0
+    add     rax, rsi                 ; add (result is correctly tagged)
+    mov     qword [rbx], rax        ; store result to x0
+----
+
+Five instructions. No type check, no overflow check, no conditional
+branches. The JIT eliminated the `is_both_small` test because the Type
+chunk already guarantees both values are small integers. It eliminated
+the overflow check because the compiler proved the result fits in 60
+bits. The only work is the actual addition and the tag housekeeping.
+
+===== What the Type Chunk Contains
+
+The Type chunk is a binary section in the `.beam` file, identified by
+the four-byte tag `"Type"`. It stores a fixed-size record (16 bytes)
+for each type annotation point, encoded in a compact binary format
+defined by `beam_types.erl` in the compiler source. Each record
+describes the type of a value in a specific register at a specific
+instruction boundary.
+
+For the untyped `arith:add/2`, the Type chunk carries no useful
+constraint for `x0` and `x1` at the `plus` instruction. The type is
+effectively `any()`.
+
+For the typed `arith_typed:add/2`, the Type chunk records that `x0`
+and `x1` are both `integer()` at the `plus` instruction. When the
+compiler can establish bounds, the record further specifies a range
+such as `0..999999`, telling the JIT that overflow is impossible for
+addition.
+
+BeamAsm reads these type records during module loading. The emitter
+function for `plus` checks the type annotations for its operands and
+selects the appropriate code path. This is a load-time decision, not a
+runtime one. Once the native code is emitted, it runs without any
+further reference to the Type chunk.
+
+===== The Reduction in Practice
+
+The difference between 14 instructions and 5 instructions matters not
+only because of the raw instruction count but because of the branch
+structure. The untyped path contains two conditional branches (the type
+check and the overflow check), each of which is a potential pipeline
+stall and a burden on the branch predictor. The typed path has no
+branches at all: it is a straight-line sequence of loads, an `and`, an
+`add`, and a store.
+
+In tight loops over numeric data, where the `plus` instruction
+executes millions of times, the cumulative effect of eliminating those
+branches is substantial. This is the core payoff of the cooperation
+between the compiler's type analysis and the JIT's code generation.
+
+
+=== Destructive Update and Alias Analysis
+
+Erlang is a functional language where values are immutable. Updating a
+record or a map creates a new copy with the changed fields. This is
+safe but can be expensive for large data structures, because even
+changing a single field requires copying the entire term.
+
+BeamAsm implements an optimization for record updates (and, from OTP 26,
+map updates) that avoids the copy when the old value is no longer
+referenced. The compiler performs ((alias analysis)) to determine whether
+a variable holding a tuple or map has a single reference. If so, it
+annotates the update instruction with an `inplace` hint. At runtime, the
+JIT checks the term's reference count and, if the hint is valid, updates
+the term in place rather than allocating a new copy.
+
+This optimization relies on the ((high water mark)) in the process heap
+to verify that the term is safe to modify. A term allocated since the
+last garbage collection is guaranteed to have no references from older
+generations, which simplifies the safety check.
+
+The `update_record` instruction, introduced in OTP 26, is the primary
+vehicle for this optimization. It replaces the older sequence of
+`get_tuple_element`, `set_tuple_element` operations with a single
+instruction that the JIT can optimize holistically. OTP 26 added the
+`copy` and `reuse` hints; OTP 27 added the `inplace` hint, which
+enables the in-place update path described below.
+
+To see how this works in practice, consider a simple record definition
+and a function that updates one field:
+
+[source, erlang]
+----
+-record(account, {id, balance, currency}).
+
+credit(Amount, R) ->
+    R#account{balance = R#account.balance + Amount}.
+----
+
+The compiler translates this into an `update_record` instruction. What
+happens next depends on the alias analysis. If the compiler can prove
+that `R` is uniquely referenced (the variable dies after the update
+and no other variable shares the tuple), it sets the hint to `inplace`.
+Otherwise, the hint is `copy` or `reuse`.
+
+The `update_record` instruction carries one of three hint atoms:
+
+`copy`:: The default. Always allocate a new tuple and copy the old
+  fields into it. Safe regardless of aliasing.
+
+`reuse`:: Check whether the new value equals the old one. If so,
+  return the original tuple unchanged. Otherwise, copy as with `copy`.
+  This is useful when a field is often set to the same value it
+  already holds.
+
+`inplace`:: The alias analysis has proven a single reference. The
+  JIT may modify the tuple in place, skipping the allocation and copy
+  entirely, provided a runtime safety check passes.
+
+The loader's transformation rules in `ops.tab` dispatch on the hint.
+When the hint is `inplace`, the instruction is rewritten to
+`update_record_in_place`, which has its own emitter:
+
+[source]
+----
+update_record a==am_inplace Size Src Dst N Updates =>
+    update_record_in_place Size Src Dst N Updates
+update_record a I s d I *
+----
+
+All other hint values (`copy` and `reuse`) fall through to the
+general `update_record` emitter.
+
+
+==== The Copy Path
+
+When the hint is `copy`, the JIT generates a straightforward
+sequence: copy the entire old tuple into fresh heap space,
+overwrite the changed fields, and advance the heap top pointer.
+On x86-64, the emitter (`emit_update_record`) produces code
+equivalent to the following pseudocode:
+
+[source, asm]
+----
+    ; --- update_record copy, size=4, update field 2 ---
+    mov  RET, Src               ; load source tuple pointer
+    ; Copy words 0..1 (header + field 1) from old tuple to HTOP
+    mov  ARG1, [RET + 0]
+    mov  [HTOP + 0], ARG1
+    mov  ARG1, [RET + 8]
+    mov  [HTOP + 8], ARG1
+    ; Write the new value for field 2
+    mov  [HTOP + 16], NewValue
+    ; Copy word 3 (field 3) from old tuple to HTOP
+    mov  ARG1, [RET + 24]
+    mov  [HTOP + 24], ARG1
+    ; Tag the new tuple and advance heap top
+    lea  RET, [HTOP + 2]        ; TAG_PRIMARY_BOXED = 2
+    add  HTOP, 32               ; 4 words * 8 bytes
+    mov  Dst, RET
+----
+
+The total cost is one word of heap per word in the tuple, plus the
+store for each updated field. For a four-element record (five words
+including the header), this means five 8-byte copies and one store,
+regardless of how many fields actually changed.
+
+When the hint is `reuse` and only a single field is updated, the
+emitter inserts a comparison before the copy. If the old value
+matches the new one, execution jumps past the copy and returns the
+original tuple unchanged:
+
+[source, asm]
+----
+    ; --- update_record reuse, size=4, update field 2 ---
+    mov  RET, Src
+    mov  ARG1, RET
+    ; Compare old field 2 to new value
+    cmp  [ARG1 + 16], NewValue
+    je   done                   ; skip copy if unchanged
+    ; ... full copy sequence as above ...
+done:
+    mov  Dst, RET
+----
+
+This optimization pays for itself when the same value is written
+repeatedly, which is common in state machines where a status field
+is set to `active` on every iteration.
+
+
+==== The In-Place Path
+
+When the hint is `inplace`, the JIT generates fundamentally different
+code. The emitter (`emit_update_record_in_place`) skips the bulk copy
+and writes the new values directly into the existing tuple. The only
+complication is ensuring that the tuple lives in a safe region of the
+heap.
+
+The JIT first classifies the new values being written. If every new
+value is an immediate (atom, small integer, pid, or similar) or a
+literal, no heap pointer can be introduced into the tuple that would
+confuse the garbage collector. In that case, the safety check is
+skipped entirely and the emitter adds a comment in the generated
+code: "skipped copy fallback because all new values are safe."
+
+When the new value might be a boxed term (a reference to another
+heap object), the JIT must verify that the tuple was allocated in
+the safe region of the current heap. The safe region is the area
+between the ((high water mark)) and the current heap top. Terms in
+this region were allocated after the last garbage collection and
+therefore cannot be referenced from the old generation. Modifying
+them in place cannot create a pointer from old generation to new
+generation, which would violate the generational GC invariant.
+
+The check on x86-64 works as follows:
+
+[source, asm]
+----
+    ; --- update_record_in_place, size=4, update field 2 ---
+    mov  RET, Src               ; load tagged tuple pointer
+
+    ; Load the process high water mark
+    mov  ARG1, [c_p + offsetof(Process, high_water)]
+
+    ; Is the tuple above HTOP? (i.e., not on the current heap at all)
+    cmp  RET, HTOP
+    jae  copy_fallback          ; above heap top: not safe
+
+    ; Is the tuple at or above high_water? (in the safe region)
+    cmp  RET, ARG1
+    jae  do_update              ; in safe region: modify in place
+
+copy_fallback:
+    ; Copy the entire tuple to fresh heap space
+    ; (same sequence as the copy path)
+    ...copy words from old tuple to HTOP...
+    lea  RET, [HTOP + 2]
+    add  HTOP, 32
+
+do_update:
+    ; Write only the changed field
+    mov  [RET + 16], NewValue   ; update field 2 in place
+    mov  Dst, RET
+----
+
+The decision tree has two branches:
+
+1. If the tuple's address is at or above HTOP, it is not on the current
+   heap (it might be on the old heap or point somewhere unexpected). The
+   code falls through to the copy path.
+
+2. If the tuple's address is between `high_water` and HTOP (inclusive
+   of `high_water`, exclusive of HTOP), the tuple was allocated since
+   the last GC and is safe to modify in place. Execution jumps to
+   `do_update`, which writes only the changed fields.
+
+When the in-place path succeeds, the cost is one store per updated
+field, with zero allocation and zero copying. For a record with
+twenty fields where only one changes, this turns twenty word copies
+into a single store.
+
+The garbage collector cooperates with this scheme by resetting
+`high_water` to the start of the heap after each collection,
+as documented in the GC source:
+
+____
+Keep the high water mark pointing into the current heap to ensure
+that the test for the safe range in the update_record_in_place (JIT)
+stays honest.
+____
+
+This guarantees that after a GC, every newly allocated tuple falls
+into the safe region and is eligible for in-place update when the
+alias analysis confirms a single reference.
+
+
+==== How the Compiler Decides
+
+The decision to use the `inplace` hint is made by two cooperating
+compiler passes: `beam_ssa_alias` and `beam_ssa_destructive_update`.
+
+The alias analysis pass (`beam_ssa_alias`) tracks whether each variable
+in the SSA representation is ((unique)) or ((aliased)). A variable is
+unique if it is currently the only live reference to a particular heap
+term. Literals and immediates are always considered unique. The analysis
+propagates this information through the control flow graph, handling
+function calls, pattern matching, and data construction. For exported
+functions, all arguments are assumed aliased (any other module could
+hold a reference). For internal functions, the analysis can prove
+arguments unique when all call sites pass freshly constructed terms.
+
+The destructive update pass (`beam_ssa_destructive_update`) then scans
+for `update_record` instructions where the source variable dies at the
+update point and the alias analysis has marked it as unique. When both
+conditions hold, the pass rewrites the hint from `copy` or `reuse` to
+`inplace`. If the source of an `inplace` update was itself produced by
+an `update_record` with a `reuse` hint, the pass forces the earlier
+instruction to use `copy` instead, because a `reuse` hint could return
+the original tuple without copying, leaving two live references to
+the same tuple.
+
+The pass also handles literal tuples. A literal cannot be modified in
+place (it lives in read-only memory), so when the source of a
+potential in-place update traces back to a literal, the pass inserts a
+`put_tuple` instruction to create a mutable copy on the heap before
+the update chain begins.
+
+
+=== Fun Object and Binary Optimizations
+
+==== Smaller Fun Representation
+
+Before OTP 25, each fun (anonymous function) captured at runtime was
+represented as a relatively large term on the process heap. A series
+of changes across OTP 25 through OTP 28 progressively compacted the
+fun representation, removing fields that are no longer needed and
+packing metadata into the header word. The result is that a closure
+now costs only two words of overhead beyond its captured environment.
+External funs (references to named functions like `fun lists:map/2`)
+are now represented as literals rather than heap objects, which means
+they impose zero allocation cost.
+
+To understand the improvement, consider how a fun term was laid out
+in OTP 24 and earlier. The `ErlFunThing` struct contained six
+words of fixed overhead before the environment:
+
+[[fig_old_fun_layout]]
+.Old fun term layout (OTP 24 and earlier, 64-bit)
+[ditaa]
+----
+                       On Process Heap
+ +-------------------------------------------------------+
+ | thing_word     | HEADER_FUN (fixed constant)    Word 0 |
+ +----------------+--------------------------------------+
+ | fe             | Pointer to ErlFunEntry         Word 1 |
+ +----------------+--------------------------------------+
+ | next           | Off-heap chain link            Word 2 |
+ +----------------+--------------------------------------+
+ | arity          | Uint (full machine word)       Word 3 |
+ +----------------+--------------------------------------+
+ | num_free       | Uint (full machine word)       Word 4 |
+ +----------------+--------------------------------------+
+ | creator        | Pid of creating process        Word 5 |
+ +----------------+--------------------------------------+
+ | env[0]         | First free variable            Word 6 |
+ +----------------+--------------------------------------+
+ | env[1]         | Second free variable           Word 7 |
+ +----------------+--------------------------------------+
+ :                :       ...                             :
+ +----------------+--------------------------------------+
+----
+
+Several of these fields existed because of historical design
+decisions. The `creator` pid distinguished local funs from external
+funs (`fun M:F/A` references). The `next` pointer threaded the fun
+into the process's off-heap list so the garbage collector could
+decrement the reference count on the shared `ErlFunEntry` when the
+fun was reclaimed. The `arity` and `num_free` fields each consumed
+a full machine word, even though their values fit in a single byte.
+
+OTP 25 unified local and external funs into one struct and introduced
+the `make_fun3` instruction, which passes the environment explicitly
+rather than requiring the compiler to push free variables onto the
+stack. OTP 27 completed the major restructuring by packing the arity,
+environment size, and local/external flag directly into the header
+word. This eliminated the `next`, `creator`, `arity`, and `num_free`
+fields entirely. The result is the compact layout used today:
+
+[[fig_new_fun_layout]]
+.Compact fun term layout (OTP 27+, 64-bit)
+[ditaa]
+----
+                       On Process Heap
+ +-------------------------------------------------------+
+ | thing_word     | FUN_SUBTAG + arity + env_size  Word 0 |
+ +----------------+--------------------------------------+
+ | entry          | Ptr to ErlFunEntry or Export   Word 1 |
+ +----------------+--------------------------------------+
+ | env[0]         | First free variable            Word 2 |
+ +----------------+--------------------------------------+
+ | env[1]         | Second free variable           Word 3 |
+ +----------------+--------------------------------------+
+ :                :       ...                             :
+ +----------------+--------------------------------------+
+----
+
+The header word packs three fields into the bits above the standard
+tag and subtag:
+
+[[fig_fun_header_bits]]
+.Fun header word bit layout (64-bit)
+[ditaa]
+----
+ 63          24 23          16 15           8 7          0
+ +------+-----+--------------+--------------+-----------+
+ |unused| kind| env_size(8b) | arity   (8b) |subtag+tag |
+ +------+-----+--------------+--------------+-----------+
+                bit 24         bit 16         bit 8
+----
+
+The `kind` bit at position 24 distinguishes external funs (1) from
+local funs (0). The `env_size` field holds the number of captured
+free variables. The `arity` field holds the apparent arity of the
+fun. All three are extracted with simple shifts and masks, which
+the JIT can perform in a single instruction.
+
+For a local fun with two free variables, the total heap cost is
+four words (two for the header and entry pointer, two for the
+environment). Under the old layout, the same closure required
+nine words. That reduction matters in code that creates many
+short-lived closures, such as list comprehensions and higher-order
+function pipelines.
+
+External funs gained an even larger benefit. Because an external fun
+like `fun lists:map/2` has no captured environment and its entry
+pointer is always the same `Export` struct, the compiler can emit it
+as a literal in the module's literal area. No heap allocation occurs
+at all. The `make_fun3` instruction is not needed for external funs.
+The compiler simply references the pre-built literal.
+
+===== The make_fun3 Instruction
+
+The `make_fun3` instruction creates a local fun (closure) on the
+process heap. It replaces the older `make_fun2` instruction, which
+required the compiler to push free variables onto the X register
+file in a separate step before creating the fun. With `make_fun3`,
+the environment values are passed directly as operands to the
+instruction, giving the JIT more freedom to optimize the allocation
+sequence.
+
+When BeamAsm encounters `make_fun3`, it emits native code that
+performs three steps. First, it writes the packed header word to
+the current heap top (`HTOP`). Second, it writes the pointer to the
+`ErlFunEntry`. Third, it copies each environment value into the
+slots following the entry pointer. The `MAKE_FUN_HEADER` macro
+combines the arity, environment size, and local/external flag into
+a single immediate value that can be written with one store
+instruction.
+
+[source,c]
+----
+// Simplified view of what the JIT emits for make_fun3
+// (from instr_fun.cpp, x86-64)
+
+// Write the packed header
+mov [HTOP + offsetof(ErlFunThing, thing_word)],
+    MAKE_FUN_HEADER(Arity, NumFree, 0)
+
+// Write the pointer to the ErlFunEntry
+mov [HTOP + offsetof(ErlFunThing, entry.fun)], FunEntryPtr
+
+// Copy each free variable into the environment
+mov [HTOP + offsetof(ErlFunThing, env[0])], FreeVar0
+mov [HTOP + offsetof(ErlFunThing, env[1])], FreeVar1
+...
+
+// Create the boxed pointer and bump the heap top
+lea Result, [HTOP + TAG_PRIMARY_BOXED]
+add HTOP, (ERL_FUN_SIZE + NumFree) * 8
+----
+
+When consecutive environment values happen to reside in adjacent
+registers, the JIT can copy two values at once using 128-bit SSE
+moves (`vmovups`). This is a minor optimization, but it illustrates
+how the JIT exploits knowledge of the term layout that a generic
+interpreter cannot.
+
+BeamAsm also generates specialized code for calling funs. When the
+callee's arity is statically known, the JIT can skip the dispatch
+through a generic apply path and compare only the lower 16 bits of
+the header word against the expected arity and subtag. This turns
+the arity check into a single compare-and-branch.
+
+==== Binary Segment Optimizations
+
+Binary matching and construction are common operations in Erlang,
+especially in protocol handling and data serialization. BeamAsm includes
+several optimizations for binary operations that the interpreter could
+not easily perform.
+
+On little-endian platforms (which includes both x86-64 and AArch64),
+binary segments with native byte order can be read and written with
+simple load and store instructions, without the byte-swapping that the
+interpreter's generic routines would perform. OTP 29 extended these
+optimizations to cover more binary construction patterns, reducing the
+overhead of building binaries segment by segment.
+
+To see how these optimizations work in practice, consider a function
+that parses a type-length-value header from a binary:
+
+[source,erlang]
+----
+parse_header(<<Tag:8, Len:32, Rest/binary>>) ->
+    {Tag, Len, Rest}.
+----
+
+The BEAM compiler translates the pattern match into a single `bs_match`
+instruction that combines the size check, the two integer extractions,
+and the tail capture. Compiled with `erlc -S`, the relevant BEAM
+assembly looks like this:
+
+[source,erlang]
+----
+{bs_match,{f,7},
+          {x,0},
+          {commands,[{ensure_at_least,40,1},
+                     {integer,{x,1},{literal,[]},8,1,
+                         {t_integer,{0,255}}},
+                     {integer,{x,2},{literal,[]},32,1,
+                         {t_integer,{0,4294967295}}},
+                     {get_tail,{x,0},8,0}]}}.
+----
+
+The `ensure_at_least` command verifies that at least 40 bits (8 + 32)
+remain in the binary. The two `integer` commands extract the 8-bit and
+32-bit segments. The `get_tail` command captures the remaining bytes as
+a new binary.
+
+In the interpreter, each of these sub-operations would be a separate C
+function call, each with its own dispatch overhead. For a multi-field
+binary header, those calls add up.
+
+BeamAsm compiles the entire `bs_match` instruction into a contiguous
+block of native code. The emitter function `emit_i_bs_match` in
+`erts/emulator/beam/jit/x86/instr_bs.cpp` walks the list of match
+commands and generates native instructions for each one, with no return
+to any dispatch loop between them. The generated x86-64 code for
+`parse_header/1` follows this structure (comments show the purpose of
+each group; register names follow the BeamAsm ABI):
+
+[source,asm]
+----
+    ;; --- ensure_at_least 40 bits, unit 1 ---
+    mov   ctx, [Ctx]                   ; load match context
+    mov   rcx, [ctx + start_offset]    ; current bit position
+    lea   rax, [rcx + 40]             ; position after 40 bits
+    cmp   rax, [ctx + end_offset]     ; enough data?
+    ja    fail                         ; bail out if not
+
+    ;; --- read integer 8 (Tag) ---
+    mov   bin_base, [ctx + base_offset]
+    and   bin_base, ~FLAG_MASK         ; clear flag bits
+    add   qword [ctx + start_offset], 8
+    mov   tmp, rcx
+    shr   tmp, 3                       ; byte offset
+    and   ecx, 7                       ; bit offset within byte
+    movzx eax, byte [bin_base + tmp]   ; load one byte
+    jz    .store_tag                   ; aligned: skip fixup
+    ;; unaligned path:
+    movbe ax, word [bin_base + tmp]    ; load 2 bytes, byte-swap
+    shl   eax, cl                      ; shift to align
+    mov   al, ah
+    movzx eax, al
+.store_tag:
+    shl   rax, 4                       ; make small integer
+    or    rax, 0xF                     ; add immediate tag
+    mov   [x1], rax                    ; store Tag
+
+    ;; --- read integer 32 (Len) ---
+    mov   rcx, [ctx + start_offset]
+    mov   bin_base, [ctx + base_offset]
+    and   bin_base, ~FLAG_MASK
+    add   qword [ctx + start_offset], 32
+    mov   tmp, rcx
+    shr   tmp, 3                       ; byte offset
+    and   ecx, 7                       ; bit offset
+    movbe eax, dword [bin_base + tmp]  ; load 4 bytes, byte-swap
+    jz    .store_len                   ; aligned: done
+    ;; unaligned path:
+    movbe rax, qword [bin_base + tmp - 3]
+    shl   rax, cl
+    shr   rax, 8
+    mov   eax, eax                     ; zero-extend
+.store_len:
+    shl   rax, 4
+    or    rax, 0xF
+    mov   [x2], rax                    ; store Len
+
+    ;; --- get_tail ---
+    call  bs_get_tail_shared           ; shared stub
+    mov   [x0], rax                    ; store Rest
+----
+
+Several details in this code are worth examining.
+
+The integer extractions use direct memory loads. The 8-bit Tag is read
+with a single `movzx` instruction when the data is byte-aligned. The
+32-bit Len uses `movbe` (move with byte swap), which loads four bytes
+and reverses their order in one operation. There is no call into a C
+extraction routine.
+
+The `movbe` instruction merits comment. Erlang binaries default to
+big-endian (network byte order), but x86-64 is a little-endian
+architecture. The interpreter handles this mismatch through a C function
+that loads the bytes and calls a separate byte-swap routine. BeamAsm
+checks the `MOVBE` CPU feature flag at startup. When the flag is
+present, it emits a single `movbe` that performs the load and the swap
+in one operation. On CPUs that lack `MOVBE` (rare in practice), the JIT
+falls back to `mov` followed by `bswap`, still two instructions instead
+of a function call.
+
+The code handles both aligned and unaligned bit positions. The fast
+path (the `jz` branch) covers the common case where the binary position
+falls on a byte boundary. A separate slow path handles the less common
+case of a sub-byte offset by loading extra data and shifting. This
+split keeps the common case fast without sacrificing correctness.
+
+No intermediate Erlang terms are created during the match. Extracted
+values stay in machine registers as raw integers until the end of the
+sequence, where the code tags them as small integers (the `shl` and
+`or` sequence that adds the `_TAG_IMMED1_SMALL` tag). The interpreter,
+by contrast, boxes each result into an Erlang term at every instruction
+boundary, then unboxes it again when the next instruction needs the
+value.
+
+===== Little-Endian Segments
+
+For segments declared with little-endian byte order
+(`<<X:32/little>>`), the generated code is simpler still. Both x86-64
+and AArch64 are little-endian architectures, so a little-endian binary
+segment can be loaded with a plain `mov` instruction. No byte swap is
+needed:
+
+[source,asm]
+----
+    ;; 32-bit little-endian integer, byte-aligned
+    mov   eax, dword [bin_base + tmp]  ; native load, no swap needed
+----
+
+This is equivalent in cost to loading an integer from a C struct. The
+interpreter cannot take this shortcut because its generic
+binary-matching routines must handle all combinations of size,
+signedness, and endianness through a single code path.
+
+===== The Fast-Path Shortcut for Small Integers
+
+When the last segment in a `bs_match` is an unsigned integer that fits
+in a small (fewer than 60 bits on a 64-bit system), the JIT applies an
+additional optimization. Rather than going through the general
+`emit_extract_integer` code path, it emits a direct shift-and-tag
+sequence:
+
+[source,asm]
+----
+    ;; last segment, unsigned, fits in small
+    shr   bitdata, (64 - bits - 4)    ; shift value into position
+    or    bitdata, 0xF                 ; tag as small integer
+    mov   [dst], bitdata               ; store result
+----
+
+This three-instruction sequence replaces what would otherwise be a
+longer path with sign extension, overflow checks, and potential bignum
+allocation.
+
+The `bs_match` instruction, introduced in OTP 26 and refined in later
+releases, makes these combined optimizations possible. By expressing
+multiple match operations as a single BEAM instruction, it gives the
+JIT the freedom to keep values in registers across the full sequence
+and to eliminate redundant reloads of the match context fields.
+
+
+=== Native Coverage and Debug Instrumentation
+
+BeamAsm provides built-in support for code ((coverage)) measurement
+without requiring a separate instrumentation pass. When coverage is
+enabled, the JIT inserts lightweight counters into the generated code
+at function entry points and, optionally, at line boundaries. These
+counters are simple atomic increments that add minimal overhead compared
+to the interpreter-based coverage tools of earlier OTP versions.
+
+For debugging and profiling, the JIT can generate `beam_debug_info`
+metadata that maps native code addresses back to BEAM instruction
+offsets and source line numbers. This metadata enables standard tools
+like `perf`, `gdb`, and `lldb` to display meaningful Erlang function
+names and line numbers in their output.
+
+==== Profiling with perf
+
+On Linux, the `perf` sampling profiler can record where the CPU spends
+its time with very low overhead. To make `perf` understand JIT-compiled
+Erlang code, you need to tell BeamAsm to emit the metadata that `perf`
+requires. The `+JPperf` emulator flag controls this.
+
+Starting the VM with `+JPperf true` enables both a perf map file and a
+jitdump file. The map file lets `perf report` translate native code
+addresses into Erlang function names. The jitdump file provides the
+detailed line information that `perf annotate` needs. Both files are
+written to `/tmp` by default; use `+JPperfdirectory` to place them
+elsewhere.
+
+The `+JPperf true` flag also enables frame pointers in the generated
+code. BeamAsm pushes a frame pointer on entry to each Erlang function
+and pops it before leaving. This adds one word per stack frame but
+allows `perf` to walk the call stack and produce accurate call graphs.
+
+To profile a program from startup, pass `+JPperf true` on the command
+line and wrap the invocation with `perf record`:
+
+[source, shell]
+----
+$ perf record --call-graph=fp -- erl +JPperf true -noshell -s myapp start
+----
+
+To attach to an already running node, find the OS process ID and record
+for a fixed duration:
+
+[source, shell]
+----
+$ perf record --call-graph=fp --pid $BEAM_PID -- sleep 30
+----
+
+The `--call-graph=fp` option tells `perf` to use frame pointers for
+stack unwinding. This produces reliable call chains for pure Erlang
+code. For workloads that frequently cross between Erlang and C (NIFs,
+driver callbacks), `--call-graph=lbr` may give better results on
+hardware that supports Last Branch Records.
+
+After recording, inspect the results with `perf report`:
+
+[source, shell]
+----
+$ perf report -f --no-children
+----
+
+Erlang functions appear in the output with a `$` prefix, followed by
+the module, function name, and arity:
+
+[source, text]
+----
+Overhead  Symbol
+  12.40%  $ets:lookup_element/3
+   8.77%  $erlang:send/2
+   6.33%  $myapp_handler:process/1
+   4.91%  $lists:foldl/3
+   3.52%  $maps:get/2
+   2.10%  $global::garbage_collect
+   1.87%  erts_gc_after_bif_call
+----
+
+Named entries starting with `$` are JIT-compiled Erlang functions.
+Entries starting with `$global::` are BeamAsm code stubs (garbage
+collection, exception handling, and similar shared routines). Entries
+without the `$` prefix are C functions in the runtime system.
+
+For more detail, the `perf annotate` command can display the native
+instructions interleaved with source locations. This requires an extra
+processing step because `perf` must extract the JIT metadata from the
+jitdump file:
+
+[source, shell]
+----
+$ perf inject --jit -i perf.data -o perf.jitted.data
+$ perf annotate -M intel -i perf.jitted.data
+----
+
+Note that `perf inject --jit` creates temporary files in `/tmp` and
+`~/.debug/jit/`. On long recording sessions these can grow large.
+
+To generate ((flame graphs)) from the recorded data, use Brendan Gregg's
+FlameGraph scripts:
+
+[source, shell]
+----
+$ perf script | stackcollapse-perf.pl | flamegraph.pl > profile.svg
+----
+
+The resulting SVG shows the call stacks as a flame chart. Erlang
+functions appear with their full `module:function/arity` names, making
+it straightforward to identify hot paths in application code.
+
+The `+JPperf` flag accepts finer-grained options when you do not need
+all features at once. The value `map` enables only the perf map file
+(and frame pointers). The value `dump` enables only the jitdump file
+for annotation support. The value `fp` enables frame pointers without
+creating any perf files, which is useful when you want accurate stack
+traces from other tools. Conversely, `no_fp` disables the frame
+pointers that `map` would otherwise enable, trading call graph accuracy
+for the small overhead saving.
+
+.+JPperf sub-options
+[cols="1,3", options="header"]
+|===
+| Value   | Effect
+| `true`  | Enables map, dump, and frame pointers (recommended default)
+| `map`   | Perf map file and frame pointers; no jitdump
+| `dump`  | Jitdump file for annotation; no perf map
+| `fp`    | Frame pointers only; no perf files
+| `no_fp` | Disables frame pointers added by `map`
+| `false` | Disables all perf support (the default)
+|===
+
+==== Debugging with gdb and lldb
+
+The same metadata that supports `perf` also helps interactive debuggers.
+When the VM is started with `+JPperf true`, both `gdb` and `lldb` can
+resolve JIT-compiled code addresses to Erlang function names in
+backtraces and disassembly output. This is primarily useful for
+debugging the runtime system itself or for investigating crashes in NIFs
+that interact with JIT-compiled calling conventions.
+
+For a broader discussion of profiling tools, see xref:CH-Profiling[].
+
+To examine the native code that BeamAsm generates for a specific
+function, you can use the `beam_debug_info` BIF or the `+JDdump`
+emulator flag, which writes the generated assembly to a file at load
+time.
+
+==== Examining JIT Output with +JDdump
+
+Consider a minimal module that computes the length of a list:
+
+[source, erlang]
+----
+-module(listlen).
+-export([len/1]).
+
+len([_|T]) -> 1 + len(T);
+len([])    -> 0.
+----
+
+To see the native code that BeamAsm generates when loading this module,
+start the emulator with the `+JDdump true` flag. This flag causes BeamAsm
+to write the generated x86-64 (or AArch64) assembly to standard error as
+each module is loaded.
+
+[source, shell]
+----
+$ erlc listlen.erl
+$ erl +JDdump true -noshell -eval 'listlen:len([a,b,c]), halt().'
+----
+
+The output is verbose, because every module loaded during startup is
+dumped as well. Redirecting standard error to a file and searching for
+the module name makes the output manageable:
+
+[source, shell]
+----
+$ erl +JDdump true -noshell -eval 'listlen:len([a,b,c]), halt().' \
+    2>jit_dump.txt
+$ grep -A 200 'listlen:len/1' jit_dump.txt
+----
+
+The dump for `listlen:len/1` on x86-64 looks similar to the following.
+Addresses and exact encodings vary between OTP versions and runs, but
+the structure is stable.
+
+[[jit_dump_example]]
+[source, asm]
+----
+# listlen:len/1
+# i_func_info_IaaI
+label_1:
+    short jmp label_3                    # <1>
+    nop
+    relative near call breakpoint_handler
+label_3:
+# is_nonempty_list_fXc
+    test byte ptr [rbx], 1              # <2>
+    jnz label_2                         # <3>
+# get_list_xrxx
+    mov rsi, qword ptr [rbx]            # <4>
+    mov rdi, qword ptr [rsi - 1]        # load head (unused, matched as _)
+    mov rsi, qword ptr [rsi - 1 + 8]    # load tail into rsi
+    mov qword ptr [rbx], rsi            # store tail in x(0)
+# i_call_f
+    call listlen:len/1                  # <5>
+# i_increment_rIId
+    add rax, (1 << 4)                   # <6>
+    jo alloc_and_add                    # check overflow
+    ret                                 # <7>
+# is_nonempty_list (fail path)
+label_2:
+# is_nil_fX
+    cmp qword ptr [rbx], NIL            # <8>
+    jne label_1                         # not nil: jump to func_info (error)
+# move_xr
+    xor eax, eax                        # <9>
+    mov qword ptr [rbx], rax            # x(0) = small integer 0
+    ret
+----
+<1> The function prologue. The `short jmp` skips past the breakpoint
+    call site. When tracing is enabled on this function, the runtime
+    patches the jump target so that it lands on the `call` to the
+    shared breakpoint handler instead. This 8-byte prologue is the same
+    for every function.
+<2> Test whether x(0) is a nonempty list. BEAM tags use the lowest
+    bits of a word: a list cell has tag `1` (`TAG_PRIMARY_LIST`). The
+    `test` instruction checks the tag bits without modifying the
+    register.
+<3> If the tag test fails (the value is not a list), jump to label_2.
+    This corresponds to the second clause, `len([]) -> 0`.
+<4> The `get_list` operation. A list cell is a two-word structure in
+    memory. The pointer in x(0) has a list tag in its lowest bit.
+    Subtracting the tag gives the address of the head element. The
+    tail is in the next word. After this sequence, x(0) holds the
+    tail of the list.
+<5> Recursive call to `len/1`. BeamAsm emits a native `call`
+    instruction. The return address is pushed onto the native stack
+    by the CPU, with no interpreter dispatch involved.
+<6> After the recursive call returns, add 1 to the result. BEAM
+    represents small integers with a 4-bit tag shift, so adding the
+    Erlang value 1 means adding `1 << 4` (16) to the tagged word.
+    The `jo` instruction checks for arithmetic overflow, branching to
+    a shared code fragment that allocates a bignum if needed.
+<7> Return to the caller with a plain x86 `ret` instruction.
+<8> The base case. If x(0) is the empty list (the atom `nil`),
+    execution falls through to return 0. If x(0) is neither a list
+    nor nil, execution jumps back to label_1, which falls into the
+    `func_info` trap and raises a `function_clause` error.
+<9> Load the tagged small integer 0 into x(0) and return.
+
+Several aspects of this output deserve attention.
+
+First, each block of native instructions is preceded by a comment showing
+the BEAM instruction it was generated from (`is_nonempty_list_fXc`,
+`get_list_xrxx`, and so on). The suffix letters encode the argument types
+that the loader resolved for this particular call site. These suffixes
+come from the `ops.tab` transformation rules (see xref:CH-Beam_loader[]).
+
+Second, the register `rbx` holds the base address of the x-register
+array. Accessing x(0) is a load from `[rbx]`, x(1) from `[rbx+8]`, and
+so on. The registers `r13`, `r14`, and `r15` are pinned to the process
+pointer, the reduction counter, and the heap top pointer, respectively
+(see the register mapping table in <<BeamAsm Architecture>>).
+
+Third, there is no dispatch loop. The native instructions for one BEAM
+operation flow directly into the next. The only branches are the
+conditional jumps that implement the BEAM instruction's own semantics
+(type checks, clause selection) and the `call`/`ret` pair for function
+invocation.
+
+The `+JDdump` flag has been available since OTP 24, when BeamAsm was
+introduced. The exact format of the dump output depends on the asmjit
+library version (on x86-64) and may change between OTP releases. Treat
+it as a diagnostic tool for understanding what the JIT produces, not as
+a stable interface.

@@ -100,6 +100,9 @@ include::chapters/calls.asciidoc[]
 include::chapters/beam_loader.asciidoc[]
 
 [break-before=recto,leveloffset=+1,include-title=true]
+include::chapters/jit.asciidoc[]
+
+[break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/scheduling.asciidoc[]
 
 [break-before=recto,leveloffset=+1,include-title=true]
