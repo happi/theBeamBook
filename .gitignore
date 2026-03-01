@@ -32,3 +32,6 @@ site
 /vendor/
 /.bundle/
 /Gemfile.lock
+CLAUDE.local.md
+.mcp.json
+/backlog/
