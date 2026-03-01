@@ -1,5 +1,5 @@
 ---
-geometry: "a4paper,margin=0in"
+geometry: "paperwidth=7.5in,paperheight=9.25in,margin=0in"
 pagestyle: empty
 header-includes:
   - \usepackage{graphicx}

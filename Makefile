@@ -45,7 +45,7 @@ beam-book-a4.pdf: style/pdf-online-theme.yml style/pdf-theme.yml chapters/opcode
 	-a version=$(VERSION) \
  	online-book.asciidoc -o $@
 
-# Print-ready 6×9 for PoD
+# Print-ready 6×9 for PoD (1st edition format)
 pub: beam-book-publish.pdf
 
 beam-book-publish.pdf: style/custom-print-highlight-theme.yml style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc print-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
@@ -57,6 +57,23 @@ beam-book-publish.pdf: style/custom-print-highlight-theme.yml style/pdf-publish-
 	-a source-highlighter=rouge \
 	-a rouge-style=pastie \
 	-a rouge-linenums-mode=table \
+	-a version=$(VERSION) \
+ 	print-book.asciidoc -o $@ --trace
+
+# 2nd edition 7.5×9.25 format
+pdf-2nded: beam-book-2nded.pdf
+
+beam-book-2nded.pdf: style/custom-print-highlight-theme.yml style/pdf-2nded-theme.yml chapters/opcodes_doc.asciidoc print-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
+	bundle exec asciidoctor-pdf -r asciidoctor-diagram \
+	-r ./style/custom-pdf-converter.rb \
+	-r ./style/custom-admonition-block.rb \
+	-a config=./style/ditaa.cfg \
+	-a pdf-fontsdir=./style/fonts \
+	-a source-highlighter=rouge \
+	-a rouge-style=pastie \
+	-a rouge-linenums-mode=table \
+	-a pdf-themesdir=style \
+	-a pdf-theme=pdf-2nded \
 	-a version=$(VERSION) \
  	print-book.asciidoc -o $@ --trace
 

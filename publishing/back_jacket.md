@@ -1,5 +1,5 @@
 ---
-geometry: "a4paper,margin=0.8in"
+geometry: "paperwidth=7.5in,paperheight=9.25in,margin=0.75in"
 fontsize: 11pt
 pagestyle: empty
 mainfont: "Lato"

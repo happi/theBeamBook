@@ -1,0 +1,33 @@
+extends: custom-print-highlight
+
+page:
+  size: [7.5in, 9.25in]
+  margin: [0.75in, 0.75in, 0.75in, 0.75in]
+  margin-inner: 0.90in
+  margin-outer: 0.75in
+  margin-top: 0.75in
+  margin-bottom: 0.85in
+
+base:
+  font_size: 10
+  line_height: 1.35
+
+heading:
+  h1_font_size: 20
+  h2_font_size: 15
+  h3_font_size: 13
+  h4_font_size: 11.5
+  h5_font_size: 10.5
+  h6_font_size: 10
+
+code:
+  font_size: 9
+  line_height: 1.15
+
+table:
+  font_size: 9
+  cell_padding: 2
+
+footer:
+  height: 0.70in
+  line_height: 1
