@@ -35,3 +35,5 @@ site
 CLAUDE.local.md
 .mcp.json
 /backlog/
+/output/
+publishing/missfont.log

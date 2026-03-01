@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- KDP Full Wrap Cover: The BEAM Book
+     Trim: 6" x 9" | Pages: 307 | Spine: 0.691" (B&W white paper)
+     Bleed: 0.125" all sides
+     Total: 12.941" x 9.25" = 3882 x 2775 px @ 300 DPI
+
+     Layout (left to right):
+       Bleed (38px) | Back Cover (1800px) | Spine (207px) | Front Cover (1800px) | Bleed (38px)
+     Layout (top to bottom):
+       Bleed (38px) | Content (2700px) | Bleed (38px)
+-->
+<svg width="3882px" height="2775px" viewBox="0 0 3882 2775"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink">
+
+  <defs>
+    <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feOffset dx="2" dy="3" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.5"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- ==================== FULL BACKGROUND ==================== -->
+  <image x="0" y="0" width="3882" height="2775"
+         xlink:href="redcover.jpg"
+         preserveAspectRatio="xMidYMid slice"/>
+
+  <!-- ==================== BACK COVER (x=38..1838) ==================== -->
+  <g id="back-cover">
+    <!-- Author photo (centered on back panel, center at x=938) -->
+    <image x="768" y="150" width="340" height="450"
+           xlink:href="erik.jpg"
+           preserveAspectRatio="xMidYMid meet"/>
+
+    <!-- Author bio (small font, ~9pt equivalent) -->
+    <text style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+                 font-size: 30px;
+                 fill: white;
+                 line-height: 1.4;">
+      <tspan x="140" y="690"><tspan font-weight="bold">Erik Stenman</tspan> is a software engineer, researcher,</tspan>
+      <tspan x="140" y="730">and entrepreneur with deep expertise in Erlang,</tspan>
+      <tspan x="140" y="770">BEAM, and high-performance distributed systems.</tspan>
+      <tspan x="140" y="810">As one of the early pioneers in BEAM internals,</tspan>
+      <tspan x="140" y="850">Erik has spent decades optimizing concurrent</tspan>
+      <tspan x="140" y="890">systems, designing fault-tolerant architectures,</tspan>
+      <tspan x="140" y="930">and pushing the boundaries of scalable computing.</tspan>
+    </text>
+
+    <!-- Description heading -->
+    <text style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+                 font-weight: 700;
+                 font-size: 38px;
+                 fill: white;">
+      <tspan x="140" y="1060">Unlock the Power of the BEAM</tspan>
+      <tspan x="140" y="1108">Virtual Machine</tspan>
+    </text>
+
+    <!-- Description body -->
+    <text style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+                 font-size: 32px;
+                 fill: white;">
+      <tspan x="140" y="1190">BEAM is the heart of Erlang and Elixir, powering</tspan>
+      <tspan x="140" y="1232">fault-tolerant, highly concurrent, and distributed</tspan>
+      <tspan x="140" y="1274">systems used in finance, telecom, and messaging</tspan>
+      <tspan x="140" y="1316">platforms worldwide.</tspan>
+
+      <tspan x="140" y="1390">This book takes you deep into the Erlang RunTime</tspan>
+      <tspan x="140" y="1432">System (ERTS), revealing how the BEAM VM works</tspan>
+      <tspan x="140" y="1474">under the hood.</tspan>
+    </text>
+
+    <!-- Bullet points -->
+    <text style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+                 font-size: 32px;
+                 fill: white;">
+      <tspan x="180" y="1560">&#x2022;  BEAM internals and bytecode execution</tspan>
+      <tspan x="180" y="1610">&#x2022;  Process scheduling and concurrency</tspan>
+      <tspan x="180" y="1660">&#x2022;  Memory management and garbage collection</tspan>
+      <tspan x="180" y="1710">&#x2022;  Profiling, debugging, and tracing</tspan>
+      <tspan x="180" y="1760">&#x2022;  Optimizing and scaling BEAM systems</tspan>
+    </text>
+
+    <!-- ISBN barcode zone (y=1900..2650, empty) -->
+  </g>
+
+  <!-- ==================== SPINE (x=1838..2045) ==================== -->
+  <g id="spine">
+    <!-- Spine title (reads top-to-bottom: rotate 90 CW) -->
+    <!-- Center of spine: x=1941, text positioned along vertical center -->
+    <text text-anchor="middle"
+          transform="rotate(90, 1941, 1000)"
+          style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+                 font-weight: 700;
+                 font-size: 48px;
+                 fill: white;">
+      <tspan x="1941" y="1000">The BEAM Book</tspan>
+    </text>
+
+    <!-- Spine author (reads top-to-bottom, positioned lower) -->
+    <text text-anchor="middle"
+          transform="rotate(90, 1941, 1900)"
+          style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+                 font-weight: 400;
+                 font-size: 36px;
+                 fill: white;">
+      <tspan x="1941" y="1900">Erik Stenman</tspan>
+    </text>
+  </g>
+
+  <!-- ==================== FRONT COVER (x=2045..3845) ==================== -->
+  <!-- Front panel center: x = 2045 + 900 = 2945 -->
+  <g id="front-cover">
+    <!-- Title Block (upper portion) -->
+    <text text-anchor="middle"
+          filter="url(#dropShadow)"
+          style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+                 font-weight: 400;
+                 font-size: 260px;
+                 fill: white;">
+      <tspan x="2945" y="578">The</tspan>
+      <tspan x="2945" y="902">BEAM</tspan>
+      <tspan x="2945" y="1226">Book</tspan>
+    </text>
+
+    <!-- Horizontal Rule -->
+    <line x1="2585" y1="1388" x2="3305" y2="1388"
+          stroke="white"
+          stroke-width="2"
+          opacity="0.4"/>
+
+    <!-- Subtitle -->
+    <text text-anchor="middle"
+          style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+                 font-weight: 400;
+                 font-size: 120px;
+                 fill: white;">
+      <tspan x="2945" y="1628">Understanding the Erlang</tspan>
+      <tspan x="2945" y="1768">Runtime System</tspan>
+    </text>
+
+    <!-- Author -->
+    <text x="2945" y="2333" text-anchor="middle"
+          filter="url(#dropShadow)"
+          style="font-family: 'Lato', 'Ubuntu', 'DejaVu Sans', sans-serif;
+                 font-weight: 700;
+                 font-size: 130px;
+                 fill: white;">
+      Erik Stenman
+    </text>
+
+    <!-- Publisher mark (bottom-right corner) -->
+    <image x="3275" y="2438" width="480" height="88"
+           xlink:href="hh_publisher_mark.png"
+           preserveAspectRatio="xMidYMid meet"
+           opacity="0.45"/>
+  </g>
+
+</svg>
