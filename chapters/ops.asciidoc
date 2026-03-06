@@ -203,9 +203,7 @@ This is how shell commands such as `ls()` and `help()` are implemented, and you 
 ==== Connecting a Shell to a Node
 
 When running a production system you will want to start the nodes in
-daemon mode through `run_erl`. We will go through how to do this,
-and some of the best practices for deployment and running in
-production in [xxx](#ch.live). Fortunately, even when you have started
+daemon mode through `run_erl`. Fortunately, even when you have started
 a system in daemon mode, which implies it does not have a default shell, you can connect another shell to
 the system. There are actually several ways to do that. Most of these
 methods rely on the normal distribution mechanisms and hence require
