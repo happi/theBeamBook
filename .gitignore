@@ -18,6 +18,7 @@ beam-book.epub
 beam-book-publish.pdf
 back_of_cover.pdf
 back_jacket.pdf
+cover.pdf
 opcodes_doc.asciidoc
 .#.gitignore
 genop.tab
