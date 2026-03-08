@@ -21,7 +21,7 @@ heading:
   h6_font_size: 10
 
 code:
-  font_size: 9
+  font_size: 10
   line_height: 1.15
 
 table:
