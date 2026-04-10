@@ -1,8 +1,9 @@
 [[CH-Profiling]]
 == Profiling, Monitoring, and Performance Optimization
+
 "Make it work, then make it beautiful, then if you really, really have to, make it fast. 90% of the time, if you make it beautiful, it will already be fast." - Joe Armstrong
 
-Performance optimization is a critical aspect of building robust and scalable systems.Understanding the underlying execution model and memory management strategies is essential for identifying bottlenecks and improving system performance. This chapter explores profiling tools, monitoring techniques, and optimization strategies to help you build high-performance Erlang and Elixir applications.
+Performance optimization is a critical aspect of building robust and scalable systems. Understanding the underlying execution model and memory management strategies is essential for identifying bottlenecks and improving system performance. This chapter explores profiling tools, monitoring techniques, and optimization strategies to help you build high-performance Erlang and Elixir applications.
 
 === Fundamentals of BEAM Performance
 
@@ -24,25 +25,25 @@ Data structures in BEAM follow an immutable design, which means updates to tuple
 
 The BEAM comes equipped with a set of built‐in profilers that let you inspect where your time—and by extension, your performance issues—are hiding. There are also some external tools like redbug and recon that can be used for profiling. Each tool has its own strengths and trade‐offs.
 
-==== fprof
+==== `fprof`
 
-The tool fprof is a trace-based profiler that instruments your code to capture a detailed call graph with timing information. It collects every function call and then, in a separate post-processing step, translates that massive trace into human‐readable reports. If you want to understand not only which functions are slow but also how they’re nested, fprof gives you the full story. The downside? Its overhead can be significant, so it’s best used in isolated testing scenarios rather than on your live system.
+The tool `fprof` is a trace-based profiler that instruments your code to capture a detailed call graph with timing information. It collects every function call and then, in a separate post-processing step, translates that massive trace into human‐readable reports. If you want to understand not only which functions are slow but also how they’re nested, `fprof` gives you the full story. The downside? Its overhead can be significant, so it’s best used in isolated testing scenarios rather than on your live system.
 
-==== eprof
+==== `eprof`
 
-The tool eprof focuses on execution time measurement rather than collecting every single call. By sampling the running system, it gives you an aggregated view of how long functions take to execute. eprof strikes a good balance between detail and overhead; its reports highlight hotspots in your code without the flood of data that fprof produces. This makes it ideal for quick performance sweeps.
+The tool `eprof` focuses on execution time measurement rather than collecting every single call. By sampling the running system, it gives you an aggregated view of how long functions take to execute. `eprof` strikes a good balance between detail and overhead; its reports highlight hotspots in your code without the flood of data that `fprof` produces. This makes it ideal for quick performance sweeps.
 
-==== cprof
+==== `cprof`
 
-The tool cprof takes a statistical approach by sampling function calls over time. Instead of generating a complete call graph, cprof aggregates data to pinpoint the “hot spots” in your application. While it might not tell you every twist and turn of your execution path, it’s excellent for getting a bird’s-eye view of where most of your processing time is being spent.
+The tool `cprof` takes a statistical approach by sampling function calls over time. Instead of generating a complete call graph, `cprof` aggregates data to pinpoint the “hot spots” in your application. While it might not tell you every twist and turn of your execution path, it’s excellent for getting a bird’s-eye view of where most of your processing time is being spent.
 
-==== tprof
+==== `tprof`
 
-The tool tprof (often thought of as a trace profiler) leverages Erlang’s built-in tracing capabilities. By setting trace flags, it gathers performance data in a way that can be less intrusive than full instrumentation. The resulting reports can be post-processed to reveal both timing and call relationships. This tool is particularly useful when you need to profile long-running or live processes, though its setup is a bit more advanced.
+The tool `tprof` (often thought of as a trace profiler) leverages Erlang’s built-in tracing capabilities. By setting trace flags, it gathers performance data in a way that can be less intrusive than full instrumentation. The resulting reports can be post-processed to reveal both timing and call relationships. This tool is particularly useful when you need to profile long-running or live processes, though its setup is a bit more advanced.
 
 ==== Recon and Redbug
 
-Recon and redbug are community-driven libraries that packs a punch in runtime diagnostics.  Both are designed for real-world use, and they are lightweight enough to drop into production systems for on-demand troubleshooting.
+Recon and redbug are community-driven libraries that packs a punch in runtime diagnostics. Both are designed for real-world use, and they are lightweight enough to drop into production systems for on-demand troubleshooting.
 
 ==== Observer
 
@@ -67,13 +68,13 @@ Let’s imagine a scenario where an Erlang application is noticeably sluggish. Y
 include::../code/profiling_chapter/perf_example.erl[]
 ----
 
-In production, you notice that processing a list of moderate length causes your system to lag. You suspect the repeated recursive calls to factorial/1 might be eating up too many reductions and causing CPU contention.
+In production, you notice that processing a list of moderate length causes your system to lag. You suspect the repeated recursive calls to `factorial/1` might be eating up too many reductions and causing CPU contention.
 
 Below is an outline of how each tool can help, along with example usage and sample outcomes.
 
-===== fprof example
+===== `fprof` Example
 
-With fprof we can trace every function call and builds a detailed call graph with timing details. This gives us the full picture of call nesting and execution times, but it comes with high overhead.
+With `fprof` we can trace every function call and build a detailed call graph with timing details. This gives us the full picture of call nesting and execution times, but it comes with high overhead.
 
 In the Erlang shell, run:
 [source,erlang]
@@ -140,16 +141,17 @@ The analysis results give us a detailed breakdown of where the execution time is
 
 The totals show that across 113 function calls, about 0.259 seconds of wall-clock time was consumed. This time includes both the "own" time of each function and the time accumulated from all nested calls.
 
-A key part of the report groups together calls from our recursive functions. Notice that the analysis splits the data into groups representing the call hierarchy. For example, within one grouping, we see that the function perf_example:compute/1 calls perf_example:factorial/1 repeatedly. Specifically, the report indicates that factorial/1 was called 105 times, with an accumulated time of approximately 0.228 seconds and an "own" time of 0.220 seconds.
+A key part of the report groups together calls from our recursive functions. Notice that the analysis splits the data into groups representing the call hierarchy. For example, within one grouping, we see that the function `perf_example:compute/1` calls `perf_example:factorial/1` repeatedly. Specifically, the report indicates that `factorial/1` was called 105 times, with an accumulated time of approximately 0.228 seconds and an "own" time of 0.220 seconds.
 
-This tells us that the bulk of the processing time is spent in factorial/1, confirming our suspicion that its repeated recursive calls are the performance bottleneck. The tiny slice of time spent in garbage collection (around 0.008 seconds) reinforces that the heavy computation is in the recursive calls rather than in memory management.
+This tells us that the bulk of the processing time is spent in `factorial/1`, confirming our suspicion that its repeated recursive calls are the performance bottleneck. The tiny slice of time spent in garbage collection (around 0.008 seconds) reinforces that the heavy computation is in the recursive calls rather than in memory management.
 
-Finally, the use of functions like fprof:apply_start_stop/4 and the mention of the suspend call show how the profiler wrapped the execution of our code. All of these details together give us a clear call graph: the time spent in compute/1 is largely consumed by calls to factorial/1, which in turn are responsible for most of the total processing time.
+Finally, the use of functions like `fprof:apply_start_stop/4` and the mention of the `suspend` call show how the profiler wrapped the execution of our code. All of these details together give us a clear call graph: the time spent in `compute/1` is largely consumed by calls to `factorial/1`, which in turn are responsible for most of the total processing time.
 
-===== eprof example
-Let’s consider our sluggish application again, where a recursive function—our naïve factorial—is suspected of consuming most of the CPU time. With eprof we can gather an aggregated view of how long each function takes to execute, using Erlang’s trace BIFs. While eprof won’t give us a full call graph like fprof, it will provide us with a concise breakdown of the time spent per function.
+===== `eprof` Example
 
-Below is an example module that uses eprof to profile our recursive calls:
+Let’s consider our sluggish application again, where a recursive function—our naïve factorial—is suspected of consuming most of the CPU time. With `eprof` we can gather an aggregated view of how long each function takes to execute, using Erlang’s trace BIFs. While `eprof` won’t give us a full call graph like `fprof`, it will provide us with a concise breakdown of the time spent per function.
+
+Below is an example module that uses `eprof` to profile our recursive calls:
 
 [source,erlang]
 ----
@@ -170,21 +172,21 @@ ok
 
 The report shows 113 total function calls consuming 17 microseconds—about 0.15 microseconds per call on average.
 
-• perf_example:compute/1 was called 6 times and took essentially 0 microseconds, meaning its cost is negligible compared to the recursive work.
+• `perf_example:compute/1` was called 6 times and took essentially 0 microseconds, meaning its cost is negligible compared to the recursive work.
 
-• The anonymous function (generated by eprof/0) executed once without noticeable cost.
+• The anonymous function (generated by `eprof/0`) executed once without noticeable cost.
 
-• erlang:apply/2 appears once and accounts for about 11.76% of the total time (roughly 2 microseconds). This reflects the overhead of applying the function call within the profiling framework.
+• `erlang:apply/2` appears once and accounts for about 11.76% of the total time (roughly 2 microseconds). This reflects the overhead of applying the function call within the profiling framework.
 
-• The bulk of the work is done by perf_example:factorial/1, which was called 105 times. It consumes 88.24% of the total time—approximately 15 microseconds total, or around 0.14 microseconds per call.
+• The bulk of the work is done by `perf_example:factorial/1`, which was called 105 times. It consumes 88.24% of the total time—approximately 15 microseconds total, or around 0.14 microseconds per call.
 
-Takeaway: Although each call to factorial/1 is extremely fast, its high call count makes it the primary contributor to the overall execution time. This confirms our suspicion that the recursive work in factorial/1 is the dominant factor in this profiling scenario.
+Takeaway: Although each call to `factorial/1` is extremely fast, its high call count makes it the primary contributor to the overall execution time. This confirms our suspicion that the recursive work in `factorial/1` is the dominant factor in this profiling scenario.
 
 
-===== cprof example
+===== `cprof` Example
 
-The cprof tool uses breakpoints to count calls, a lightweight approach
-that doesn't require recompilation or any trace messages.
+The `cprof` tool uses breakpoints to count calls, a lightweight approach
+that doesn’t require recompilation or any trace messages.
 But you do not get a full call graph, nor do you get timing information.
 
 [source,erlang]
@@ -198,18 +200,18 @@ But you do not get a full call graph, nor do you get timing information.
                  {{perf_example,compute,1},6}]}]}
 ----
 
-The analysis reports a total of 151 calls for the perf_example module. Within that, two functions are tracked:
+The analysis reports a total of 151 calls for the `perf_example` module. Within that, two functions are tracked:
 
-• perf_example:compute/1 was called 6 times.
-• perf_example:factorial/1 was called 145 times.
+• `perf_example:compute/1` was called 6 times.
+• `perf_example:factorial/1` was called 145 times.
 
-The compute/1 function, which processes a list, is invoked 6 times—consistent with processing a list of 5 elements (6 calls: one for each recursive step plus the base case). Meanwhile, the heavy lifting is done by factorial/1, which is called 145 times. This confirms that the bulk of the work is occurring in the recursive calls of factorial/1.
+The `compute/1` function, which processes a list, is invoked 6 times—consistent with processing a list of 5 elements (6 calls: one for each recursive step plus the base case). Meanwhile, the heavy lifting is done by `factorial/1`, which is called 145 times. This confirms that the bulk of the work is occurring in the recursive calls of `factorial/1`.
 
-The data clearly indicates that the recursive factorial function is the hotspot. Although each individual call to factorial/1 is extremely fast, their high frequency (145 calls) suggests that optimizing this function could yield performance improvements if it becomes a bottleneck in a larger workload.
+The data clearly indicates that the recursive factorial function is the hotspot. Although each individual call to `factorial/1` is extremely fast, their high frequency (145 calls) suggests that optimizing this function could yield performance improvements if it becomes a bottleneck in a larger workload.
 
-===== tprof example
+===== `tprof` Example
 
-tprof is an experimental, unified process profiling tool introduced in OTP 27. It supports measurement of call count, execution time, and heap allocations (call_memory). In our scenario, we’ll use tprof in ad-hoc mode with the each type to see how many calls, how much time and how much memory (in words) is allocated by our functions during execution.
+`tprof` is an experimental, unified process profiling tool introduced in OTP 27. It supports measurement of call count, execution time, and heap allocations (`call_memory`). In our scenario, we’ll use `tprof` in ad hoc mode with each type to see how many calls, how much time and how much memory (in words) is allocated by our functions during execution.
 
 [source,erlang]
 ----
@@ -242,4 +244,4 @@ The `call_count` profile shows that the anonymous wrapper function is called onc
 
 The `call_time` output reveals that `compute/1` takes a total of 1 microsecond across 6 calls (about 0.17 µs per call), the anonymous function uses 2 µs, and `factorial/1` takes 17 µs over 105 calls (approximately 0.16 µs per call). Although the per-call times are very small, the aggregated time still shows that `factorial/1` is responsible for the majority (85%) of the execution time, reinforcing that it’s the primary locus of computational work.
 
-The call_memory profile indicates that all of the heap allocation measured (51 words total) occurs in `factorial/1`, which is invoked 105 times. That works out to roughly 0.49 words allocated per call. Since no memory allocations are attributed to `compute/1` or the anonymous wrapper, this confirms that any memory overhead in this workload is entirely due to the recursive function.
+The `call_memory` profile indicates that all of the heap allocation measured (51 words total) occurs in `factorial/1`, which is invoked 105 times. That works out to roughly 0.49 words allocated per call. Since no memory allocations are attributed to `compute/1` or the anonymous wrapper, this confirms that any memory overhead in this workload is entirely due to the recursive function.
