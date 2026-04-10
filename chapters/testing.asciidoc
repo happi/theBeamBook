@@ -7,8 +7,8 @@ In this Chapter, we will explore how to ensure the reliability and robustness of
 ==== EUnit
 EUnit is an Erlang unit testing framework that allows you to test individual program units. These units can range from functions and modules to processes and even whole applications. EUnit helps you write, run, and analyze the results of tests, ensuring your code is correct and reliable.
 
-===== Basics and setup
-To use EUnit in your Erlang module, include the following line after the -module declaration:
+===== Basics and Setup
+To use EUnit in your Erlang module, include the following line after the `-module` declaration:
 
 
 [source,erlang]
@@ -18,10 +18,10 @@ To use EUnit in your Erlang module, include the following line after the -module
 
 This line provides access to EUnit's features and exports a `test()` function for running all the unit tests in your module.
 
-===== Writing test cases and test suites
+===== Writing Test Cases and Test Suites
 To create a simple test function, define a function with a name ending in `_test()` that takes no arguments. It should succeed by returning a value or fail by throwing an exception.
 
-Use pattern matching with = to create more advanced test cases. For example:
+Use pattern matching with `=` to create more advanced test cases. For example:
 
 [source,erlang]
 ----
@@ -35,7 +35,7 @@ Alternatively, you can use the `?assert(Expression)` macro to write test cases t
 length_test() -> ?assert(length([1,2,3]) =:= 3).
 ----
 
-===== Running tests and analyzing results
+===== Running Tests and Analyzing Results
 If you've included the EUnit declaration in your module, compile the module and run the automatically exported `test()` function. For example, if your module is named `m`, call `m:test()` to run EUnit on all the tests in the module.
 
 EUnit can also run tests using the `eunit:test/1` function. For instance, calling `eunit:test(m)` is equivalent to calling `m:test()`.
@@ -194,6 +194,3 @@ When using mocking in Erlang testing, consider the following best practices:
 - Combine mocks with **property-based testing** where applicable, ensuring broader test coverage while controlling specific dependencies.
 
 While property-based testing and mocking can be invaluable in certain testing scenarios, they require deeper understanding and best-practice implementation to be effective. For more comprehensive discussions on these topics, readers are encouraged to explore dedicated resources such as link:https://pragprog.com/titles/fhproper/property-based-testing-with-proper-erlang-and-elixir/["Property-Based Testing with PropEr, Erlang, and Elixir"] and link:https://github.com/eproxus/meck[Meck].
-
-
-
