@@ -8,8 +8,8 @@ This chapter begins by exploring the role of tracing on the BEAM.
 Tracing provides visibility into process execution, communication between these processes, and the system's overall behavior.
 Erlang systems are known for their robustness and fault tolerance, traits that we want to achieve. However, these traits can complicate pinpointing the source of errors or unexpected behavior. Tracing allows developers to follow the execution flow in real time or through recorded logs, making identifying and rectifying bugs easier.
 Tracing also serves a vital function in monitoring the performance of Erlang applications.
-Tracing function calls, message passing, and other system activities allows developers to gather data on performance bottlenecks, inefficient code paths, and unexpected system behavior. 
-Erlang's tracing capabilities extend to providing insights into the system's behavior. 
+Tracing function calls, message passing, and other system activities allows developers to gather data on performance bottlenecks, inefficient code paths, and unexpected system behavior.
+Erlang's tracing capabilities extend to providing insights into the system's behavior.
 Tracing helps in understanding how different parts of the system interact, how they scale, and how they recover from failures.
 Tracing thus becomes an educational tool, enabling developers to model and predict system behavior more accurately.
 
@@ -19,12 +19,12 @@ We will review some of the tracing tools provided by ERTS and some built on top 
 ==== `io:format` Tracing
 While not a tracing tool in the conventional sense, `io:format` serves as Erlang's equivalent to traditional debugging techniques like `printf` debugging found in other programming languages. It allows developers to insert print statements within their code, facilitating immediate and simple output of variable states, function call results, and process statuses. This method is highly accessible and requires minimal setup, making it an excellent first step for identifying issues before employing more sophisticated tracing tools.
 
-==== Erlang Trace (erl_trace)
+==== Erlang Trace (`erl_tracer`)
 This tracing facility offers a low-level interface for tracing Erlang functions, messages, and processes.
 It provides the core functionalities upon which higher-level tracing tools are built, delivering essential tracing primitives directly supported by the Erlang runtime.
 
-==== Sequential Tracing (seq_trace)
-Specialized in tracing the flow of messages within distributed Erlang systems, seq_trace enables developers to track the sequence of message passing between processes.
+==== Sequential Tracing (`seq_trace`)
+Specialized in tracing the flow of messages within distributed Erlang systems, `seq_trace` enables developers to track the sequence of message passing between processes.
 
 === Third-party Tools
 [[Redbug]]
@@ -32,7 +32,7 @@ Specialized in tracing the flow of messages within distributed Erlang systems, s
 Redbug is part of the eper performance and debugging suite and is known for its user-friendly interface and minimal performance impact.
 It focuses on safe, efficient tracing, avoiding common pitfalls like overwhelming trace output or system overload, making it an ideal choice for live system analysis.
 It is an external library and
-therefore it has to be installed separately. One of the best Redbug
+therefore it has to be installed separately. One of the best redbug
 features is its ability to shut itself down in case of overload.
 
 ===== Installing Redbug
@@ -54,7 +54,7 @@ $ make
 
 Ensure `redbug` is included in your path when starting an Erlang shell
 and you are set to go. This can be done by explicitly adding the path
-to the redbug _beam_ files when invoking `erl`:
+to the redbug _BEAM_ files when invoking `erl`:
 
 [source,bash]
 ----
@@ -101,7 +101,7 @@ redbug done, timeout - 1 <4>
     named `sort` with arity `1`, exported by the module `lists`.
     Remember that, in Erlang lingo, the _arity_ represents the number
     of input arguments that a given function takes.
-<3> Finally, we invoke the `lists:sort/1` function  and we verify that
+<3> Finally, we invoke the `lists:sort/1` function, and we verify that
     a message is produced by _redbug_.
 <4> After the default timeout (15 seconds) is reached, redbug stops and
     displays the message "redbug done". Redbug is also kind enough to
@@ -126,7 +126,7 @@ two lines. The first line contains a *timestamp*, the *Process Identifier*
 including the input arguments. Both lines are prepended with a `%`,
 which reminds us of the syntax for Erlang comments.
 
-We can also ask Redbug to produce an extra message for the return
+We can also ask redbug to produce an extra message for the return
 value. This is achieved using the following syntax:
 
 [source,erlang]
@@ -156,7 +156,7 @@ and one when leaving the same function.
 
 When dealing with real code, trace messages can be complex and
 therefore hardly readable. Let’s see what happens if we try to trace
-the sorting of a list containing 10.000 elements.
+the sorting of a list containing 10,000 elements.
 
 [source,erlang]
 ----
@@ -194,11 +194,11 @@ redbug done, timeout - 1
 ----
 
 Most of the output has been truncated here, but you should get the
-idea. To improve things, we can use a couple of redbug options.  The
+idea. To improve things, we can use a couple of redbug options. The
 option `{arity, true}` instructs redbug to only display the number of
 input arguments for the given function, instead of their actual
-value. The `{print_return, false}` option tells Redbug not to display
-the return value of the function call, and to display a `...`  symbol,
+value. The `{print_return, false}` option tells redbug not to display
+the return value of the function call, and to display a `...` symbol,
 instead. Let’s see these options in action.
 
 [source,erlang]
@@ -313,15 +313,14 @@ available options for redbug, you can ask the tool itself:
 ----
 
 
-==== Recon Trace (recon_trace)
-As a component of the recon library for production system diagnosis, recon_trace stands out for its powerful tracing features, designed with safety and minimal performance impact in mind. 
+==== Recon Trace (`recon_trace`)
+As a component of the recon library for production system diagnosis, `recon_trace` stands out for its powerful tracing features, designed with safety and minimal performance impact in mind.
 
 ==== Comparison and Use Cases
 The selection among built-in and third-party tools largely depends on the specific debugging needs.
-`io:format` offers a straightforward, quick debugging method, whereas tools like `erl_trace` and `recon_trace` provide deeper insights with more comprehensive tracing capabilities.
+`io:format` offers a straightforward, quick debugging method, whereas tools like `erl_tracer` and `recon_trace` provide deeper insights with more comprehensive tracing capabilities.
 
-Tools designed to minimize operational impact, such as redbug and recon_trace, are particularly valuable in production environments.
+Tools designed to minimize operational impact, such as redbug and `recon_trace`, are particularly valuable in production environments.
 They enable real-time issue diagnosis without significant performance drawbacks.
 
 `seq_trace` provides essential insights into the dynamics of message passing and process interaction across distributed Erlang nodes.
-
