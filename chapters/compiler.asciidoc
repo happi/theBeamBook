@@ -701,10 +701,7 @@ not expect it to be stable.
 The last stage of a normal compilation is the external BEAM assembly code
 format, as a sequence of individual BEAM instructions represented as Erlang
 terms. Some low level optimizations such as dead code elimination and peep
-hole optimisations are done on this level. The compiler also performs type
-analysis and alias analysis during the SSA passes and records the results
-in the Type chunk of the `.beam` file. The JIT compiler uses this type
-information to specialize the generated native code (see xref:CH-JIT[]).
+hole optimisations are done on this level.
 
 The BEAM code is described in detail in
 xref:CH-Instructions[] and xref:AP-Instructions[]

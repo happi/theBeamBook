@@ -1,17 +1,14 @@
 ASSET_CHAPTERS = $(shell find chapters -type f)
-VERSION = 1.0.$(shell git rev-list v1.0..HEAD --count)
 
-.PHONY: all pdf pdf-a4 pdf-publish pdf-2nded epub html docker docker-build clean serve
+.PHONY: all pdf pdf-a4 pdf-publish epub html docker docker-build clean serve
 
-all: pdf-2nded
+all: pdf-a4 html
 
-pdf: pdf-2nded
+pdf: pdf-a4
 
 pdf-a4: beam-book-a4.pdf
 
 pdf-publish: beam-book-publish.pdf
-
-pdf-2nded: beam-book-2nded.pdf
 
 chapters/contributors.txt:
 	{ \
@@ -44,10 +41,9 @@ beam-book-a4.pdf: style/pdf-online-theme.yml style/pdf-theme.yml chapters/opcode
 	-a source-highlighter=rouge \
 	-a rouge-style=pastie \
 	-a rouge-linenums-mode=table \
-	-a version=$(VERSION) \
  	online-book.asciidoc -o $@
 
-# Print-ready 6×9 for PoD (1st edition format)
+# Print-ready 6×9 for PoD
 pub: beam-book-publish.pdf
 
 beam-book-publish.pdf: style/custom-print-highlight-theme.yml style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc print-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
@@ -59,32 +55,7 @@ beam-book-publish.pdf: style/custom-print-highlight-theme.yml style/pdf-publish-
 	-a source-highlighter=rouge \
 	-a rouge-style=pastie \
 	-a rouge-linenums-mode=table \
-	-a version=$(VERSION) \
  	print-book.asciidoc -o $@ --trace
-
-# 2nd edition 7.5×9.25 format (content only, used by workspace Makefile)
-beam-book-2nded-content.pdf: style/custom-print-highlight-theme.yml style/pdf-2nded-theme.yml chapters/opcodes_doc.asciidoc print-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
-	bundle exec asciidoctor-pdf -r asciidoctor-diagram \
-	-r ./style/custom-pdf-converter.rb \
-	-r ./style/custom-admonition-block.rb \
-	-a config=./style/ditaa.cfg \
-	-a pdf-fontsdir=./style/fonts \
-	-a source-highlighter=rouge \
-	-a rouge-style=pastie \
-	-a rouge-linenums-mode=table \
-	-a pdf-themesdir=style \
-	-a pdf-theme=pdf-2nded \
-	-a version=$(VERSION) \
- 	print-book.asciidoc -o $@ --trace
-
-# 2nd edition complete book with cover and back jacket
-beam-book-2nded.pdf: beam-book-2nded-content.pdf cover.pdf publishing/back_of_cover.md publishing/back_jacket.md
-	pandoc -f markdown+raw_tex+yaml_metadata_block --pdf-engine=xelatex \
-		-o back_of_cover.pdf publishing/back_of_cover.md
-	pandoc -f markdown+raw_tex+yaml_metadata_block --pdf-engine=xelatex \
-		-o back_jacket.pdf publishing/back_jacket.md
-	pdfunite cover.pdf back_of_cover.pdf beam-book-2nded-content.pdf back_jacket.pdf $@
-	rm -f back_of_cover.pdf back_jacket.pdf
 
 # EPUB version
 epub: beam-book.epub
@@ -95,7 +66,6 @@ beam-book.epub: chapters/opcodes_doc.asciidoc epub-book.asciidoc book.asciidoc c
 	-a config=./style/ditaa.cfg \
 	-a source-highlighter=rouge \
 	-a rouge-style=pastie \
-	-a version=$(VERSION) \
 	epub-book.asciidoc -o $@ --trace
 
 
@@ -106,8 +76,7 @@ html: chapters/contributors.txt $(ASSET_CHAPTERS)
 	  -o site/index.html online-book.asciidoc --trace \
 	  -a source-highlighter=rouge \
 	  -a rouge-style=thankful_eyes \
-	  -a rouge-linenums-mode=table \
-	  -a version=$(VERSION)
+	  -a rouge-linenums-mode=table
 	rsync -R code/*/*.png site
 
 code/book/ebin/generate_op_doc.beam: code/book/src/generate_op_doc.erl

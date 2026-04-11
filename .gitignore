@@ -27,17 +27,3 @@ images/diag-*.png
 site
 .asciidoctor
 .DS_Store
-/VERSION
-/images/cover.jpg
-/vendor/
-/.bundle/
-/Gemfile.lock
-CLAUDE.local.md
-.mcp.json
-/backlog/
-/output/
-publishing/missfont.log
-beam-book-2nded.pdf
-beam-book-2nded-content.pdf
-back_of_cover.pdf
-back_jacket.pdf

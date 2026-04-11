@@ -497,13 +497,10 @@ execution.
 === The Scheduler Loop
 
 Conceptually you can look at the scheduler as the driver of program
-execution in the Erlang VM. In the interpreter, the way the C code
+execution in the Erlang VM. In reality, that is, the way the C code
 is structured, it is the emulator (`process_main` in beam_emu.c) that
 drives the execution and it calls the scheduler as a subroutine to find
-the next process to execute. When running with the JIT (see
-xref:CH-JIT[]), `process_main` is a global code fragment that serves
-the same role: it picks the next process, restores its registers, and
-jumps to the saved instruction pointer in native code.
+the next process to execute.
 
 Still, we will pretend that it is the other way around, since it makes
 a nice conceptual model for the scheduler loop. That is, we see it

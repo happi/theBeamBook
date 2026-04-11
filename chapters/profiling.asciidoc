@@ -23,7 +23,7 @@ Data structures in BEAM follow an immutable design, which means updates to tuple
 
 === Profiling Tools
 
-The BEAM comes equipped with a set of built‐in profilers that let you inspect where your time—and by extension, your performance issues—are hiding. There are also some external tools like redbug and recon that can be used for profiling. Each tool has its own strengths and trade‐offs. On systems running the JIT, you can also use OS-level profilers like `perf` with BeamAsm's native code metadata. See xref:CH-JIT[] for details on `+JPperf`, flame graphs, and examining JIT output with `+JDdump`.
+The BEAM comes equipped with a set of built‐in profilers that let you inspect where your time—and by extension, your performance issues—are hiding. There are also some external tools like redbug and recon that can be used for profiling. Each tool has its own strengths and trade‐offs.
 
 ==== `fprof`
 

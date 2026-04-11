@@ -54,10 +54,10 @@ under the Creative Commons license. This printed edition is provided for conveni
 For more information on the Creative Commons license, visit:
 link:https://creativecommons.org/licenses/by/4.0/[].
 
-Second Edition, 2026 — Version {version} +
-ISBN: TBD
+First Edition, 2025
+ISBN: 978-91-531-4253-9
 [.text-center]
-© 2025-2026 Erik Stenman.
+© 2025 Erik Stenman.
 
 // tag::toc[]
 [break-before=recto, include-title=true]
@@ -98,9 +98,6 @@ include::chapters/calls.asciidoc[]
 
 [break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/beam_loader.asciidoc[]
-
-[break-before=recto,leveloffset=+1,include-title=true]
-include::chapters/jit.asciidoc[]
 
 [break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/scheduling.asciidoc[]

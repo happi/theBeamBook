@@ -56,10 +56,10 @@ In Elixir you can call the function in the `shell_default` module as
 [source,bash]
 ----
 $ erl
-Erlang/OTP 27 [erts-15.0] [source] [64-bit] [smp:8:8] [ds:8:8:10]
-               [async-threads:1] [jit:ns]
+Erlang/OTP 19 [erts-8.1] [source] [64-bit] [smp:4:4] [async-threads:10]
+               [kernel-poll:false]
 
-Eshell V15.0 (press Ctrl+G to abort, type help(). for help)
+Eshell V8.1  (abort with ^G)
 1> i().
 Pid                   Initial Call                     Heap     Reds Msgs
 Registered            Current Function                 Stack              
@@ -775,25 +775,11 @@ $2 = {common =
      }
 ----
 
-Two fields in the PCB dump deserve special attention because they
-implement the signal-based message passing architecture introduced in
-OTP 21. The `sig_qs` struct holds the _private_ signal queues: a
-middle queue (`cont`/`cont_last`) where incoming signals land after
-being moved from the outer queue, and the inner message queue
-(`first`/`last`) where decoded messages wait for a `receive`. The
-`save` pointer tracks selective receive position. The `sig_inq` struct
-is the _outer_ signal queue, the only part that other processes (or
-schedulers) may write to under the process lock. Signals arrive in
-`sig_inq` and are later fetched into `sig_qs` by the receiving
-process. The `nmsigs` sub-fields in both structs track non-message
-signals (links, monitors, exits) that require special handling during
-the fetch. We will look at this three-queue architecture in detail in
-the next section.
-
 If you want to dig even deeper than we will go in this chapter you can
 look at the C source code. The ((PCB)) is implemented as a C struct called `process` in the file
-https://github.com/erlang/otp/blob/OTP-27.0/erts/emulator/beam/erl_process.h[`erl_process.h`].
-The struct has grown over the years, so consult the version matching your OTP release.
+https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h[`erl_process.h`] for OTP19
+or https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_process.h[`erl_process.h`]
+for the latest version.
 
 The field `id` contains the process ID (or PID).
 'id = 3470333576787' which is '0b110010100000000000000000000000011001010011' in binary.
@@ -811,25 +797,6 @@ type of a tagged word though.
 pid
 5>
 ----
-
-==== 60-bit Process Identifiers
-
-On 32-bit systems, PIDs have traditionally used 28 bits for the
-process number, allowing roughly 268 million simultaneous processes.
-On 64-bit systems running OTP 24 or earlier, the same 28-bit layout
-was used even though the word size could accommodate more.
-
-OTP 26 extended local PIDs to 60 bits on 64-bit systems. At a
-sustained spawn rate of one million processes per second, it would take
-over 36,000 years before the counter wraps. In practice this means
-PIDs on a 64-bit node will never be reused during the lifetime of a
-running system, which simplifies reasoning about process identity.
-
-This change also required a new external term format. The V4 external
-format (distribution header flag) became the default in OTP 26 and is
-mandatory when communicating with nodes running OTP 26 or later. Older
-nodes that do not understand V4 cannot join a cluster with OTP 26+
-nodes.
 
 The fields ((`htop`)) and ((`stop`)) are pointers to the top of the ((heap)) and
 the ((stack)), that is, they are pointing to the next free slots on the heap
@@ -977,122 +944,109 @@ See xref:CH-Memory[] for more
 details of how garbage collection works. In that chapter we will
 also look at how to track down and fix memory related problems.
 
-=== Signals and Message Passing
+=== Mailboxes and Message Passing
 
-Process communication in the BEAM is built on _signals_. A message
-send is the most common signal, but links, monitors, exits, and
-several other operations are also delivered as signals. Since OTP 21
-all inter-process operations are unified under a single asynchronous
-signal framework. This replaced the older model where some operations
-(such as link and exit) took immediate effect while messages went
-through a separate queue.
+Process communication is done through message passing. A process
+send is implemented so that a sending process copies the message
+from its own heap to the mailbox of the receiving process.
 
-In the early days of Erlang, the scheduler performed all task
-switching. There was no parallelism and only one process ran at a
-time, so a sending process could write data directly into the heap of
-the receiving process without locking. When multicore support was
-added, this was no longer safe. The concept of _m-bufs_ (also called
-_((heap fragments))_) was introduced: a memory area outside a process
-heap where other processes can safely copy data without holding the
-receiver's main lock.
+In the early days of Erlang, concurrency was implemented solely by
+Erlang's own scheduler performing the task switching. We will talk more about concurrency
+in the section about the scheduler later in this chapter, for
+now it is worth noting that in the first version of Erlang there
+was no parallelism and there could only be one process
+running at the time. In that version the sending process could
+write data directly into the heap of the receiving process, without
+locking.
 
-==== The Three-Queue Signal Architecture
+==== Sending Messages in Parallel
 
-Since OTP 21, each process has three queues for handling incoming
-signals:
+When multicore systems were introduced and the Erlang implementation
+was extended with more than one scheduler running processes in parallel it
+was no longer safe to write directly into another process' heap without
+taking the _main lock_ of the receiver. At this time the concept of
+_m-bufs_ was introduced (also called _((heap fragments))_). An ((`m-buf`)) is
+a memory area
+outside of a process heap where other processes can
+safely write data. If a sending process can not get the lock, it would
+write to the `m-buf` instead. When all data of a message has been
+copied to the `m-buf`, the message is linked to the process through the
+mailbox. The linking (`LINK_MESSAGE` in
+link:https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_message.h[erl_message.h])
+appends the message to the receiver's
+message queue.
 
-1. The *outer signal queue* (`sig_inq` in the PCB). This is the only
-   queue that other processes and schedulers may write to. It is
-   protected by the signal-queue lock, a lighter lock than the old
-   main lock. When a process sends a message or the runtime delivers
-   a link, monitor, or exit signal, the signal is appended here.
+The garbage collector would then copy the messages onto the process'
+heap. To reduce the pressure on the GC the mailbox is divided into
+two lists, one containing seen messages and one containing new messages.
+The GC does not have to look at the new messages since we know they will
+survive (they are still in the mailbox) and that way we can avoid some
+copying.
 
-2. The *middle signal queue* (`sig_qs.cont` in the PCB). When the
-   receiving process needs more work, it fetches a batch of signals
-   from the outer queue into this private middle queue. The fetch is
-   the only operation that requires the signal-queue lock from the
-   receiver's side. Non-message signals (exits, monitor notifications,
-   link operations) are decoded and handled during this fetch, so
-   they never appear in the inner message queue.
+=== Lock Free Message Passing
 
-3. The *inner message queue* (`sig_qs.first`/`sig_qs.last` in the
-   PCB). After non-message signals have been processed, the remaining
-   decoded messages move here. This is where `receive` scans for a
-   matching message. The `save` pointer tracks the position for
-   selective receive.
+In Erlang 19 a new per process setting was introduced, ((`message_queue_data`)),
+which can take the values `on_heap` or `off_heap`. When set to ((`on_heap`))
+the sending process will first try to take the _((main lock))_ of the
+receiver and if it succeeds the message will be copied directly
+onto the receiver's heap. This can only be done if the receiver is
+suspended and if no other process has grabbed the lock to send to
+the same process. If the sender can not obtain the lock it will
+allocate a heap fragment and copy the message there instead.
 
-This design has two important properties. First, senders never need
-the receiver's main lock just to deliver a signal; they only touch the
-outer queue. Second, the receiving process handles all signal decoding
-in its own scheduling context, which avoids the priority inversion
-problems that the old two-queue model could cause.
+If the flag is set to ((`off_heap`)) the sender will not try to get the
+lock and instead write directly to a heap fragment. This will reduce
+lock contention but allocating a heap fragment is more expensive than
+writing directly to the already allocated process heap and it can
+lead to larger memory usage. There might be a large empty heap allocated
+and still new messages are written to new fragments.
 
-==== Parallel Signal Sending
+With `on_heap` allocation all the messages, both directly allocated on
+the heap and messages in heap fragments, will be copied by the GC. If
+the message queue is large and many messages are not handled and
+therefore still are live, they will be promoted to the old heap and
+the size of the process heap will increase, leading to higher
+memory usage.
 
-OTP 25 introduced a further optimization for the outer signal queue.
-Instead of a single lock-protected linked list, the outer queue uses a
-slot buffer array (64 slots by default). Each sender hashes to a slot
-and appends its signal there. The receiver fetches from all slots in
-one operation. This reduces contention when many processes send to the
-same receiver simultaneously, a common pattern in gen_server-style
-processes.
-
-==== Message Allocation: on_heap and off_heap
-
-The per-process setting ((`message_queue_data`)) controls where the
-payload of a message signal is allocated. It can be set to `on_heap`
-or `off_heap`.
-
-When set to ((`on_heap`)) the sending process will first try to take
-the _((main lock))_ of the receiver and, if it succeeds, copy the
-message directly onto the receiver's heap. This can only be done if
-the receiver is suspended and no other process holds the lock. If the
-sender cannot obtain the lock, it allocates a heap fragment and copies
-the message there instead.
-
-When set to ((`off_heap`)) the sender always writes to a heap
-fragment, never attempting the main lock. This reduces lock contention
-but uses more memory: a large empty heap may sit unused while new
-messages accumulate in fragments.
-
-With `on_heap` allocation the GC copies all messages (both those on
-the heap and those in heap fragments). If the message queue is large
-and many messages remain unhandled, they get promoted to the old heap
-and the process heap grows. With `off_heap` allocation, messages in
-fragments are not touched by the GC until the message is received and
-becomes reachable from the stack or heap.
+All messages are added to a linked list (the mailbox) when the
+message has been copied to the receiving process. If the message
+is copied to the heap of the receiving process the message is
+linked in to the _internal message queue_ (or ((`seen`)) messages)
+and examined by the GC.
+In the `off_heap` allocation scheme new messages are placed in
+the "`external`" _message in-queue_ and ignored by the GC.
 
 ==== Memory Areas for Messages
 
-We can now revise our picture of the process memory. The process is
-made up of the PCB, the combined heap/stack, the old heap, and three
-signal queues plus a varying number of heap fragments, as shown in
-xref:erlang_process_memory_4[]:
+We can now revise our picture of the process as four memory areas
+once more. Now the process is made up of five memory areas (two
+mailboxes) and a varying number of heap fragments (`m-bufs`), as
+shown in xref:erlang_process_memory_4[]:
 
 [[erlang_process_memory_4]]
-.Erlang Process Memory : Signal Queues
+.Erlang Process Memory : Messages
 [ditaa, separation=false]
 ----
- +-------+                          +-------+
- |  PCB  |                          | Stack |
- +-------+                          +-------+
-                                    | free  |
- +-------+  +--------+  +-------+  +-------+  +-------+
- | outer |  | middle |  | inner |  | Heap  |  |  Old  |
- | sig_q |  | sig_q  |  | msg_q |  |       |  | Heap  |
- +-------+  +--------+  +-------+  +-------+  +-------+
+ +-------+             +-------+
+ |  PCB  |             | Stack |
+ +-------+             +-------+
+                       | free  |
+ +-------+  +-------+  +-------+  +-------+
+ | M-box |  | M-box |  | Heap  |  |  Old  |
+ | intern|  | inq   |  |       |  | Heap  |
+ +-------+  +-------+  +-------+  +-------+
 
  +-------+  +-------+  +-------+  +-------+
- | m-buf |  | m-buf |  | m-buf |  | m-buf |
+ | m−buf |  | m−buf |  | m−buf |  | m−buf |
  +-------+  +-------+  +-------+  +-------+
 
 ----
 
-The outer signal queue is represented by `sig_inq` in the PCB. The
-middle and inner queues live inside the `sig_qs` struct: `cont`/`cont_last`
-for the middle queue and `first`/`last` for the inner message queue.
-The `save` pointer in `sig_qs` implements selective receive by
-tracking which message to examine next.
+Each mailbox consists of a length and two pointers, stored in the fields
+`msg.len`, `msg.first`, `msg.last` for the internal queue and `msg_inq.len`,
+`msg_inq.first`, and `msg_inq.last` for the external in queue. There is
+also a pointer to the next message to look at (`msg.save`) to implement
+selective receive.
 
 ==== The Process of Sending a Message to a Process
 
@@ -1318,7 +1272,7 @@ in later chapters.
 
 ==== Tuning Message Passing
 
-With the ((`message_queue_data`)) flag (available since OTP 19) you
+With the new ((`message_queue_data`)) flag introduced in Erlang 19 you
 can trade memory for execution time in a new way. If the receiving
 process is overloaded and holding on to the `main lock`, it might be
 a good strategy to use the ((`off_heap`)) allocation in order to let the
@@ -1345,32 +1299,6 @@ By setting up your benchmark so that Erlang is started with
 worse if all processes use off heap allocation.
 Then you might want to find bottle neck processes and test switching
 allocation strategies for those processes only.
-
-==== Priority Messages
-
-OTP 28 introduces priority messages (EEP-76). A process can create a
-_priority alias_ by calling `alias([priority])`. Any message sent to
-that alias bypasses the normal inner message queue and is placed in a
-_priority message queue_ (PMQ) that sits in front of the regular
-queue. The next `receive` will see priority messages before any
-normal messages, regardless of arrival order.
-
-The PMQ is implemented as a prefix of `ErlPMQE` (priority message
-queue entry) nodes linked before the inner message queue. Processes
-that never use priority aliases pay no overhead: the PMQ prefix is
-empty and the receive loop runs the same code path as before.
-
-Ordering between priority messages respects signal ordering: if the
-same sender sends two priority messages, they arrive in order. A
-priority message from sender A and a normal message from sender B have
-no ordering guarantee relative to each other, just as with normal
-messages from different senders.
-
-Priority aliases are useful for implementing control channels. A
-gen_server that needs to handle a shutdown request promptly even when
-thousands of work items are queued can expose a priority alias for
-control messages. Without priority aliases, the control message would
-have to wait behind all queued work.
 
 === The Process Dictionary
 
@@ -1439,74 +1367,6 @@ bucket array. Updating an existing key in the dictionary causes the whole
 list of that bucket to be reallocated to make sure we don't get pointers
 from the old heap to the new heap; however, these lists should on average
 be very short.
-
-=== Process Observability and Iteration
-
-Recent OTP releases have added several features that make it easier
-to label, discover, and iterate over processes in a running system.
-
-==== Process Labels
-
-OTP 27 added `proc_lib:set_label/1`, which attaches an arbitrary
-Erlang term as a label to the calling process. The label is visible in
-Observer, in crash reports, and via `process_info(Pid, label)`. Unlike
-registered names, labels do not need to be unique and do not have to
-be atoms. You can label a process with a tuple like
-`{order_handler, OrderId}` to make it easy to identify in a crash
-dump or a production Observer session.
-
-Processes started through `proc_lib` (which includes all OTP
-behaviours: gen_server, gen_statem, supervisor, and so on) can pass a
-label option at start time. For processes started with plain `spawn`,
-call `proc_lib:set_label(Label)` early in the init function.
-
-==== Process Iterators
-
-`erlang:processes/0` returns a list of all process identifiers in the
-system. On a node with millions of processes this list can be large
-and expensive to build. OTP 28 introduces _process iterators_ as a
-lighter alternative:
-
-[source,erlang]
-----
-Iter = erlang:processes_iterator(),
-handle_next(Iter).
-
-handle_next(Iter) ->
-    case erlang:process_next(Iter) of
-        {Pid, NextIter} ->
-            %% do something with Pid
-            handle_next(NextIter);
-        none ->
-            done
-    end.
-----
-
-The iterator yields one PID at a time without building the full list
-in memory. It is a snapshot: processes that are created or terminated
-after the iterator was created may or may not appear.
-
-==== Stack-preserving Hibernation
-
-`erlang:hibernate(M, F, A)` has existed since OTP R13. It shrinks a
-process's heap to the minimum, discards the call stack, and
-suspends until a message arrives. When a message arrives, execution
-resumes at `M:F(A)`. The downside is that the call stack is lost,
-so the process cannot return to whatever it was doing before
-hibernation.
-
-OTP 28 adds `erlang:hibernate/0` (zero-arity), which preserves the
-call stack. The process shrinks its heap and suspends, but when a
-message arrives, execution resumes at the point where `hibernate/0`
-was called. This makes it possible to hibernate inside a deep call
-chain without restructuring the code around a callback.
-
-==== Default Process Limit
-
-The maximum number of simultaneous processes defaults to 1,048,576
-since OTP 27 (previously 262,144). The limit can still be raised
-further with the `+P` flag. On a 64-bit system with sufficient
-memory, tens of millions of processes are practical.
 
 === Dig In
 

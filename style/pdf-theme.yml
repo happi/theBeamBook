@@ -17,11 +17,6 @@ font:
       bold: GEM_FONTS_DIR/mplus1mn-bold-subset.ttf
       italic: GEM_FONTS_DIR/mplus1mn-italic-subset.ttf
       bold_italic: GEM_FONTS_DIR/mplus1mn-bold_italic-subset.ttf
-    Poppins:
-      normal:      poppins/Poppins-Regular.ttf
-      italic:      poppins/Poppins-Italic.ttf
-      bold:        poppins/Poppins-SemiBold.ttf
-      bold_italic: poppins/Poppins-SemiBoldItalic.ttf
     Hack:
       normal:      hack/Hack-Regular.ttf
       italic:      hack/Hack-Italic.ttf
@@ -125,7 +120,6 @@ menu:
 heading:
   align: left
   font_color: $base_font_color
-  font_family: Poppins
   font_style: bold
   # h1 is used for part titles (book doctype) or the doctitle (article doctype)
   h1_font_size: floor($base_font_size * 3.6)
@@ -146,12 +140,10 @@ title_page:
   title:
     top: 55%
     font_size: $heading_h1_font_size
-    font_family: Poppins
     font_color: $role_subtitle_font_color
     line_height: 0.9
   subtitle:
     font_size: $heading_h3_font_size
-    font_family: Poppins
     font_style: bold_italic
     line_height: 1
   authors:
