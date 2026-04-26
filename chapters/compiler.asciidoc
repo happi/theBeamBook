@@ -635,7 +635,7 @@ It is important to note that the code is saved _before_ any
 optimisations are applied, so if there is a bug in an optimisation
 pass in the compiler and you run interpreted code in the debugger you will get a
 different behavior. If you are implementing your own compiler
-optimisations, this can trick you up badly.
+optimisations, this can trip you up badly.
 
 ==== Compiler Pass: Expand
 
