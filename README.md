@@ -205,3 +205,5 @@ Watch this space for further news and to see the whole book take shape.
 
 -- Erik Stenman aka Happi
 
+
+The author also writes fiction as Frank Able; his novel *The Chain*, a thriller about code, coercion and the machinery of modern money, is at [readthechain.com](https://readthechain.com).
