@@ -1,5 +1,14 @@
 ASSET_CHAPTERS = $(shell find chapters -type f)
 
+# Bundler resolution. Some container images install ruby but not the
+# ruby-bundler package, so `bundle` is missing from PATH even though bundler
+# itself sits unlinked in the rubygems tree. Prefer a real `bundle` on PATH,
+# fall back to that binstub, and if neither exists fall through to plain
+# `bundle` so the failure is the obvious "bundle: not found". Override with
+# BUNDLE=/path/to/bundle.
+BUNDLE_BINSTUB := $(lastword $(wildcard /usr/lib/ruby/gems/*/gems/bundler-*/libexec/bundle))
+BUNDLE ?= $(firstword $(shell command -v bundle 2>/dev/null) $(BUNDLE_BINSTUB) bundle)
+
 .PHONY: all pdf pdf-a4 pdf-publish epub html docker docker-build clean serve
 
 all: pdf-a4 html
@@ -33,7 +42,7 @@ chapters/contributors.txt:
 
 ## A4 screen/PDF reading (Default)
 beam-book-a4.pdf: style/pdf-online-theme.yml style/pdf-theme.yml chapters/opcodes_doc.asciidoc online-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
-	bundle exec asciidoctor-pdf -r asciidoctor-diagram \
+	$(BUNDLE) exec asciidoctor-pdf -r asciidoctor-diagram \
 	-r ./style/custom-pdf-converter.rb \
 	-r ./style/custom-admonition-block.rb \
 	-a config=./style/ditaa.cfg \
@@ -47,7 +56,7 @@ beam-book-a4.pdf: style/pdf-online-theme.yml style/pdf-theme.yml chapters/opcode
 pub: beam-book-publish.pdf
 
 beam-book-publish.pdf: style/custom-print-highlight-theme.yml style/pdf-publish-theme.yml chapters/opcodes_doc.asciidoc print-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS) style/pdf-theme.yml
-	bundle exec asciidoctor-pdf -r asciidoctor-diagram \
+	$(BUNDLE) exec asciidoctor-pdf -r asciidoctor-diagram \
 	-r ./style/custom-pdf-converter.rb \
 	-r ./style/custom-admonition-block.rb \
 	-a config=./style/ditaa.cfg \
@@ -61,7 +70,7 @@ beam-book-publish.pdf: style/custom-print-highlight-theme.yml style/pdf-publish-
 epub: beam-book.epub
 
 beam-book.epub: chapters/opcodes_doc.asciidoc epub-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
-	bundle exec asciidoctor-epub3 -r asciidoctor-diagram \
+	$(BUNDLE) exec asciidoctor-epub3 -r asciidoctor-diagram \
 	-r ./style/custom-admonition-block.rb \
 	-a config=./style/ditaa.cfg \
 	-a source-highlighter=rouge \
