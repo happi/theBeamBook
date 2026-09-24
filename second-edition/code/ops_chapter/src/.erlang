@@ -1,0 +1,5 @@
+%% Loaded when the shell starts. Load a user_default module from a
+%% per-user directory and say where the node was started.
+code:load_abs(filename:join([os:getenv("HOME"), ".config", "erlang", "user_default"])).
+
+io:format("ERTS is starting in ~s~n", [os:cmd("pwd")]).

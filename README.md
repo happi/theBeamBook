@@ -5,6 +5,8 @@
 
 # The BEAM Book
 
+Code examples for the second edition are in [second-edition/](second-edition/).
+
 **1.0 — First Edition now *in print***
 
 Grab the tree‑ware from your local Amazon store:
