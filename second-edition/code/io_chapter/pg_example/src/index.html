@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Erlang Console</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+        }
+
+        #console {
+            width: 100%;
+            height: 100vh;
+            overflow-y: scroll;
+        }
+
+        input {
+            width: 100%;
+            background: #000;
+            color: #0f0;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="console"></div>
+    <input id="input" autofocus />
+    <script>
+    const ws = new WebSocket('ws://localhost:8080/websocket');
+    const consoleDiv = document.getElementById('console');
+    const inputField = document.getElementById('input');
+
+    ws.onmessage = function(event) {
+      const msg = document.createElement('div');
+      msg.textContent = event.data;
+      consoleDiv.appendChild(msg);
+      consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    };
+
+    inputField.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        ws.send(inputField.value);
+        inputField.value = '';
+      }
+    });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,15 @@
+{
+    "no" : 1,
+    "name"  : "Jack \"Bee\" Nimble",
+    "escapes" : "\b\n\r\t\f\//\\",
+    "format": {
+        "type"      : "rect",
+        "widths"    : [1920,1600],
+        "height"    : -1080,
+        "interlace" : false,
+        "unicode"   : "\u002f",
+        "frame rate": 4.5
+    }
+}
+
+
