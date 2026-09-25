@@ -172,7 +172,7 @@ and all variable bindings will be available in the shell.
 
 In this file you can configure aspects such as the syntax
 coloring and the size of the history.
-link:https://hexdocs.pm/iex/IEx.html#module-the-iex-exs-file[See hexdocs for full documentation.]
+See hexdocs for full documentation. footnote:source-ops-iex-html-module-the-iex-exs-file[https://hexdocs.pm/iex/IEx.html#module-the-iex-exs-file]
 
 You can also execute arbitrary code in the shell context.
 
@@ -421,7 +421,7 @@ node1@GDC08
 
 Starting a new local shell with `s` and connecting to that instead is useful if you have started a very long-running command and want to do something else in the meantime. If your command seems to be stuck, you can interrupt it with `i`, or you can kill that shell with `k` and start a fresh one.
 
-See the link:http://erlang.org/doc/man/shell.html[Erlang Shell manual]
+See the Erlang Shell manual footnote:source-ops-shell-html[http://erlang.org/doc/man/shell.html]
 for a full description of JCL mode.
 
 You can quit your session by typing `ctrl+g q [enter]`. This
@@ -486,7 +486,7 @@ The last method for connecting to the node is through ssh.
 
 Erlang comes with a built in SSH server which you can start
 on your node and then connect to directly. This is completely separate from the Erlang distribution mechanism, so you do not need to start the system with `-name` or `-sname`. The
-link:http://erlang.org/doc/man/ssh.html[documentation for the ssh module] explains
+documentation for the ssh module footnote:source-ops-ssh-html[http://erlang.org/doc/man/ssh.html] explains
 all the details. For a quick test all you need is a server key which you
 can generate with `ssh-keygen`:
 
@@ -578,7 +578,7 @@ just the node name).
 If you have built your runtime with OPPROF or DEBUG you will be able
 to get even more information.  We will look at how to do this in
 xref:AP-BuildingERTS[]. The code that implements the break mode can be found in
-link:https://github.com/erlang/otp/blob/master/erts/emulator/beam/break.c[erts/emulator/beam/break.c].
+erts/emulator/beam/break.c footnote:source-ops-break-c-master[https://github.com/erlang/otp/blob/master/erts/emulator/beam/break.c].
 
 NOTE: If you prefer that the node shuts down immediately on `ctrl+c` instead of bringing up the BREAK menu, you can pass the option `+Bd` to `erl`. This is typically what you want for running Erlang in Docker or similar. There is also the variant `+Bc` which makes `ctrl-c` just interrupt the current shell command—this can be nice for interactive work.
 

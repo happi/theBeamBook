@@ -32,7 +32,7 @@ Erlang's distribution model and hot code loading feature make it possible to upd
 
 === The BEAM File Format
 
-The definite source of information about the beam file format is obviously the source code of beam_lib.erl (see link:$$https://github.com/erlang/otp/blob/maint/lib/stdlib/src/beam_lib.erl$$[]). There is actually also a more readable but slightly dated description of the format written by the main developer and maintainer of Beam (see link:$$http://www.erlang.se/~bjorn/beam_file_format.html$$[]).
+The definite source of information about the beam file format is obviously the source code of beam_lib.erl (see beam_lib.erl footnote:source-beam-modules-beam-lib-erl-maint[https://github.com/erlang/otp/blob/maint/lib/stdlib/src/beam_lib.erl]). There is actually also a more readable but slightly dated description of the format written by the main developer and maintainer of Beam (see BEAM file format footnote:source-beam-modules-beam-file-format-html[http://www.erlang.se/~bjorn/beam_file_format.html]).
 
 The beam file format is based on the interchange file format (EA IFF)#, with two small changes. We will get to those shortly. An IFF file starts with a header followed by a number of “chunks”. There are a number of standard chunk types in the IFF specification dealing mainly with images and music. But the IFF standard also lets you specify your own named chunks, and this is what BEAM does.
 

@@ -48,7 +48,7 @@ compiler back end `beam_opcodes.erl`.
 === Understanding ops.tab
 
 The transformations in
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab[`ops.tab`]
+`ops.tab` footnote:source-beam-loader-ops-tab-otp-19-3[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab]
 are executed in the order that they are written in the file. So just like in
 Erlang pattern matching, the different rules are triggered from top to bottom.
 
@@ -90,14 +90,14 @@ generated.
 
 move_return S:: is the name of the generated instruction together with the name of
 the variable on the lhs. It is possible to generate
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L625[multiple instructions]
+multiple instructions footnote:source-beam-loader-ops-tab-otp-19-3-l625[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L625]
 as part of a transformation by using the `|` symbol.
 
 [[complex_example]]
 .A more complex example
 
 More complex translations can be done in `ops.tab`. For instance take the
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L127-L182[`select_val`]
+`select_val` footnote:source-beam-loader-ops-tab-otp-19-3-l127-l182[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L127-L182]
 instruction. It will be translated by the loader into either a jump table, a linear
 search array or a binary search array depending on the input values.
 
@@ -115,12 +115,12 @@ limits the type to a be a source register.
 Rest=*:: allows a variable number of arguments in the instruction and binds them to
 variable `Rest`.
 use_jump_tab(Size, Rest):: calls the
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L2707[use_jump_tab]
+use_jump_tab footnote:source-beam-loader-beam-load-c-otp-19-3-l2707[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L2707]
 C function in `beam_load.c` that decides whether the arguments in the `select_val`
 can be transformed into a jump table.
 \:: signifies that the transformation rule continues on the next line.
 gen_jump_tab(S, Fail, Size, Rest):: calls the
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L3692[gen_jump_tab]
+gen_jump_tab footnote:source-beam-loader-beam-load-c-otp-19-3-l3692[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L3692]
 C function in `beam_load.c` that takes care of generating the appropriate instruction.
 
 ==== Specific instruction
@@ -136,7 +136,7 @@ move_return n
 ....
 
 This will generate three different instructions that will use the
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L636[`MoveReturn`]
+`MoveReturn` footnote:source-beam-loader-beam-emu-c-otp-19-3-l636[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L636]
 macro in `beam_emu.c` to do the work.
 
 %macro: move_return:: this tells `ops.tab` to generate the code for `move_return`. If there
@@ -200,7 +200,7 @@ MoveCall(Arg(0));
 NextPF(2, next);
 
 [NOTE]
-The https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L519-L523[PreFetch and NextPF]
+The PreFetch and NextPF footnote:source-beam-loader-beam-emu-c-otp-19-3-l519-l523[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L519-L523]
 macros make sure to load the address to jump to next before the instruction is executed.
 This trick increases performance on all architectures by a variying amount depending on
 cache architecture and super scalar properties of the CPU.
@@ -237,7 +237,7 @@ for all instructions.
 
 The example with the call cannot do any packing as `f` cannot be packed and only one
 other argument exists. So let's look at the
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L539[put_list]
+put_list footnote:source-beam-loader-ops-tab-otp-19-3-l539[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L539]
 instruction as an example instead.
 
 ....
@@ -259,7 +259,7 @@ This packs the 3 arguments into 1 machine word, which halves the required memory
 for this instruction.
 
 -fail_action:: Include a fail action as an argument to the c-macro. Note that the
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L2996-L2998[`ClauseFail()`]
+`ClauseFail()` footnote:source-beam-loader-beam-emu-c-otp-19-3-l2996-l2998[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L2996-L2998]
 macro assumes the fail label is in the first argument of the instructions,
 so in order to use this in the above example we should transform
 the `move_call x f` to `move_call f x`.
@@ -269,7 +269,7 @@ the `move_call x f` to `move_call f x`.
 MoveCall(xb(Arg(0)), ClauseFail());
 
 -gen_dest:: Include a
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L166-L174[store function]
+store function footnote:source-beam-loader-beam-emu-c-otp-19-3-l166-l174[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L166-L174]
 as an argument to the c-macro.
 
 `%macro move_call MoveCall -gen_dest`

@@ -1,3 +1,4 @@
+:source-catalog: first-edition-sources.json
 :media: prepress
 :epub-version: 3.0
 :toc: left
@@ -44,7 +45,7 @@ ISBN: 978-91-531-4253-9
 © 2025 Erik Stenman.
 
 // Include the rest of the book content without the front matter
-include::book.asciidoc[lines=67..-1]
+include::book.asciidoc[tag=body]
 
 [[bibliography]]
 [break-before=recto,leveloffset=+1,include-title=true]

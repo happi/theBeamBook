@@ -14,7 +14,7 @@ trying to speed up execution of Erlang (then running on the JAM
 virtual machine). Some years later, the work on the BEAM was taken over by
 ((Björn Gustavsson)). You can read more about the ((history of Erlang
 implementations)) here:
-link:https://www.erlang.org/blog/beam-compiler-history/[]
+A Brief History of the BEAM Compiler footnote:source-beam-beam-compiler-history[https://www.erlang.org/blog/beam-compiler-history/]
 ****
 
 The virtual machine, BEAM, is at the heart of the Erlang node.
@@ -58,8 +58,8 @@ add
 
 This code can be generated directly from the parse tree of
 the expression. By using Erlang expression and the modules
-https://erlang.org/doc/man/erl_scan.html[`erl_scan`] and
-https://erlang.org/doc/man/erl_parse.html[`erl_parse`] we
+`erl_scan` footnote:source-beam-erl-scan-html[https://erlang.org/doc/man/erl_scan.html] and
+`erl_parse` footnote:source-beam-erl-parse-html[https://erlang.org/doc/man/erl_parse.html] we
 can build the world's most simplistic compiler:
 
 [[simple_compiler_example]]
@@ -731,7 +731,7 @@ stack and heap overrun, and for
 allocating enough space on the stack and the heap. If it does not do this
 correctly, it can result in a crash.
 
-The BEAM instruction https://github.com/erlang/otp/blob/OTP-23.0/lib/compiler/src/genop.tab#L118[`test_heap`]
+The BEAM instruction `test_heap` footnote:source-beam-genop-tab-otp-23-0-l118[https://github.com/erlang/otp/blob/OTP-23.0/lib/compiler/src/genop.tab#L118]
 will ensure that there is as much
 space on the heap as requested. If needed the instruction will call
 the garbage collector to reclaim space on the heap. The garbage

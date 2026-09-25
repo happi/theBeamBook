@@ -5,7 +5,7 @@
 When a process runs out of space on the stack and heap the process
 will try to reclaim space by doing a minor garbage collection. The
 code for this can be found in
-link:https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_gc.c[erl_gc.c].
+erl_gc.c footnote:source-gc-erl-gc-c-maint[https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_gc.c].
 
 === Copying Garbage Collection
 

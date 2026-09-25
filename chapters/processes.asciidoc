@@ -294,7 +294,7 @@ of a process.
 
 See the documentation of the module `erlang` for a full description of
 the information available from ((`process_info/2`)):
-link:https://erlang.org/doc/apps/erts/erlang.html#process_info/2[]
+`erlang:process_info/2` footnote:source-processes-erlang-html-process-info-2[https://erlang.org/doc/apps/erts/erlang.html#process_info/2]
 Notice how the `process_info/1` function only returns a subset of all
 the information available for the process and how the `process_info/2`
 function can be used to fetch extra information. As an example, to
@@ -332,7 +332,7 @@ Erlang shell.
 ==== Using Observer to Inspect Processes
 
 A third way of examining processes is with the
-http://erlang.org/doc/apps/observer/observer_ug.html[_Observer_].
+_Observer_ footnote:source-processes-observer-ug-html[http://erlang.org/doc/apps/observer/observer_ug.html].
 ((Observer)) is an extensive graphical interface for inspecting
 the Erlang Runtime System. We will use the Observer throughout
 this book to examine different aspects of the system.
@@ -365,7 +365,7 @@ $ erl -hidden -sname observer -run observer
 When Observer is started it will show you a system overview,
 see the following screen shot:
 
-image::../images/observer_system.png[Observer system information window showing system statistics including memory usage, atom count, process count, and scheduler information]
+image::../images/observer_system.png["Observer system information window showing system statistics including memory usage, atom count, process count, and scheduler information"]
 
 We will go over some of this information in detail later in
 this and the next chapter. For now we will just use Observer to look
@@ -383,7 +383,7 @@ floating in space connected to each other through links.
 To actually get some useful information about the processes
 we switch to the `Processes` tab:
 
-image::../images/observer_processes.png[Observer processes tab displaying a table of running processes with columns for PID, name, memory usage, message queue length, and reductions]
+image::../images/observer_processes.png["Observer processes tab displaying a table of running processes with columns for PID, name, memory usage, message queue length, and reductions"]
 
 In this view we get basically the same information as with
 `i/0` in the shell. We see the pid, the registered name,
@@ -394,7 +394,7 @@ We can also look into a process by double clicking on its
 row, for example on the code server, to get the kind of
 information you can get with `process_info/2`:
 
-image::../images/observer_code_server.png[Observer process information window showing detailed statistics for the code_server process including state, memory usage, message queue, and stack trace]
+image::../images/observer_code_server.png["Observer process information window showing detailed statistics for the code_server process including state, memory usage, message queue, and stack trace"]
 
 We will not go through what all this information means
 right now, but if you keep on reading all will eventually
@@ -777,8 +777,8 @@ $2 = {common =
 
 If you want to dig even deeper than we will go in this chapter you can
 look at the C source code. The ((PCB)) is implemented as a C struct called `process` in the file
-https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h[`erl_process.h`] for OTP19
-or https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_process.h[`erl_process.h`]
+`erl_process.h` footnote:source-processes-erl-process-h-otp-19-3[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h] for OTP19
+or `erl_process.h` footnote:source-processes-erl-process-h-master[https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_process.h]
 for the latest version.
 
 The field `id` contains the process ID (or PID).
@@ -972,7 +972,7 @@ safely write data. If a sending process can not get the lock, it would
 write to the `m-buf` instead. When all data of a message has been
 copied to the `m-buf`, the message is linked to the process through the
 mailbox. The linking (`LINK_MESSAGE` in
-link:https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_message.h[erl_message.h])
+erl_message.h footnote:source-processes-erl-message-h-master[https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_message.h])
 appends the message to the receiver's
 message queue.
 
@@ -1339,7 +1339,7 @@ or otherwise it's a tagged pointer to data on the heap -- a simple tuple
 `{Key, Value}` if there is only one entry in the bucket, or a
 `NIL`-terminated list `[{Key1, Value1}, ..., {KeyN, ValueN}]` if the bucket
 has N entries. You can find the implementation in the file
-link:https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process_dict.c[erl_process_dict.c].
+erl_process_dict.c footnote:source-processes-erl-process-dict-c-otp-19-3[https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process_dict.c].
 
 This way, there is no additional complexity for managing dynamically
 growing and shrinking bucket lists, and no separate memory management for
