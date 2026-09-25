@@ -1,4 +1,4 @@
-# Usage: bundle exec ruby second-edition/reference-tools/check_html.rb site/index.html
+# Usage: bundle exec ruby reference-tools/check_html.rb site/index.html
 require 'nokogiri'
 require 'uri'
 require 'pathname'

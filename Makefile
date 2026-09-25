@@ -1,5 +1,5 @@
 ASSET_CHAPTERS = $(shell find chapters -type f)
-REFERENCE_ASSETS = $(wildcard second-edition/reference-tools/*.rb second-edition/reference-tools/data/*.json)
+REFERENCE_ASSETS = $(wildcard reference-tools/*.rb reference-tools/data/*.json)
 ASSET_CHAPTERS += $(REFERENCE_ASSETS) style/custom-pdf-converter.rb
 
 # Bundler resolution. Some container images install ruby but not the
@@ -73,7 +73,7 @@ epub: beam-book.epub
 
 beam-book.epub: chapters/opcodes_doc.asciidoc epub-book.asciidoc book.asciidoc chapters/contributors.txt $(ASSET_CHAPTERS)
 	$(BUNDLE) exec asciidoctor-epub3 -r asciidoctor-diagram \
-	-r ./second-edition/reference-tools/digital_sources.rb \
+	-r ./reference-tools/digital_sources.rb \
 	-r ./style/custom-admonition-block.rb \
 	-a config=./style/ditaa.cfg \
 	-a source-highlighter=rouge \
@@ -85,7 +85,7 @@ html: chapters/contributors.txt $(ASSET_CHAPTERS)
 	mkdir -p site
 	cp -r images site
 	$(BUNDLE) exec asciidoctor -r asciidoctor-diagram -r ./style/custom-admonition-block.rb \
-	  -r ./second-edition/reference-tools/digital_sources.rb \
+	  -r ./reference-tools/digital_sources.rb \
 	  -a config=style/ditaa.cfg --backend=html5 --doctype=book \
 	  -o site/index.html online-book.asciidoc --trace \
 	  -a source-highlighter=rouge \

@@ -32,9 +32,9 @@ extracting it. The second-edition EPUB contains the optional deep dives.
 Install the book's Ruby bundle and Python `PyMuPDF`. From the repository root:
 
 ```sh
-bash second-edition/reference-tools/test/run.sh
-python3 second-edition/reference-tools/check_references.py beam-book-a4.pdf beam-book-publish.pdf beam-book.epub
-bundle exec ruby second-edition/reference-tools/check_html.rb site/index.html
+bash reference-tools/test/run.sh
+python3 reference-tools/check_references.py beam-book-a4.pdf beam-book-publish.pdf beam-book.epub
+bundle exec ruby reference-tools/check_html.rb site/index.html
 ```
 
 `BUNDLE` can name a Bundler executable. In the private second-edition repository,

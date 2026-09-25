@@ -6,7 +6,7 @@ entry. Entries print the project or author, title, relevant section/file and URL
 GitHub entries print a concise repository URL plus revision/path information;
 the hyperlink retains its full deep target. DOI entries print `https://doi.org/`.
 
-The shared implementation and reference data live in `second-edition/reference-tools/`
+The shared implementation and reference data live in `reference-tools/`
 in the public first-edition repository. The private manuscript uses a copy of
 these helpers. No second-edition manuscript is included in the public change.
 Upstream's newer public code examples and README were preserved unchanged.
@@ -113,21 +113,21 @@ Relative to the private second-edition task checkout:
 - `chapters/testing.asciidoc`
 - `chapters/type_system.asciidoc`
 - `epub-book.asciidoc`
-- `second-edition/reference-tools/BB-201-first-data.md`
-- `second-edition/reference-tools/BB-201-second-data.md`
-- `second-edition/reference-tools/README.md`
-- `second-edition/reference-tools/check_html.rb`
-- `second-edition/reference-tools/check_references.py`
-- `second-edition/reference-tools/data/first-edition-sources.json`
-- `second-edition/reference-tools/data/second-edition-sources.json`
-- `second-edition/reference-tools/digital_sources.rb`
-- `second-edition/reference-tools/package_release.py`
-- `second-edition/reference-tools/pdf_sources.rb`
-- `second-edition/reference-tools/source_catalog.rb`
-- `second-edition/reference-tools/test/reference-fixture.json`
-- `second-edition/reference-tools/test/references.adoc`
-- `second-edition/reference-tools/test/run.sh`
-- `second-edition/reference-tools/test/verify_fixture.py`
+- `reference-tools/BB-201-first-data.md`
+- `reference-tools/BB-201-second-data.md`
+- `reference-tools/README.md`
+- `reference-tools/check_html.rb`
+- `reference-tools/check_references.py`
+- `reference-tools/data/first-edition-sources.json`
+- `reference-tools/data/second-edition-sources.json`
+- `reference-tools/digital_sources.rb`
+- `reference-tools/package_release.py`
+- `reference-tools/pdf_sources.rb`
+- `reference-tools/source_catalog.rb`
+- `reference-tools/test/reference-fixture.json`
+- `reference-tools/test/references.adoc`
+- `reference-tools/test/run.sh`
+- `reference-tools/test/verify_fixture.py`
 - `style/custom-pdf-converter.rb`
 
 ### Private second edition
@@ -154,21 +154,21 @@ Relative to the private second-edition task checkout:
 - `chapters/23_tweak.asciidoc`
 - `epub-book.asciidoc`
 - `implementation-deep-dives.asciidoc`
-- `second-edition/reference-tools/BB-201-first-data.md`
-- `second-edition/reference-tools/BB-201-second-data.md`
-- `second-edition/reference-tools/README.md`
-- `second-edition/reference-tools/check_html.rb`
-- `second-edition/reference-tools/check_references.py`
-- `second-edition/reference-tools/data/first-edition-sources.json`
-- `second-edition/reference-tools/data/second-edition-sources.json`
-- `second-edition/reference-tools/digital_sources.rb`
-- `second-edition/reference-tools/package_release.py`
-- `second-edition/reference-tools/pdf_sources.rb`
-- `second-edition/reference-tools/source_catalog.rb`
-- `second-edition/reference-tools/test/reference-fixture.json`
-- `second-edition/reference-tools/test/references.adoc`
-- `second-edition/reference-tools/test/run.sh`
-- `second-edition/reference-tools/test/verify_fixture.py`
+- `reference-tools/BB-201-first-data.md`
+- `reference-tools/BB-201-second-data.md`
+- `reference-tools/README.md`
+- `reference-tools/check_html.rb`
+- `reference-tools/check_references.py`
+- `reference-tools/data/first-edition-sources.json`
+- `reference-tools/data/second-edition-sources.json`
+- `reference-tools/digital_sources.rb`
+- `reference-tools/package_release.py`
+- `reference-tools/pdf_sources.rb`
+- `reference-tools/source_catalog.rb`
+- `reference-tools/test/reference-fixture.json`
+- `reference-tools/test/references.adoc`
+- `reference-tools/test/run.sh`
+- `reference-tools/test/verify_fixture.py`
 - `style/custom-pdf-converter.rb`
 - `style/digital-notes.rb`
 - `test/validate_pdf_notes.py`
