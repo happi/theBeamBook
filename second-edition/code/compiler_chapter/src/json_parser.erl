@@ -24,10 +24,10 @@ json_clauses([]) -> [].
                                           , _
                                           , _}]}).
 
-%% We look for: <<"json">> = Json-Term
+%% Recognize wrappers among the direct expressions of a function body.
 json_code([])                     -> [];
 json_code([?JSON(Json)|MoreCode]) -> [parse_json(Json) | json_code(MoreCode)];
-json_code(Code)                   -> Code.
+json_code([Other|MoreCode])        -> [Other | json_code(MoreCode)].
 
 %% Json Object -> [{}] | [{Label, Term}]
 parse_json({tuple,Line,[]})            -> {cons, Line, {tuple, Line, []}, {nil, Line}};
@@ -36,7 +36,7 @@ parse_json({tuple,Line,Fields})        -> parse_json_fields(Fields,Line);
 parse_json({cons, Line, Head, Tail})   -> {cons, Line, parse_json(Head),
                                                        parse_json(Tail)};
 parse_json({nil, Line})                -> {nil, Line};
-%% Json String -> <<String>>
+%% Json String -> UTF-8 binary
 parse_json({string, Line, String})     -> str_to_bin(String, Line);
 %% Json Integer -> Integer
 parse_json({integer, Line, Integer})   -> {integer, Line, Integer};
@@ -75,7 +75,7 @@ str_to_bin(String, Line) ->
          , Line
          , {string, Line, String}
          , default
-         , default
+         , [utf8]
         }
        ]
     }.
