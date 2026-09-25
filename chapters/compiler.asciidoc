@@ -30,13 +30,13 @@ The compiler can be run from the OS shell with the ((`erlc`)) command:
 
 There are several options such as `-o <Directory>` for controlling the
 general behaviour of `erlc`, mostly similar to C compiler options; see
-link:https://www.erlang.org/doc/apps/erts/erlc_cmd.html[] for a complete
+`erlc` footnote:source-compiler-erlc-cmd-html[https://www.erlang.org/doc/apps/erts/erlc_cmd.html] for a complete
 list. More specific ((compiler options)) begin with a plus sign, as in
 `+debug_info`. These are Erlang terms passed straight to the compiler
 application, and they may need quoting in the shell if they contain special
 characters such as `{` or `"`. A full list of these options can be found in
 the documentation of the `compile` module: see
-link:http://www.erlang.org/doc/man/compile.html[].
+`compile` footnote:source-compiler-compile-html[http://www.erlang.org/doc/man/compile.html].
 
 The compiler can also be invoked from the Erlang shell, either with the
 shell shortcut command `c()`, which also loads the module afterwards , or
@@ -143,7 +143,7 @@ later stage, for example from a `.core` source file, either using `erlc`:
 ****
 The `erlc` frontend recognizes several different extensions, not just
 `.erl`, and applies the corresponding backend. See
-link:https://www.erlang.org/doc/apps/erts/erlc_cmd.html#supported-compilers[].
+`erlc` footnote:source-compiler-erlc-cmd-html-supported-compilers[https://www.erlang.org/doc/apps/erts/erlc_cmd.html#supported-compilers].
 ****
 
 or directly from Erlang:
@@ -334,7 +334,7 @@ If you want to see a complete and up to date list of compiler passes
 you can run the function `compile:options()` in an Erlang shell.
 The definitive source for information about the compiler is of course
 the Erlang/OTP source code:
-  link:https://github.com/erlang/otp/blob/maint/lib/compiler/src/compile.erl[compile.erl]
+`compile.erl` footnote:source-compiler-compile-erl-maint[https://github.com/erlang/otp/blob/maint/lib/compiler/src/compile.erl]
 
 
 
@@ -569,7 +569,7 @@ with a syntax that differs from Erlang.
 The parser ((`erl_parse`)) gets the final token sequence from the
 preprocessor and checks it against the Erlang grammar, producing an
 ((abstract syntax tree)) or ((AST)) (see
-link:http://www.erlang.org/doc/apps/erts/absform.html[] ) representing the
+The Abstract Format footnote:source-compiler-absform-html[http://www.erlang.org/doc/apps/erts/absform.html] ) representing the
 program as a data structure instead of as a sequential text.
 
 
@@ -849,8 +849,8 @@ The compilation of `json_test` fails since the module contains invalid
 Erlang syntax, but you get to see what the AST looks like. Now we can
 just write some functions to traverse the AST and rewrite the json
 code into Erlang code.footnote:[The translation here is done in
-accordance with link:http://www.erlang.org/eeps/eep-0018.html[EEP 18]
-(Erlang Enhancement Proposal 18: "JSON bifs")]
+accordance with EEP 18
+(Erlang Enhancement Proposal 18: "JSON bifs")] footnote:source-compiler-eep-0018-html[http://www.erlang.org/eeps/eep-0018.html]
 
 [source,erlang]
 ----
@@ -992,11 +992,11 @@ If you have info and flex installed you can read the full manual by typing:
 ----
 
 The online Erlang documentation also has the leex manual
-(see link:http://erlang.org/doc/man/yecc.html[yecc.html]).
+(see leex footnote:source-compiler-leex[https://www.erlang.org/doc/apps/parsetools/leex.html]).
 
 We can use the lexer generator to create an Erlang program which
 recognizes JSON tokens. By looking at the JSON definition
-http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf
+The JSON Data Interchange Syntax footnote:source-compiler-ecma-404-pdf[http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf]
 we can see that there are only a handful of tokens that we need to handle.
 
 [source,lex]
@@ -1024,7 +1024,7 @@ You can view the DFA graph (xref:fig_json_DFA[]) using for example dotty:
 
 [[fig_json_DFA]]
 .DFA graph for JSON tokens
-image::../code/compiler_chapter/json_tokens.png[DFA (Deterministic Finite Automaton) graph diagram showing the state transitions for JSON token recognition with states and transitions for parsing strings, numbers, booleans, and structural characters]
+image::../code/compiler_chapter/json_tokens.png["DFA (Deterministic Finite Automaton) graph diagram showing the state transitions for JSON token recognition with states and transitions for parsing strings, numbers, booleans, and structural characters"]
 
 We can try our tokenizer on an example json file (`test.json`).
 
@@ -1107,7 +1107,7 @@ With Merl you can very easily manipulate the syntax tree and write
 parse transforms in Erlang code.
 
 You can find the documentation for Syntax Tools on the
-Erlang.org site: link:http://erlang.org/doc/apps/syntax_tools/chapter.html[http://erlang.org/doc/apps/syntax_tools/chapter.html].
+Erlang.org site: Erlang Syntax Tools footnote:source-compiler-syntax-tools[http://erlang.org/doc/apps/syntax_tools/chapter.html].
 
 === Compiling Elixir
 

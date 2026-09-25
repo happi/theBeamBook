@@ -159,7 +159,7 @@ then tries to solve each part.
 
 When a process is scheduled it will get a number of reductions defined
 by `CONTEXT_REDS` (defined in
-link:https://github.com/erlang/otp/blob/OTP-20.0/erts/emulator/beam/erl_vm.h[erl_vm.h],
+erl_vm.h footnote:source-scheduling-erl-vm-h-otp-20-0[https://github.com/erlang/otp/blob/OTP-20.0/erts/emulator/beam/erl_vm.h],
 currently as 4000). After using up its reductions or when doing a
 receive without a matching message in the inbox, the process will be
 suspended and a new processes will be scheduled.
@@ -441,7 +441,7 @@ T the timer is inserted into the slot at `+(tiw_pos+T)%TIW_SIZE+`.
 ----
 
 The timer stored in the timing wheel is a pointer to an `ErlTimer`
-struct. See link:https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h[erl_time.h]. If several timers are
+struct. See erl_time.h footnote:source-scheduling-erl-time-h-otp-19-1[https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h]. If several timers are
 inserted into the same slot they are linked together in a linked list
 by the `prev` and `next` fields. The `count` field is set to
 `T/TIW_SIZE`

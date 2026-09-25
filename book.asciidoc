@@ -1,3 +1,4 @@
+:source-catalog: first-edition-sources.json
 :author: Erik Stenman
 :title: The BEAM Book: Understanding the Erlang Runtime System
 :subject: Computer Science, Programming Languages
@@ -63,6 +64,8 @@ ISBN: 978-91-531-4253-9
 [break-before=recto, include-title=true]
 toc::[]
 // end::toc[]
+
+// tag::body[]
 
 [break-before=recto,include-title=true]
 include::chapters/preface.asciidoc[]
@@ -147,3 +150,5 @@ include::chapters/profiling.asciidoc[]
 include::chapters/building.asciidoc[]
 [break-before=recto,leveloffset=+1,include-title=true]
 include::chapters/ap-beam_instructions.asciidoc[]
+
+// end::body[]

@@ -89,7 +89,7 @@ provides a plethora of low level memory allocators and memory
 allocation strategies.
 
 For an overview of memory allocators see the erts_alloc documentation
-at: http://www.erlang.org/doc/man/erts_alloc.html
+at: erts_alloc footnote:source-memory-erts-alloc-html[http://www.erlang.org/doc/man/erts_alloc.html]
 
 All these allocators also come with a number of parameters that
 can be used to tweak their behavior, and this is probably one
@@ -110,9 +110,9 @@ In order to be able to use these settings in any meaningful way
 we will have to understand how these allocators work and
 how each setting impacts the performance of the allocator.
 
-The erts_alloc manual goes as far as to give the following warning:
+The erts_alloc manual goes as far as to give the following warning footnote:source-memory-erts-alloc-html[]:
 
-[quote, Ericsson AB, http://www.erlang.org/doc/man/erts_alloc.html]
+[quote, Ericsson AB, erts_alloc]
 ____
 WARNING: Only use these flags if you are absolutely sure what you are
 doing. Unsuitable settings may cause serious performance degradation
@@ -138,8 +138,8 @@ ends up in one of these corner cases.
 
 For a nice story about the troubles the system might get into and how to analyze
 and correct the behavior read Fred Hébert’s essay
-https://blog.heroku.com/archives/2013/11/7/logplex-down-the-rabbit-hole["Troubleshooting
-Down the Logplex Rabbit Hole"].
+"Troubleshooting
+Down the Logplex Rabbit Hole" footnote:source-memory-logplex-down-the-rabbit-hole[https://blog.heroku.com/archives/2013/11/7/logplex-down-the-rabbit-hole].
 
 
 When we are talking about a memory allocator in this book we
@@ -456,9 +456,9 @@ a default allocation strategy, but you can also set the
 allocation strategy with the `as` flag.
 
 The Erlang Run-Time System Application Reference Manual lists
-the following allocation strategies:
+the following allocation strategies footnote:source-memory-erts-alloc-html[]:
 
-[quote,'http://www.erlang.org/doc/man/erts_alloc.html[erts_alloc]']
+[quote,erts_alloc]
 __________________________
 
 _Best fit_: Find the smallest block that satisfies the requested block size.
@@ -1469,7 +1469,7 @@ collected.
 
 There is a pretty thorough explanation of how binary construction
 and matching is done in the Erlang documentation:
-link:http://www.erlang.org/doc/efficiency_guide/binaryhandling.html[].
+Constructing and Matching Binaries footnote:source-memory-binaryhandling-html[http://www.erlang.org/doc/efficiency_guide/binaryhandling.html].
 
 
 === Other Interesting Memory Areas

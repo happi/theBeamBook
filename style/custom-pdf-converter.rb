@@ -32,3 +32,7 @@ class CustomPDFConverter < (Asciidoctor::Converter.for 'pdf')
   end
 end
 
+
+require_relative '../second-edition/reference-tools/pdf_sources'
+CustomPDFConverter.prepend BeamChapterExplanations
+CustomPDFConverter.prepend BeamPDFSources

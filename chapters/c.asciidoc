@@ -13,7 +13,7 @@ C code can also extend ERTS and BEAM since they are written in C.
 In previous chapters, we have seen how you can safely interface other applications
 and services over sockets or ports. This chapter will look at ways to interface low-level code more directly, which also means using it more unsafely.
 
-The official documentation contains a tutorial on interoperability, see link:https://www.erlang.org/doc/tutorial/introduction[Interoperability Tutorial].
+The official documentation contains a tutorial on interoperability, see Interoperability Tutorial footnote:source-c-introduction[https://www.erlang.org/doc/tutorial/introduction].
 
 ==== Safe Ways of Interfacing C Code
 
@@ -422,8 +422,8 @@ Imagine implementing a simple BIF to calculate the factorial of a number. The BI
 3. Return the result to the Erlang environment.
 
 Find the code in ERTS where BIFs are defined:
-https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.c
-or in this case perhaps in https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_math.c
+bif.c footnote:source-c-bif-c-master[https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.c]
+or in this case perhaps in erl_math.c footnote:source-c-erl-math-c-master[https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_math.c]
 
 A BIF has a special signature, defined as:
 
@@ -480,7 +480,7 @@ Note that this toy example does not handle large numbers well: `factorial(66)` w
 
 
 
-Add the BIF to the list of BIFs in the file `bif.tab` (https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.tab).
+Add the BIF to the list of BIFs in the file `bif.tab` footnote:source-c-bif-tab-master[https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.tab].
 
 ```c
 bif math:factorial/1
@@ -488,7 +488,7 @@ bif math:factorial/1
 
 If you want to make the BIF available to the rest of the runtime don't forget to add the header to, e.g., `bif.h`.
 
-Then add a stub to the Erlang module `math.erl` (https://github.com/erlang/otp/blob/master/lib/stdlib/src/math.erl):
+Then add a stub to the Erlang module `math.erl` footnote:source-c-math-erl-master[https://github.com/erlang/otp/blob/master/lib/stdlib/src/math.erl]:
 
 ```erlang
 -doc "The factorial of `X`.".
@@ -806,7 +806,7 @@ Fix 2: Rewriting `term_to_binary`
 The second and more intricate fix targeted the `term_to_binary` function itself. Developers rewrote the BIF to yield periodically, spreading its workload over multiple reductions. This approach ensured that the function played nicely with the scheduler, avoiding prolonged monopolization of system resources.
 
 The fix, implemented in the same period, introduced chunked processing to the function. It also depended on advancements in garbage collection within BIFs.
-See https://github.com/erlang/otp/commit/47d6fd3ccf35a4d921591dd0a9b5e69b9804b5b0
+See "Make all steps of term_to_binary work in chunks and yield" footnote:source-c-term-to-binary-yielding[https://github.com/erlang/otp/commit/47d6fd3ccf35a4d921591dd0a9b5e69b9804b5b0]
 
 ==== Summary of Built In Functions (BIFs)
 
@@ -823,8 +823,8 @@ NIFs are functions implemented in C or C++ (or other languages) that are called 
 They provide a way to dynamically extend Erlang with native code for performance-critical operations or interfacing with external libraries.
 Improper use can still destabilize the VM, so they should be used cautiously.
 
-How to use NIFs is nowadays well documented in the link:https://www.erlang.org/doc/tutorial/introduction[Interoperability Tutorial] in the
-link:https://www.erlang.org/doc/system/nif.html[NIF section], but we will go through the basics here.
+How to use NIFs is nowadays well documented in the Interoperability Tutorial footnote:source-c-introduction[] in the
+NIF section footnote:source-c-nif-html[https://www.erlang.org/doc/system/nif.html], but we will go through the basics here.
 
 ==== Implementing a Simple NIF
 A simple C-based NIF for fast integer addition:

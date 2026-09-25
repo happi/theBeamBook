@@ -44,7 +44,7 @@ To separate your test code from your normal code, write the test functions in a 
 
 EUnit captures standard output from test functions, so if your test code writes to the standard output, the text will not appear on the console. To bypass this, use the EUnit debugging macros or write to the user output stream, like `io:format(user, "~w", [Term])`.
 
-For more information on checking the output produced by the unit under test, see the link:https://www.erlang.org/doc/apps/eunit/chapter.html[EUnit documentation] on macros for checking output.
+For more information on checking the output produced by the unit under test, see the EUnit documentation footnote:source-testing-eunit[https://www.erlang.org/doc/apps/eunit/chapter.html] on macros for checking output.
 
 ==== Common Test
 
@@ -193,4 +193,4 @@ When using mocking in Erlang testing, consider the following best practices:
 - Keep mocked behavior **realistic** to avoid misleading test results.
 - Combine mocks with **property-based testing** where applicable, ensuring broader test coverage while controlling specific dependencies.
 
-While property-based testing and mocking can be invaluable in certain testing scenarios, they require deeper understanding and best-practice implementation to be effective. For more comprehensive discussions on these topics, readers are encouraged to explore dedicated resources such as link:https://pragprog.com/titles/fhproper/property-based-testing-with-proper-erlang-and-elixir/["Property-Based Testing with PropEr, Erlang, and Elixir"] and link:https://github.com/eproxus/meck[Meck].
+While property-based testing and mocking can be invaluable in certain testing scenarios, they require deeper understanding and best-practice implementation to be effective. For more comprehensive discussions on these topics, readers are encouraged to explore dedicated resources such as "Property-Based Testing with PropEr, Erlang, and Elixir" footnote:source-testing-property-based-testing-with-proper-erlang-and-elixir[https://pragprog.com/titles/fhproper/property-based-testing-with-proper-erlang-and-elixir/] and Meck footnote:source-testing-meck[https://github.com/eproxus/meck].

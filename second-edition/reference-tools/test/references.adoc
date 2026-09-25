@@ -1,0 +1,20 @@
+= Source reference regression
+:doctype: book
+:sectnums:
+:source-catalog: ../test/reference-fixture.json
+
+[[chapter-one]]
+== One
+
+First source.footnote:source-one[https://example.org/a[Article]] Repeated.footnote:source-one[] An explanation.footnote:explain-one[A plain explanation, without a source URL.]
+
+Github source.footnote:source-github[https://github.com/example/project/blob/v1/src/file.c#L12[code]]
+
+[[chapter-two]]
+== Two
+
+Another local first.footnote:source-two[https://doi.org/10.1234/test[Study]] Cross-chapter reference.footnote:source-one[]
+
+ifdef::backend-pdf[]
+xref:references.pdf#chapter-two[Companion section].
+endif::[]

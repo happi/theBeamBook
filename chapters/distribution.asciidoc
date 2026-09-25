@@ -121,7 +121,7 @@ Another use case for hidden nodes is in systems where the full network of nodes 
 
 It's important to note that hidden nodes are not a security feature. While they don't appear in the `nodes()` list and don't automatically connect to other nodes, they don't provide any additional protection against unauthorized access or eavesdropping. If you need to secure your distributed Erlang system, you should use features like cookie-based authentication and SSL/TLS encryption.
 
-For a full description of the distribution on the Erlang level, including command-line flags, and helpful modules and functions read the reference manual on link:https://www.erlang.org/doc/reference_manual/distributed.html[ Distributed Erlang].
+For a full description of the distribution on the Erlang level, including command-line flags, and helpful modules and functions read the reference manual on Distributed Erlang footnote:source-distribution-distributed-html[https://www.erlang.org/doc/reference_manual/distributed.html].
 
 Now lets turn to the more interesting stuff, how this works in the beam.
 
@@ -150,7 +150,7 @@ The EPMD server operates in a simple loop, waiting for incoming connections and 
 
 The communication between EPMD and the Erlang nodes uses a simple binary protocol. The messages are small and have a fixed format, making the protocol easy to implement and efficient to use.
 
-The protocol is described in detail in link:https://www.erlang.org/doc/apps/erts/erl_dist_protocol.html[ERTS Reference:Distribution Protocol]
+The protocol is described in detail in ERTS Reference:Distribution Protocol footnote:source-distribution-erl-dist-protocol-html[https://www.erlang.org/doc/apps/erts/erl_dist_protocol.html]
 
 The Erlang Distribution Protocol is the underlying protocol that facilitates communication between different Erlang nodes. It is a custom protocol designed specifically for the needs of distributed Erlang systems.
 
@@ -205,9 +205,9 @@ Implementing alternative distribution in Erlang involves several steps:
 
 3. **Testing the Distribution Mechanism**: Once the distribution mechanism is implemented and configured, it needs to be tested to ensure that it works correctly. This involves testing the connection process, message passing, error handling, and any other features of the distribution mechanism.
 
-The Erlang documentation has a chapter on link:https://www.erlang.org/doc/apps/erts/alt_dist.html[how to implement an alternative carrier].
+The Erlang documentation has a chapter on how to implement an alternative carrier footnote:source-distribution-alt-dist-html[https://www.erlang.org/doc/apps/erts/alt_dist.html].
 
-It also has a chapter on link:https://www.erlang.org/doc/apps/erts/alt_disco.html[how to implement an alternative node discovery].
+It also has a chapter on how to implement an alternative node discovery footnote:source-distribution-alt-disco-html[https://www.erlang.org/doc/apps/erts/alt_disco.html].
 
 === Processes in Distributed Erlang
 

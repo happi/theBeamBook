@@ -1,0 +1,446 @@
+{
+  "http://erlang.org/doc/apps/debugger/debugger_chapter.html": {
+    "display_url": "http://erlang.org/doc/apps/debugger/debugger_chapter.html",
+    "project": "Erlang/OTP",
+    "section": "User’s Guide",
+    "title": "Debugger"
+  },
+  "http://erlang.org/doc/apps/observer/observer_ug.html": {
+    "display_url": "http://erlang.org/doc/apps/observer/observer_ug.html",
+    "project": "Erlang/OTP",
+    "section": "User’s Guide",
+    "title": "Observer"
+  },
+  "http://erlang.org/doc/apps/syntax_tools/chapter.html": {
+    "display_url": "http://erlang.org/doc/apps/syntax_tools/chapter.html",
+    "project": "Erlang/OTP",
+    "section": "User’s Guide",
+    "title": "Erlang Syntax Tools"
+  },
+  "http://erlang.org/doc/man/shell.html": {
+    "display_url": "http://erlang.org/doc/man/shell.html",
+    "project": "Erlang/OTP",
+    "section": "Erlang shell module reference",
+    "title": "shell"
+  },
+  "http://erlang.org/doc/man/ssh.html": {
+    "display_url": "http://erlang.org/doc/man/ssh.html",
+    "project": "Erlang/OTP",
+    "section": "SSH module reference",
+    "title": "ssh"
+  },
+  "http://erlang.org/doc/man/yecc.html": {
+    "display_url": "http://erlang.org/doc/man/yecc.html",
+    "project": "Erlang/OTP",
+    "section": "Parser-generator module reference",
+    "title": "yecc"
+  },
+  "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf": {
+    "display_url": "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf",
+    "project": "Ecma International",
+    "section": "ECMA-404",
+    "title": "The JSON Data Interchange Syntax"
+  },
+  "http://www.erlang.org/doc/apps/erts/absform.html": {
+    "display_url": "http://www.erlang.org/doc/apps/erts/absform.html",
+    "project": "Erlang/OTP",
+    "section": "ERTS documentation",
+    "title": "The Abstract Format"
+  },
+  "http://www.erlang.org/doc/efficiency_guide/binaryhandling.html": {
+    "display_url": "http://www.erlang.org/doc/efficiency_guide/binaryhandling.html",
+    "project": "Erlang/OTP",
+    "section": "Efficiency Guide",
+    "title": "Constructing and Matching Binaries"
+  },
+  "http://www.erlang.org/doc/installation_guide/INSTALL.html": {
+    "display_url": "http://www.erlang.org/doc/installation_guide/INSTALL.html",
+    "project": "Erlang/OTP",
+    "section": "Installation Guide",
+    "title": "Installing Erlang/OTP"
+  },
+  "http://www.erlang.org/doc/man/compile.html": {
+    "display_url": "http://www.erlang.org/doc/man/compile.html",
+    "project": "Erlang/OTP",
+    "section": "Compiler module reference",
+    "title": "compile"
+  },
+  "http://www.erlang.org/doc/man/erts_alloc.html": {
+    "display_url": "http://www.erlang.org/doc/man/erts_alloc.html",
+    "project": "Erlang/OTP",
+    "section": "ERTS memory allocator reference",
+    "title": "erts_alloc"
+  },
+  "http://www.erlang.org/eeps/eep-0018.html": {
+    "display_url": "http://www.erlang.org/eeps/eep-0018.html",
+    "project": "Richard A. O'Keefe, Erlang/OTP",
+    "section": "Erlang Enhancement Proposal 18, 28 July 2008",
+    "title": "EEP 18: JSON bifs"
+  },
+  "http://www.erlang.se/~bjorn/beam_file_format.html": {
+    "display_url": "http://www.erlang.se/~bjorn/beam_file_format.html",
+    "project": "Björn Gustavsson",
+    "section": "Historical file-format description",
+    "title": "BEAM file format"
+  },
+  "http://www.it.uu.se/research/publications/reports/2000-029/": {
+    "display_url": "http://www.it.uu.se/research/publications/reports/2000-029/",
+    "project": "M. Pettersson, Uppsala University",
+    "section": "Technical Report 2000-029, November 2000",
+    "title": "A staged tag scheme for Erlang"
+  },
+  "https://blog.heroku.com/archives/2013/11/7/logplex-down-the-rabbit-hole": {
+    "display_url": "https://blog.heroku.com/archives/2013/11/7/logplex-down-the-rabbit-hole",
+    "project": "Fred Hébert, Heroku",
+    "section": "2013",
+    "title": "Troubleshooting Down the Logplex Rabbit Hole"
+  },
+  "https://erlang.org/doc/apps/erts/crash_dump.html": {
+    "display_url": "https://erlang.org/doc/apps/erts/crash_dump.html",
+    "project": "Erlang/OTP",
+    "section": "ERTS documentation",
+    "title": "How to Interpret the Erlang Crash Dumps"
+  },
+  "https://erlang.org/doc/apps/erts/erlang.html#process_info/2": {
+    "display_url": "https://erlang.org/doc/apps/erts/erlang.html#process_info/2",
+    "project": "Erlang/OTP",
+    "section": "ERTS BIF reference; process_info/2",
+    "title": "erlang"
+  },
+  "https://erlang.org/doc/man/erl_parse.html": {
+    "display_url": "https://erlang.org/doc/man/erl_parse.html",
+    "project": "Erlang/OTP",
+    "section": "Parser module reference",
+    "title": "erl_parse"
+  },
+  "https://erlang.org/doc/man/erl_scan.html": {
+    "display_url": "https://erlang.org/doc/man/erl_scan.html",
+    "project": "Erlang/OTP",
+    "section": "Scanner module reference",
+    "title": "erl_scan"
+  },
+  "https://github.com/WhatsApp/edb": {
+    "display_url": "https://github.com/WhatsApp/edb",
+    "project": "WhatsApp",
+    "section": "Erlang debugger repository",
+    "title": "EDB"
+  },
+  "https://github.com/cloudozer/ling": {
+    "display_url": "https://github.com/cloudozer/ling",
+    "project": "Cloudozer",
+    "section": "Project repository",
+    "title": "LING: Erlang on Xen"
+  },
+  "https://github.com/eproxus/meck": {
+    "display_url": "https://github.com/eproxus/meck",
+    "project": "Meck project",
+    "section": "Erlang mocking library",
+    "title": "Meck"
+  },
+  "https://github.com/erlang/otp": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "Project repository",
+    "title": "Erlang/OTP source repository"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.1/erts/emulator/beam/erl_time.h": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/erl_time.h at OTP-19.1",
+    "title": "erl_time.h"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L166-L174": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/beam_emu.c at OTP-19.3; line 166–174",
+    "title": "beam_emu.c"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L2996-L2998": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/beam_emu.c at OTP-19.3; line 2996–2998",
+    "title": "beam_emu.c"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L519-L523": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/beam_emu.c at OTP-19.3; line 519–523",
+    "title": "beam_emu.c"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_emu.c#L636": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/beam_emu.c at OTP-19.3; line 636",
+    "title": "beam_emu.c"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L2707": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/beam_load.c at OTP-19.3; line 2707",
+    "title": "beam_load.c"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/beam_load.c#L3692": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/beam_load.c at OTP-19.3; line 3692",
+    "title": "beam_load.c"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process.h": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/erl_process.h at OTP-19.3",
+    "title": "erl_process.h"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/erl_process_dict.c": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/erl_process_dict.c at OTP-19.3",
+    "title": "erl_process_dict.c"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/ops.tab at OTP-19.3",
+    "title": "ops.tab"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L127-L182": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/ops.tab at OTP-19.3; line 127–182",
+    "title": "ops.tab"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L539": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/ops.tab at OTP-19.3; line 539",
+    "title": "ops.tab"
+  },
+  "https://github.com/erlang/otp/blob/OTP-19.3/erts/emulator/beam/ops.tab#L625": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/ops.tab at OTP-19.3; line 625",
+    "title": "ops.tab"
+  },
+  "https://github.com/erlang/otp/blob/OTP-20.0/erts/emulator/beam/erl_vm.h": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/erl_vm.h at OTP-20.0",
+    "title": "erl_vm.h"
+  },
+  "https://github.com/erlang/otp/blob/OTP-23.0/erts/emulator/beam/erl_term.h": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/erl_term.h at OTP-23.0",
+    "title": "erl_term.h"
+  },
+  "https://github.com/erlang/otp/blob/OTP-23.0/lib/compiler/src/genop.tab#L118": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "lib/compiler/src/genop.tab at OTP-23.0; line 118",
+    "title": "genop.tab"
+  },
+  "https://github.com/erlang/otp/blob/maint/erts/emulator/beam/erl_gc.c": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/erl_gc.c at maint",
+    "title": "erl_gc.c"
+  },
+  "https://github.com/erlang/otp/blob/maint/lib/compiler/src/compile.erl": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "lib/compiler/src/compile.erl at maint",
+    "title": "compile.erl"
+  },
+  "https://github.com/erlang/otp/blob/maint/lib/stdlib/src/beam_lib.erl": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "lib/stdlib/src/beam_lib.erl at maint",
+    "title": "beam_lib.erl"
+  },
+  "https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.c": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/bif.c at master",
+    "title": "bif.c"
+  },
+  "https://github.com/erlang/otp/blob/master/erts/emulator/beam/bif.tab": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/bif.tab at master",
+    "title": "bif.tab"
+  },
+  "https://github.com/erlang/otp/blob/master/erts/emulator/beam/break.c": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/break.c at master",
+    "title": "break.c"
+  },
+  "https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_math.c": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/erl_math.c at master",
+    "title": "erl_math.c"
+  },
+  "https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_message.h": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/erl_message.h at master",
+    "title": "erl_message.h"
+  },
+  "https://github.com/erlang/otp/blob/master/erts/emulator/beam/erl_process.h": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "erts/emulator/beam/erl_process.h at master",
+    "title": "erl_process.h"
+  },
+  "https://github.com/erlang/otp/blob/master/lib/stdlib/src/math.erl": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "lib/stdlib/src/math.erl at master",
+    "title": "math.erl"
+  },
+  "https://github.com/erlang/otp/commit/47d6fd3ccf35a4d921591dd0a9b5e69b9804b5b0": {
+    "display_url": "https://github.com/erlang/otp",
+    "project": "Erlang/OTP",
+    "section": "Commit 47d6fd3ccf35a4d921591dd0a9b5e69b9804b5b0",
+    "title": "Make all steps of term_to_binary work in chunks and yield"
+  },
+  "https://github.com/spawngrid/kerl": {
+    "display_url": "https://github.com/spawngrid/kerl",
+    "project": "kerl project",
+    "section": "Erlang/OTP build and installation tool; historical spawngrid repository URL",
+    "title": "kerl"
+  },
+  "https://github.com/trifork/erjang": {
+    "display_url": "https://github.com/trifork/erjang",
+    "project": "Trifork",
+    "section": "Project repository",
+    "title": "Erjang: a JVM-based Erlang VM"
+  },
+  "https://hexdocs.pm/iex/IEx.html#module-the-iex-exs-file": {
+    "display_url": "https://hexdocs.pm/iex/IEx.html#module-the-iex-exs-file",
+    "project": "Elixir",
+    "section": "The .iex.exs file",
+    "title": "IEx"
+  },
+  "https://max-au.com/2022/03/29/debugging-the-beam/": {
+    "display_url": "https://max-au.com/2022/03/29/debugging-the-beam/",
+    "project": "Maxim Fedorov",
+    "section": "29 March 2022",
+    "title": "Debugging the BEAM"
+  },
+  "https://pragprog.com/titles/fhproper/property-based-testing-with-proper-erlang-and-elixir/": {
+    "display_url": "https://pragprog.com/titles/fhproper/property-based-testing-with-proper-erlang-and-elixir/",
+    "project": "Fred Hébert, The Pragmatic Bookshelf",
+    "section": "First edition, 2019",
+    "title": "Property-Based Testing with PropEr, Erlang, and Elixir"
+  },
+  "https://www.erlang.org/blog/beam-compiler-history/": {
+    "display_url": "https://www.erlang.org/blog/beam-compiler-history/",
+    "project": "Björn Gustavsson, Erlang/OTP",
+    "section": "18 June 2018",
+    "title": "A Brief History of the BEAM Compiler"
+  },
+  "https://www.erlang.org/doc/apps/erts/alt_disco.html": {
+    "display_url": "https://www.erlang.org/doc/apps/erts/alt_disco.html",
+    "project": "Erlang/OTP",
+    "section": "ERTS documentation",
+    "title": "How to Implement an Alternative Node Discovery for Erlang Distribution"
+  },
+  "https://www.erlang.org/doc/apps/erts/alt_dist.html": {
+    "display_url": "https://www.erlang.org/doc/apps/erts/alt_dist.html",
+    "project": "Erlang/OTP",
+    "section": "ERTS documentation",
+    "title": "How to Implement an Alternative Carrier for the Erlang Distribution"
+  },
+  "https://www.erlang.org/doc/apps/erts/erl_dist_protocol.html": {
+    "display_url": "https://www.erlang.org/doc/apps/erts/erl_dist_protocol.html",
+    "project": "Erlang/OTP",
+    "section": "ERTS reference",
+    "title": "Distribution Protocol"
+  },
+  "https://www.erlang.org/doc/apps/erts/erlc_cmd.html": {
+    "display_url": "https://www.erlang.org/doc/apps/erts/erlc_cmd.html",
+    "project": "Erlang/OTP",
+    "section": "Command reference",
+    "title": "erlc"
+  },
+  "https://www.erlang.org/doc/apps/erts/erlc_cmd.html#supported-compilers": {
+    "display_url": "https://www.erlang.org/doc/apps/erts/erlc_cmd.html#supported-compilers",
+    "project": "Erlang/OTP",
+    "section": "Command reference; Supported Compilers",
+    "title": "erlc"
+  },
+  "https://www.erlang.org/doc/apps/eunit/chapter.html": {
+    "display_url": "https://www.erlang.org/doc/apps/eunit/chapter.html",
+    "project": "Erlang/OTP",
+    "section": "User’s Guide",
+    "title": "EUnit"
+  },
+  "https://www.erlang.org/doc/apps/stdlib/io_protocol.html": {
+    "display_url": "https://www.erlang.org/doc/apps/stdlib/io_protocol.html",
+    "project": "Erlang/OTP",
+    "section": "Standard Library documentation",
+    "title": "The Erlang I/O Protocol"
+  },
+  "https://www.erlang.org/doc/reference_manual/distributed.html": {
+    "display_url": "https://www.erlang.org/doc/reference_manual/distributed.html",
+    "project": "Erlang/OTP",
+    "section": "Reference Manual",
+    "title": "Distributed Erlang"
+  },
+  "https://www.erlang.org/doc/system/c_port.html#content": {
+    "display_url": "https://www.erlang.org/doc/system/c_port.html#content",
+    "project": "Erlang/OTP",
+    "section": "Interoperability Tutorial",
+    "title": "Ports"
+  },
+  "https://www.erlang.org/doc/system/c_portdriver.html#c-driver": {
+    "display_url": "https://www.erlang.org/doc/system/c_portdriver.html#c-driver",
+    "project": "Erlang/OTP",
+    "section": "Interoperability Tutorial; C Driver",
+    "title": "Port Drivers"
+  },
+  "https://www.erlang.org/doc/system/c_portdriver.html#content": {
+    "display_url": "https://www.erlang.org/doc/system/c_portdriver.html#content",
+    "project": "Erlang/OTP",
+    "section": "Interoperability Tutorial",
+    "title": "Port Drivers"
+  },
+  "https://www.erlang.org/doc/system/debugging.html#debug-emulator": {
+    "display_url": "https://www.erlang.org/doc/system/debugging.html#debug-emulator",
+    "project": "Erlang/OTP",
+    "section": "Erlang system documentation; Debug emulator",
+    "title": "Debugging"
+  },
+  "https://www.erlang.org/doc/system/eff_guide_functions.html#function-calls": {
+    "display_url": "https://www.erlang.org/doc/system/eff_guide_functions.html#function-calls",
+    "project": "Erlang/OTP",
+    "section": "Efficiency Guide; Function Calls",
+    "title": "Functions"
+  },
+  "https://www.erlang.org/doc/system/nif.html": {
+    "display_url": "https://www.erlang.org/doc/system/nif.html",
+    "project": "Erlang/OTP",
+    "section": "Interoperability Tutorial",
+    "title": "NIFs"
+  },
+  "https://www.erlang.org/doc/tutorial/introduction": {
+    "display_url": "https://www.erlang.org/doc/tutorial/introduction",
+    "project": "Erlang/OTP",
+    "section": "Introduction",
+    "title": "Interoperability Tutorial"
+  },
+  "https://www.gnu.org/software/emacs/manual/html_node/emacs/GDB-Graphical-Interface.html": {
+    "display_url": "https://www.gnu.org/software/emacs/manual/html_node/emacs/GDB-Graphical-Interface.html",
+    "project": "GNU Emacs",
+    "section": "Emacs manual",
+    "title": "GDB Graphical Interface"
+  },
+  "https://www.erlang.org/doc/apps/parsetools/leex.html": {
+    "title": "leex",
+    "project": "Erlang/OTP",
+    "section": "Lexical analyzer generator for Erlang",
+    "display_url": "https://www.erlang.org/doc/apps/parsetools/leex.html"
+  }
+}

@@ -23,7 +23,7 @@ Understanding standard I/O in Erlang helps with debugging and interaction with e
 Erlang's I/O protocol handles communication between processes and I/O devices. The protocol defines how data is sent to and received from devices like the terminal, files, or external programs.
 The protocol includes commands for reading, writing, formatting, and handling I/O control operations.
 These commands are performed asynchronously, maintaining the concurrency model of Erlang.
-For more detailed information, refer to the official documentation at link:https://www.erlang.org/doc/apps/stdlib/io_protocol.html[erlang.org:io_protocol].
+For more detailed information, refer to the official documentation at erlang.org:io_protocol footnote:source-io-io-protocol-html[https://www.erlang.org/doc/apps/stdlib/io_protocol.html].
 
 The I/O protocol is used to communicate with the group leader, which is responsible for handling I/O requests. The group leader is the process that receives I/O requests from other processes and forwards them to the I/O server. The I/O server is responsible for executing the requests and sending the responses back to the group leader, which then forwards them to the requesting process.
 
@@ -352,7 +352,7 @@ The primary commands for interacting with a port include:
 * `{control, Operation, Data}`: Sends a control command to the external program.
 * `{exit_status, Status}`: Receives the exit status of the external program.
 
-See xref:CH-C[] for examples of how to spawn an external program as a port. You can also look at the official documentation: link:https://www.erlang.org/doc/system/c_port.html#content[erlang.org:c_port].
+See xref:CH-C[] for examples of how to spawn an external program as a port. You can also look at the official documentation: erlang.org:c_port footnote:source-io-c-port-html-content[https://www.erlang.org/doc/system/c_port.html#content].
 
 ===== Ports to Linked-in Drivers =====
 
@@ -372,7 +372,7 @@ Example:
 Port ! {self(), {command, <<"Hello, Driver!\n">>}}.
 ```
 
-See xref:CH-C[] for examples of how to implement and spawn a linked in driver as a port. You can also look at the official documentation: link:https://www.erlang.org/doc/system/c_portdriver.html#content[erlang.org:c_portdriver].
+See xref:CH-C[] for examples of how to implement and spawn a linked in driver as a port. You can also look at the official documentation: erlang.org:c_portdriver footnote:source-io-c-portdriver-html-content[https://www.erlang.org/doc/system/c_portdriver.html#content].
 
 ==== Flow Control in Erlang Ports
 
@@ -389,7 +389,7 @@ By scheduling signals to/from the port asynchronously, Erlang ensures that proce
 Now this means that the erlang send operation is not always asynchronous. If the port is busy the send operation will block until the port is not busy anymore. This is a problem if you have a lot of processes sending data to the same port. The solution is to use a port server that can handle the backpressure and make sure that the send operation is always asynchronous.
 
 Let's do an example based on the official port driver example:
-link:https://www.erlang.org/doc/system/c_portdriver.html#c-driver[erlang.org:c-driver].
+erlang.org:c-driver footnote:source-io-c-portdriver-html-c-driver[https://www.erlang.org/doc/system/c_portdriver.html#c-driver].
 
 Let us use the original complex c function, adding 1 or multiplying by 2.
 [source, c]
