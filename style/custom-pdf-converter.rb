@@ -31,8 +31,3 @@ class CustomPDFConverter < (Asciidoctor::Converter.for 'pdf')
     move_down 50
   end
 end
-
-
-require_relative '../reference-tools/pdf_sources'
-CustomPDFConverter.prepend BeamChapterExplanations
-CustomPDFConverter.prepend BeamPDFSources
