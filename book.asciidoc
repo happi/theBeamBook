@@ -1,4 +1,3 @@
-:source-catalog: first-edition-sources.json
 :author: Erik Stenman
 :title: The BEAM Book: Understanding the Erlang Runtime System
 :subject: Computer Science, Programming Languages

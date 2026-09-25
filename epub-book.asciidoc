@@ -1,4 +1,3 @@
-:source-catalog: first-edition-sources.json
 :media: prepress
 :epub-version: 3.0
 :toc: left
